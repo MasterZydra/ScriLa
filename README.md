@@ -14,4 +14,4 @@ ScriLa is a scripting language with a Go and C++ like syntax that transpiles int
 `go build -v ./...`
 
 # Resources
-First simple lexer: [How To Build A Programming Language From Scratch](https://www.youtube.com/watch?v=8VB5TY1sIRo)
+Playlist [Build a Custom Scripting Language In Typescript](https://www.youtube.com/playlist?list=PL_2VhOvlMk4UHGqYCLWc6GO8FaPl8fQTh) by [tylerlaceby](https://www.youtube.com/@tylerlaceby)

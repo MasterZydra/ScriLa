@@ -1,9 +1,10 @@
 package main
 
 import (
+	"ScriLa/cmd/scrila/lexer"
 	"fmt"
 )
 
 func main() {
-	fmt.Println(Tokenize("int x = 42;"))
+	fmt.Println(lexer.Tokenize("int x = 42;"))
 }
