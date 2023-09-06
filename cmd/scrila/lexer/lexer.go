@@ -28,6 +28,17 @@ const (
 	StrType
 )
 
+var singleCharTokens = map[string]TokenType{
+	"-": BinaryOperator,
+	";": Semicolon,
+	"(": OpenParen,
+	")": CloseParen,
+	"*": BinaryOperator,
+	"/": BinaryOperator,
+	"+": BinaryOperator,
+	"=": Equals,
+}
+
 var keywords = map[string]TokenType{
 	"bool": BoolType,
 	"int":  IntType,
@@ -48,28 +59,8 @@ func Tokenize(sourceCode string) []Token {
 	// Build each token until EOF
 	for len(sourceChars) > 0 {
 		// --- Handle single-character tokens ---
-		if sourceChars[0] == ";" {
-			tokens = append(tokens, createToken(sourceChars[0], Semicolon))
-			sourceChars = removeFirstElem(sourceChars)
-			continue
-		}
-		if sourceChars[0] == "(" {
-			tokens = append(tokens, createToken(sourceChars[0], OpenParen))
-			sourceChars = removeFirstElem(sourceChars)
-			continue
-		}
-		if sourceChars[0] == ")" {
-			tokens = append(tokens, createToken(sourceChars[0], CloseParen))
-			sourceChars = removeFirstElem(sourceChars)
-			continue
-		}
-		if sourceChars[0] == "+" || sourceChars[0] == "-" || sourceChars[0] == "*" || sourceChars[0] == "/" {
-			tokens = append(tokens, createToken(sourceChars[0], BinaryOperator))
-			sourceChars = removeFirstElem(sourceChars)
-			continue
-		}
-		if sourceChars[0] == "=" {
-			tokens = append(tokens, createToken(sourceChars[0], Equals))
+		if reserved, ok := singleCharTokens[sourceChars[0]]; ok {
+			tokens = append(tokens, createToken(sourceChars[0], reserved))
 			sourceChars = removeFirstElem(sourceChars)
 			continue
 		}
