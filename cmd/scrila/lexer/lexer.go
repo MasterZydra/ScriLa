@@ -7,25 +7,26 @@ import (
 	"unicode"
 )
 
-type TokenType int
+type TokenType string
 
 const (
-	Semicolon TokenType = iota
+	Semicolon TokenType = "Semicolon"
+	EndOfFile           = "EOF"
 	// --- Operations ---
-	BinaryOperator
+	BinaryOperator = "BinaryOperator"
 	// --- Priority ---
-	OpenParen
-	CloseParen
+	OpenParen  = "OpenParen"
+	CloseParen = "CloseParen"
 	// --- Variables ---
-	Identifier
-	Equals
+	Identifier = "Identifier"
+	Equals     = "Equals"
 	// Variable types
-	Bool
-	BoolType
-	Int
-	IntType
-	Str
-	StrType
+	Bool     = "BoolValue"
+	BoolType = "BoolType"
+	Int      = "IntValue"
+	IntType  = "IntType"
+	Str      = "StrValue"
+	StrType  = "StrType"
 )
 
 var singleCharTokens = map[string]TokenType{
@@ -46,8 +47,8 @@ var keywords = map[string]TokenType{
 }
 
 type Token struct {
-	tokenType TokenType
-	value     string
+	TokenType TokenType
+	Value     string
 }
 
 func Tokenize(sourceCode string) []Token {
@@ -103,13 +104,15 @@ func Tokenize(sourceCode string) []Token {
 		os.Exit(1)
 	}
 
+	tokens = append(tokens, createToken("EOF", EndOfFile))
+
 	return tokens
 }
 
 func createToken(value string, tokenType TokenType) Token {
 	return Token{
-		tokenType: tokenType,
-		value:     value,
+		TokenType: tokenType,
+		Value:     value,
 	}
 }
 
