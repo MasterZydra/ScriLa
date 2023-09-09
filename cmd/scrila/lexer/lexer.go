@@ -7,119 +7,86 @@ import (
 	"unicode"
 )
 
-type TokenType string
-
-const (
-	Semicolon TokenType = "Semicolon"
-	EndOfFile TokenType = "EOF"
-	// --- Operations ---
-	BinaryOperator TokenType = "BinaryOperator"
-	// --- Priority ---
-	OpenParen  TokenType = "OpenParen"
-	CloseParen TokenType = "CloseParen"
-	// --- Variables ---
-	Identifier TokenType = "Identifier"
-	Equals     TokenType = "Equals"
-	// Variable types
-	Bool     TokenType = "BoolValue"
-	BoolType TokenType = "BoolType"
-	Int      TokenType = "IntValue"
-	IntType  TokenType = "IntType"
-	NullType TokenType = "NullType"
-	Str      TokenType = "StrValue"
-	StrType  TokenType = "StrType"
-)
-
-var singleCharTokens = map[string]TokenType{
-	"-": BinaryOperator,
-	";": Semicolon,
-	"(": OpenParen,
-	")": CloseParen,
-	"*": BinaryOperator,
-	"/": BinaryOperator,
-	"+": BinaryOperator,
-	"=": Equals,
+type Lexer struct {
+	sourceChars []string
+	tokens      []*Token
 }
 
-var keywords = map[string]TokenType{
-	"bool": BoolType,
-	"int":  IntType,
-	"null": NullType,
-	"str":  StrType,
+func NewLexer() *Lexer {
+	return &Lexer{}
 }
 
-type Token struct {
-	TokenType TokenType
-	Value     string
-}
-
-func Tokenize(sourceCode string) []Token {
-	tokens := make([]Token, 0)
+func (self *Lexer) Tokenize(sourceCode string) []*Token {
+	// Empty tokens array
+	self.tokens = make([]*Token, 0)
 
 	// Split source code into an array of every character
-	sourceChars := strings.Split(sourceCode, "")
+	self.sourceChars = strings.Split(sourceCode, "")
 
-	// Build each token until EOF
-	for len(sourceChars) > 0 {
-		// --- Handle single-character tokens ---
-		if reserved, ok := singleCharTokens[sourceChars[0]]; ok {
-			tokens = append(tokens, createToken(sourceChars[0], reserved))
-			sourceChars = removeFirstElem(sourceChars)
+	for self.isNotEof() {
+		// Handle single-character tokens
+		if reserved, ok := singleCharTokens[self.at()]; ok {
+			self.pushToken(self.eat(), reserved)
 			continue
 		}
 
 		// --- Handle multi-character tokens ---
 
 		// Build Int token
-		if isDigit(sourceChars[0]) {
+		if isDigit(self.at()) {
 			num := ""
-			for len(sourceChars) > 0 && isDigit(sourceChars[0]) {
-				num += sourceChars[0]
-				sourceChars = removeFirstElem(sourceChars)
+			for self.isNotEof() && isDigit(self.at()) {
+				num += self.eat()
 			}
-			tokens = append(tokens, createToken(num, Int))
+			self.pushToken(num, Int)
 			continue
 		}
 
-		if isLetter(sourceChars[0]) {
+		if isLetter(self.at()) {
 			ident := ""
-			for len(sourceChars) > 0 && isLetter(sourceChars[0]) {
-				ident += sourceChars[0]
-				sourceChars = removeFirstElem(sourceChars)
+			for self.isNotEof() && isLetter(self.at()) {
+				ident += self.eat()
 			}
 
 			// Check for reserved keywords
 			if reserved, ok := keywords[ident]; ok {
-				tokens = append(tokens, createToken(ident, reserved))
+				self.pushToken(ident, reserved)
 			} else {
-				tokens = append(tokens, createToken(ident, Identifier))
+				self.pushToken(ident, Identifier)
 			}
 			continue
 		}
 
-		if isSkippable(sourceChars[0]) {
-			sourceChars = removeFirstElem(sourceChars)
+		if isSkippable(self.at()) {
+			self.eat()
 			continue
 		}
 
-		fmt.Println("Unrecognized character found:", sourceChars[0])
+		fmt.Println("Unrecognized character found:", self.at())
 		os.Exit(1)
 	}
 
-	tokens = append(tokens, createToken("EOF", EndOfFile))
+	self.pushToken("EOF", EndOfFile)
 
-	return tokens
+	return self.tokens
 }
 
-func createToken(value string, tokenType TokenType) Token {
-	return Token{
-		TokenType: tokenType,
-		Value:     value,
-	}
+func (self *Lexer) isNotEof() bool {
+	return len(self.sourceChars) > 0
 }
 
-func removeFirstElem(sourceChars []string) []string {
-	return sourceChars[1:]
+func (self *Lexer) at() string {
+	return self.sourceChars[0]
+}
+
+func (self *Lexer) eat() string {
+	var prev string
+	prev, self.sourceChars = self.sourceChars[0], self.sourceChars[1:]
+	return prev
+}
+
+func (self *Lexer) pushToken(value string, tokenType TokenType) {
+	self.tokens = append(self.tokens, &Token{TokenType: tokenType, Value: value})
 }
 
 func isLetter(sourceChar string) bool {
@@ -133,6 +100,3 @@ func isDigit(sourceChar string) bool {
 func isSkippable(sourceChar string) bool {
 	return sourceChar == " " || sourceChar == "\n" || sourceChar == "\t"
 }
-
-// int x = 42;
-// int y = (1 + 2);

@@ -15,15 +15,18 @@ var additiveOps = []string{"+", "-"}
 var multiplicitaveOps = []string{"*", "/"} // Modulo %
 
 type Parser struct {
-	tokens []lexer.Token
+	lexer  *lexer.Lexer
+	tokens []*lexer.Token
 }
 
 func NewParser() *Parser {
-	return &Parser{}
+	return &Parser{
+		lexer: lexer.NewLexer(),
+	}
 }
 
 func (self Parser) ProduceAST(sourceCode string) ast.IProgram {
-	self.tokens = lexer.Tokenize(sourceCode)
+	self.tokens = self.lexer.Tokenize(sourceCode)
 	program := ast.NewProgram()
 
 	for self.notEOF() {
@@ -129,12 +132,12 @@ func (self *Parser) parsePrimaryExpr() ast.IExpr {
 	}
 }
 
-func (self *Parser) at() lexer.Token {
+func (self *Parser) at() *lexer.Token {
 	return self.tokens[0]
 }
 
-func (self *Parser) expect(tokenType lexer.TokenType, errMsg string) lexer.Token {
-	var prev lexer.Token
+func (self *Parser) expect(tokenType lexer.TokenType, errMsg string) *lexer.Token {
+	var prev *lexer.Token
 	prev, self.tokens = self.tokens[0], self.tokens[1:]
 	if prev.TokenType != tokenType {
 		fmt.Printf("\nParser Error: %s\nExpected: %s\n", errMsg, prev)
@@ -143,8 +146,8 @@ func (self *Parser) expect(tokenType lexer.TokenType, errMsg string) lexer.Token
 	return prev
 }
 
-func (self *Parser) eat() lexer.Token {
-	var prev lexer.Token
+func (self *Parser) eat() *lexer.Token {
+	var prev *lexer.Token
 	prev, self.tokens = self.tokens[0], self.tokens[1:]
 	return prev
 }

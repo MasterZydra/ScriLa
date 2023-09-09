@@ -17,6 +17,7 @@ func main() {
 
 func repl() {
 	reader := bufio.NewReader(os.Stdin)
+	lexer := lexer.NewLexer()
 	parser := parser.NewParser()
 
 	fmt.Println("\nRepl v0.1")
@@ -27,7 +28,7 @@ func repl() {
 			os.Exit(0)
 		}
 
-		fmt.Println("Tokens:   ", lexer.Tokenize(input))
+		fmt.Printf("Tokens:   %#v\n", lexer.Tokenize(input))
 
 		program := parser.ProduceAST(input)
 		fmt.Printf("AST:       %s\n", program)
