@@ -3,6 +3,7 @@ package main
 import (
 	"ScriLa/cmd/scrila/lexer"
 	"ScriLa/cmd/scrila/parser"
+	"ScriLa/cmd/scrila/runtime"
 	"bufio"
 	"fmt"
 	"os"
@@ -26,10 +27,13 @@ func repl() {
 			os.Exit(0)
 		}
 
-		fmt.Println("Tokens:", lexer.Tokenize(input))
+		fmt.Println("Tokens:   ", lexer.Tokenize(input))
 
 		program := parser.ProduceAST(input)
-		fmt.Printf("AST: [%s, Body: %s\n", program.GetKind(), program.GetBody())
+		fmt.Printf("AST:       %s\n", program)
+
+		result := runtime.Evaluate(program)
+		fmt.Println("Interpret:", result)
 	}
 }
 

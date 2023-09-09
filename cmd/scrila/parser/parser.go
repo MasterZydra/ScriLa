@@ -22,7 +22,7 @@ func NewParser() *Parser {
 	return &Parser{}
 }
 
-func (self Parser) ProduceAST(sourceCode string) ast.Program {
+func (self Parser) ProduceAST(sourceCode string) ast.IProgram {
 	self.tokens = lexer.Tokenize(sourceCode)
 	program := ast.NewProgram()
 
@@ -30,7 +30,7 @@ func (self Parser) ProduceAST(sourceCode string) ast.Program {
 		program.Body = append(program.GetBody(), self.parseStatement())
 	}
 
-	return *program
+	return program
 }
 
 func (self *Parser) notEOF() bool {
@@ -61,10 +61,18 @@ func (self *Parser) parseExpr() ast.IExpr {
 
 func (self *Parser) parseAdditiveExpr() ast.IExpr {
 	// Lefthand Prescidence
-	// e.g 10 + 5 - 6
-	// Left: Expr (Left: "10", Op: "+", Right: "5")
-	// Operator: "-"
-	// Right: 6
+	//
+	//      10 + 5 - 6      10 + (5 - 6)        10 * 5 - 6     10 + 5 * 6
+	//
+	//           o               o                   o              o
+	//          /|\             /|\                 /|\            /|\
+	//         / | \           / | \               / | \          / | \
+	//        /  -  6        10  +  \             /  -  6       10  +  \
+	//       o                       o           o                      o
+	//      /|\                     /|\         /|\                    /|\
+	//     / | \                   / | \       / | \                  / | \
+	//   10  +  5                 5  -  6     10  *  5                5  *  6
+
 	left := self.parseMultiplicitaveExpr()
 
 	// Current token is an additive operator
@@ -78,11 +86,7 @@ func (self *Parser) parseAdditiveExpr() ast.IExpr {
 }
 
 func (self *Parser) parseMultiplicitaveExpr() ast.IExpr {
-	// Lefthand Prescidence
-	// e.g 10 * 5 / 6
-	// Left: Expr (Left: "10", Op: "*", Right: "5")
-	// Operator: "/"
-	// Right: 6
+	// Lefthand Prescidence (see func parseAdditiveExpr)
 	left := self.parsePrimaryExpr()
 
 	// Current token is a multiplicitave operator
@@ -99,6 +103,9 @@ func (self *Parser) parsePrimaryExpr() ast.IExpr {
 	switch self.at().TokenType {
 	case lexer.Identifier:
 		return ast.NewIdentifier(self.eat().Value)
+	case lexer.NullType:
+		self.eat() // Advance post null keyword
+		return ast.NewNullLiteral()
 	case lexer.Int:
 		strValue := self.eat().Value
 		intValue, err := strconv.ParseInt(strValue, 10, 64)

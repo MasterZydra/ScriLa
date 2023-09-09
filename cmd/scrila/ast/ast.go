@@ -4,15 +4,16 @@ import "fmt"
 
 type NodeType string
 
-var nodeTypes = []string{
-	"Program",
-	"IntLiteral",
-	"Identifier",
-	"BinaryExpr",
-	"CallExpr",
-	"UnaryExpr",
-	"FunctionDeclaration",
-}
+const (
+	BinaryExprNode          NodeType = "BinaryExpr"
+	CallExprNode            NodeType = "CallExpr"
+	FunctionDeclarationNode NodeType = "FunctionDeclaration"
+	IdentifierNode          NodeType = "Identifier"
+	IntLiteralNode          NodeType = "IntLiteral"
+	NullLiteralNode         NodeType = "NullLiteral"
+	ProgramNode             NodeType = "Program"
+	UnaryExprNode           NodeType = "UnaryExpr"
+)
 
 type IStatement interface {
 	GetKind() NodeType
@@ -36,9 +37,13 @@ type Program struct {
 	Body []IStatement
 }
 
+func (self *Program) String() string {
+	return fmt.Sprintf("&{%s %s}", self.GetKind(), self.GetBody())
+}
+
 func NewProgram() *Program {
 	return &Program{
-		kind: "Program",
+		kind: ProgramNode,
 		Body: make([]IStatement, 0),
 	}
 }
@@ -77,12 +82,12 @@ type BinaryExpr struct {
 }
 
 func (self *BinaryExpr) String() string {
-	return fmt.Sprintf("&{%s %s %s %s", self.GetKind(), self.GetLeft(), self.GetOperator(), self.GetRight())
+	return fmt.Sprintf("&{%s %s %s %s}", self.GetKind(), self.GetLeft(), self.GetOperator(), self.GetRight())
 }
 
 func NewBinaryExpr(left IExpr, right IExpr, operator string) *BinaryExpr {
 	return &BinaryExpr{
-		kind:     "BinaryExpr",
+		kind:     BinaryExprNode,
 		left:     left,
 		right:    right,
 		operator: operator,
@@ -117,7 +122,7 @@ type Identifier struct {
 
 func NewIdentifier(symbol string) *Identifier {
 	return &Identifier{
-		kind:   "Identifier",
+		kind:   IdentifierNode,
 		symbol: symbol,
 	}
 }
@@ -142,7 +147,7 @@ type IntLiteral struct {
 
 func NewIntLiteral(value int64) *IntLiteral {
 	return &IntLiteral{
-		kind:  "IntLiteral",
+		kind:  IntLiteralNode,
 		value: value,
 	}
 }
@@ -152,5 +157,30 @@ func (self *IntLiteral) GetKind() NodeType {
 }
 
 func (self *IntLiteral) GetValue() int64 {
+	return self.value
+}
+
+type INullLiteral interface {
+	IExpr
+	GetValue() string
+}
+
+type NullLiteral struct {
+	kind  NodeType
+	value string
+}
+
+func NewNullLiteral() *NullLiteral {
+	return &NullLiteral{
+		kind:  NullLiteralNode,
+		value: "null",
+	}
+}
+
+func (self *NullLiteral) GetKind() NodeType {
+	return self.kind
+}
+
+func (self *NullLiteral) GetValue() string {
 	return self.value
 }

@@ -11,22 +11,23 @@ type TokenType string
 
 const (
 	Semicolon TokenType = "Semicolon"
-	EndOfFile           = "EOF"
+	EndOfFile TokenType = "EOF"
 	// --- Operations ---
-	BinaryOperator = "BinaryOperator"
+	BinaryOperator TokenType = "BinaryOperator"
 	// --- Priority ---
-	OpenParen  = "OpenParen"
-	CloseParen = "CloseParen"
+	OpenParen  TokenType = "OpenParen"
+	CloseParen TokenType = "CloseParen"
 	// --- Variables ---
-	Identifier = "Identifier"
-	Equals     = "Equals"
+	Identifier TokenType = "Identifier"
+	Equals     TokenType = "Equals"
 	// Variable types
-	Bool     = "BoolValue"
-	BoolType = "BoolType"
-	Int      = "IntValue"
-	IntType  = "IntType"
-	Str      = "StrValue"
-	StrType  = "StrType"
+	Bool     TokenType = "BoolValue"
+	BoolType TokenType = "BoolType"
+	Int      TokenType = "IntValue"
+	IntType  TokenType = "IntType"
+	NullType TokenType = "NullType"
+	Str      TokenType = "StrValue"
+	StrType  TokenType = "StrType"
 )
 
 var singleCharTokens = map[string]TokenType{
@@ -43,6 +44,7 @@ var singleCharTokens = map[string]TokenType{
 var keywords = map[string]TokenType{
 	"bool": BoolType,
 	"int":  IntType,
+	"null": NullType,
 	"str":  StrType,
 }
 
