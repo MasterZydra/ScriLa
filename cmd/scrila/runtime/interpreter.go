@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func Evaluate(astNode ast.IStatement) IRuntimeVal {
+func Evaluate(astNode ast.IStatement, env *Environment) IRuntimeVal {
 	switch astNode.GetKind() {
 	case ast.IntLiteralNode:
 		var i interface{} = astNode
@@ -14,20 +14,23 @@ func Evaluate(astNode ast.IStatement) IRuntimeVal {
 		// TODO error handling
 		return NewIntVal(intLiteral.GetValue())
 
-	case ast.NullLiteralNode:
-		return NewNullVal()
+	case ast.IdentifierNode:
+		var i interface{} = astNode
+		identifier, _ := i.(ast.IIdentifier)
+		// TODO error handling
+		return evalIdentifier(identifier, env)
 
 	case ast.BinaryExprNode:
 		var i interface{} = astNode
 		binaryExpr, _ := i.(ast.IBinaryExpr)
 		// TODO error handling
-		return evalBinaryExpr(binaryExpr)
+		return evalBinaryExpr(binaryExpr, env)
 
 	case ast.ProgramNode:
 		var i interface{} = astNode
 		program, _ := i.(ast.IProgram)
 		// TODO error handling
-		return evalProgram(program)
+		return evalProgram(program, env)
 
 	default:
 		fmt.Println("This AST Node has not benn setup for interpretion:", astNode)
@@ -36,9 +39,13 @@ func Evaluate(astNode ast.IStatement) IRuntimeVal {
 	}
 }
 
-func evalBinaryExpr(binOp ast.IBinaryExpr) IRuntimeVal {
-	lhs := Evaluate(binOp.GetLeft())
-	rhs := Evaluate(binOp.GetRight())
+func evalIdentifier(identifier ast.IIdentifier, env *Environment) IRuntimeVal {
+	return env.lookupVar(identifier.GetSymbol())
+}
+
+func evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) IRuntimeVal {
+	lhs := Evaluate(binOp.GetLeft(), env)
+	rhs := Evaluate(binOp.GetRight(), env)
 
 	if lhs.GetType() == IntValueType && rhs.GetType() == IntValueType {
 		var i interface{} = lhs
@@ -73,11 +80,11 @@ func evalIntBinaryExpr(lhs IIntVal, rhs IIntVal, operator string) IIntVal {
 	return NewIntVal(result)
 }
 
-func evalProgram(program ast.IProgram) IRuntimeVal {
+func evalProgram(program ast.IProgram, env *Environment) IRuntimeVal {
 	var lastEvaluated IRuntimeVal = NewNullVal()
 
 	for _, statement := range program.GetBody() {
-		lastEvaluated = Evaluate(statement)
+		lastEvaluated = Evaluate(statement, env)
 	}
 
 	return lastEvaluated

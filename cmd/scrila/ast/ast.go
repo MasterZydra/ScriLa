@@ -10,7 +10,6 @@ const (
 	FunctionDeclarationNode NodeType = "FunctionDeclaration"
 	IdentifierNode          NodeType = "Identifier"
 	IntLiteralNode          NodeType = "IntLiteral"
-	NullLiteralNode         NodeType = "NullLiteral"
 	ProgramNode             NodeType = "Program"
 	UnaryExprNode           NodeType = "UnaryExpr"
 )
@@ -157,30 +156,5 @@ func (self *IntLiteral) GetKind() NodeType {
 }
 
 func (self *IntLiteral) GetValue() int64 {
-	return self.value
-}
-
-type INullLiteral interface {
-	IExpr
-	GetValue() string
-}
-
-type NullLiteral struct {
-	kind  NodeType
-	value string
-}
-
-func NewNullLiteral() *NullLiteral {
-	return &NullLiteral{
-		kind:  NullLiteralNode,
-		value: "null",
-	}
-}
-
-func (self *NullLiteral) GetKind() NodeType {
-	return self.kind
-}
-
-func (self *NullLiteral) GetValue() string {
 	return self.value
 }

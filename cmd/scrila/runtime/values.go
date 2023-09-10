@@ -71,4 +71,29 @@ func (self *IntVal) GetValue() int64 {
 	return self.value
 }
 
-// TODO StrVal BoolVal
+type IBoolVal interface {
+	IRuntimeVal
+	GetValue() bool
+}
+
+type BoolVal struct {
+	valueType ValueType
+	value     bool
+}
+
+func NewBoolVal(value bool) *BoolVal {
+	return &BoolVal{
+		valueType: BoolValueType,
+		value:     value,
+	}
+}
+
+func (self *BoolVal) GetType() ValueType {
+	return self.valueType
+}
+
+func (self *BoolVal) GetValue() bool {
+	return self.value
+}
+
+// TODO BoolVal

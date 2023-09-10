@@ -106,9 +106,6 @@ func (self *Parser) parsePrimaryExpr() ast.IExpr {
 	switch self.at().TokenType {
 	case lexer.Identifier:
 		return ast.NewIdentifier(self.eat().Value)
-	case lexer.NullType:
-		self.eat() // Advance post null keyword
-		return ast.NewNullLiteral()
 	case lexer.Int:
 		strValue := self.eat().Value
 		intValue, err := strconv.ParseInt(strValue, 10, 64)
@@ -117,7 +114,6 @@ func (self *Parser) parsePrimaryExpr() ast.IExpr {
 			os.Exit(1)
 		}
 		return ast.NewIntLiteral(intValue)
-
 	case lexer.OpenParen:
 		// Eat opening paren
 		self.eat()

@@ -19,6 +19,7 @@ func repl() {
 	reader := bufio.NewReader(os.Stdin)
 	lexer := lexer.NewLexer()
 	parser := parser.NewParser()
+	env := runtime.NewEnvironment(nil)
 
 	fmt.Println("\nRepl v0.1")
 	for true {
@@ -33,7 +34,7 @@ func repl() {
 		program := parser.ProduceAST(input)
 		fmt.Printf("AST:       %s\n", program)
 
-		result := runtime.Evaluate(program)
+		result := runtime.Evaluate(program, env)
 		fmt.Println("Interpret:", result)
 	}
 }

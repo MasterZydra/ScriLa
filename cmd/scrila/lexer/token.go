@@ -14,7 +14,6 @@ var singleCharTokens = map[string]TokenType{
 var keywords = map[string]TokenType{
 	"bool": BoolType,
 	"int":  IntType,
-	"null": NullType,
 	"str":  StrType,
 }
 
@@ -36,7 +35,6 @@ const (
 	BoolType TokenType = "BoolType"
 	Int      TokenType = "IntValue"
 	IntType  TokenType = "IntType"
-	NullType TokenType = "NullType"
 	Str      TokenType = "StrValue"
 	StrType  TokenType = "StrType"
 )
