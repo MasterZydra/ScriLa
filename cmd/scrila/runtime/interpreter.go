@@ -22,6 +22,12 @@ func Evaluate(astNode ast.IStatement, env *Environment) IRuntimeVal {
 		// TODO error handling
 		return evalIdentifier(identifier, env)
 
+	case ast.AssignmentExprNode:
+		var i interface{} = astNode
+		assignment, _ := i.(ast.IAssignmentExpr)
+		// TODO error handling
+		return evalAssignment(assignment, env)
+
 	case ast.BinaryExprNode:
 		var i interface{} = astNode
 		binaryExpr, _ := i.(ast.IBinaryExpr)

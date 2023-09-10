@@ -20,7 +20,6 @@ func NewEnvironment(parentEnv *Environment) *Environment {
 		constants: make([]string, 0),
 	}
 
-	env.declareVar("x", NewIntVal(100), false)
 	env.declareVar("null", NewNullVal(), true)
 	env.declareVar("true", NewBoolVal(true), true)
 	env.declareVar("false", NewBoolVal(false), true)

@@ -10,6 +10,7 @@ const (
 	VarDeclarationNode NodeType = "VarDeclaration"
 
 	// Expressions
+	AssignmentExprNode      NodeType = "AssignmentExpr"
 	BinaryExprNode          NodeType = "BinaryExpr"
 	CallExprNode            NodeType = "CallExpr"
 	FunctionDeclarationNode NodeType = "FunctionDeclaration"
@@ -111,6 +112,42 @@ type Expr struct {
 
 func (self *Expr) GetKind() NodeType {
 	return self.kind
+}
+
+type IAssignmentExpr interface {
+	IExpr
+	GetAssigne() IExpr
+	GetValue() IExpr
+}
+
+type AssignmentExpr struct {
+	kind    NodeType
+	assigne IExpr
+	value   IExpr
+}
+
+func (self *AssignmentExpr) String() string {
+	return fmt.Sprintf("&{%s %s %s}", self.GetKind(), self.GetAssigne(), self.GetValue())
+}
+
+func NewAssignmentExpr(assigne IExpr, value IExpr) *AssignmentExpr {
+	return &AssignmentExpr{
+		kind:    AssignmentExprNode,
+		assigne: assigne,
+		value:   value,
+	}
+}
+
+func (self *AssignmentExpr) GetKind() NodeType {
+	return self.kind
+}
+
+func (self *AssignmentExpr) GetAssigne() IExpr {
+	return self.assigne
+}
+
+func (self *AssignmentExpr) GetValue() IExpr {
+	return self.value
 }
 
 type IBinaryExpr interface {

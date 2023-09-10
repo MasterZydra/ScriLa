@@ -46,3 +46,14 @@ func evalIntBinaryExpr(lhs IIntVal, rhs IIntVal, operator string) IIntVal {
 
 	return NewIntVal(result)
 }
+
+func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) IRuntimeVal {
+	if assignment.GetAssigne().GetKind() != ast.IdentifierNode {
+		fmt.Println("Invalid LHS inside assignment expr", assignment.GetAssigne())
+		os.Exit(1)
+	}
+
+	var i interface{} = assignment.GetAssigne()
+	assigne, _ := i.(ast.IIdentifier)
+	return env.assignVar(assigne.GetSymbol(), Evaluate(assignment.GetValue(), env))
+}

@@ -66,7 +66,7 @@ func (self *Parser) parseVarDeclaration() ast.IStatement {
 }
 
 func (self *Parser) parseExpr() ast.IExpr {
-	return self.parseAdditiveExpr()
+	return self.parseAssignmentExpr()
 }
 
 // Orders of Prescidence:
@@ -81,6 +81,20 @@ func (self *Parser) parseExpr() ast.IExpr {
 // - MultiplicitiveExpr
 // - UnaryExpr
 // - PrimaryExpr
+
+func (self *Parser) parseAssignmentExpr() ast.IExpr {
+	left := self.parseAdditiveExpr() // switch with objectExpr
+
+	if self.at().TokenType == lexer.Equals {
+		self.eat() // Advance past equals
+
+		value := self.parseAssignmentExpr() // This allows chaining e.g. x = y = 5;
+		self.expect(lexer.Semicolon, "Variable declaration statement must end with semicolon.")
+		return ast.NewAssignmentExpr(left, value)
+	}
+
+	return left
+}
 
 func (self *Parser) parseAdditiveExpr() ast.IExpr {
 	// Lefthand Prescidence
