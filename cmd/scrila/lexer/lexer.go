@@ -98,5 +98,5 @@ func isDigit(sourceChar string) bool {
 }
 
 func isSkippable(sourceChar string) bool {
-	return sourceChar == " " || sourceChar == "\n" || sourceChar == "\t"
+	return sourceChar == " " || sourceChar == "\r" || sourceChar == "\n" || sourceChar == "\t"
 }

@@ -42,22 +42,27 @@ func (self *Parser) notEOF() bool {
 
 func (self *Parser) parseStatement() ast.IStatement {
 	switch self.at().TokenType {
-	case lexer.Const, lexer.IntType:
+	case lexer.Const, lexer.IntType, lexer.ObjType:
 		return self.parseVarDeclaration()
 	default:
 		return self.parseExpr()
 	}
 }
 
-// [CONST] INT IDENT = EXPR;
+// [const] [int|obj] IDENT = EXPR;
 func (self *Parser) parseVarDeclaration() ast.IStatement {
 	isConstant := self.at().TokenType == lexer.Const
 	if isConstant {
 		self.eat()
 	}
 
+	if self.at().TokenType != lexer.ObjType && self.at().TokenType != lexer.IntType {
+		fmt.Println("Variable type not given or supported.", self.at())
+		os.Exit(1)
+	}
+	self.eat()
+
 	// TODO Check if type matches with result of parseExpr()
-	self.expect(lexer.IntType, "Variable type not given or supported.")
 	identifier := self.expect(lexer.Identifier, "Expected identifier name following [const] [int] keywords.").Value
 	self.expect(lexer.Equals, "Expected equals token following identifier in var declaration.")
 	declaration := ast.NewVarDeclaration(isConstant, identifier, self.parseExpr())
@@ -73,6 +78,7 @@ func (self *Parser) parseExpr() ast.IExpr {
 // Processed from top to bottom
 // Priority from bottom to top
 // - AssignmentExpr
+// - ObjectExpr
 // - MemberExr
 // - FunctionCall
 // - LogicalExpr
@@ -83,17 +89,42 @@ func (self *Parser) parseExpr() ast.IExpr {
 // - PrimaryExpr
 
 func (self *Parser) parseAssignmentExpr() ast.IExpr {
-	left := self.parseAdditiveExpr() // switch with objectExpr
+	left := self.parseObjectExpr()
 
 	if self.at().TokenType == lexer.Equals {
 		self.eat() // Advance past equals
 
 		value := self.parseAssignmentExpr() // This allows chaining e.g. x = y = 5;
-		self.expect(lexer.Semicolon, "Variable declaration statement must end with semicolon.")
+		self.expect(lexer.Semicolon, "Variable assignment expr must end with semicolon.")
 		return ast.NewAssignmentExpr(left, value)
 	}
 
 	return left
+}
+
+func (self *Parser) parseObjectExpr() ast.IExpr {
+	// { Prop[] }
+
+	if self.at().TokenType != lexer.OpenBrace {
+		return self.parseAdditiveExpr()
+	}
+	self.eat() // Advance past open brace
+
+	properties := make([]ast.IProperty, 0)
+	for self.notEOF() && self.at().TokenType != lexer.CloseBrace {
+		// { key: val, }
+
+		key := self.expect(lexer.Identifier, "Object literal key expected.").Value
+		self.expect(lexer.Colon, "Missing colon following identifier in ObjectExpr.")
+		value := self.parseExpr()
+		self.expect(lexer.Comma, "Expected comma following Property.")
+
+		properties = append(properties, ast.NewProperty(key, value))
+	}
+
+	self.expect(lexer.CloseBrace, "Object literal missing closing brace.")
+
+	return ast.NewObjectLiteral(properties)
 }
 
 func (self *Parser) parseAdditiveExpr() ast.IExpr {

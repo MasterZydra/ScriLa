@@ -57,3 +57,13 @@ func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) IRuntimeVa
 	assigne, _ := i.(ast.IIdentifier)
 	return env.assignVar(assigne.GetSymbol(), Evaluate(assignment.GetValue(), env))
 }
+
+func evalObjectExpr(object ast.IObjectLiteral, env *Environment) IRuntimeVal {
+	obj := NewObjVal()
+
+	for _, property := range object.GetProperties() {
+		obj.properties[property.GetKey()] = Evaluate(property.GetValue(), env)
+	}
+
+	return obj
+}

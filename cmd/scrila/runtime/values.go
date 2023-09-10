@@ -1,11 +1,14 @@
 package runtime
 
+import "fmt"
+
 type ValueType string
 
 const (
 	BoolValueType ValueType = "bool"
 	IntValueType  ValueType = "int"
 	NullValueType ValueType = "null"
+	ObjValueType  ValueType = "obj"
 	StrValueType  ValueType = "str"
 )
 
@@ -81,6 +84,10 @@ type BoolVal struct {
 	value     bool
 }
 
+func (self *BoolVal) String() string {
+	return fmt.Sprintf("&{%s %t}", self.GetType(), self.GetValue())
+}
+
 func NewBoolVal(value bool) *BoolVal {
 	return &BoolVal{
 		valueType: BoolValueType,
@@ -94,6 +101,31 @@ func (self *BoolVal) GetType() ValueType {
 
 func (self *BoolVal) GetValue() bool {
 	return self.value
+}
+
+type IObjVal interface {
+	IRuntimeVal
+	GetProperties() map[string]IRuntimeVal
+}
+
+type ObjVal struct {
+	valueType  ValueType
+	properties map[string]IRuntimeVal
+}
+
+func NewObjVal() *ObjVal {
+	return &ObjVal{
+		valueType:  ObjValueType,
+		properties: make(map[string]IRuntimeVal),
+	}
+}
+
+func (self *ObjVal) GetType() ValueType {
+	return self.valueType
+}
+
+func (self *ObjVal) GetProperties() map[string]IRuntimeVal {
+	return self.GetProperties()
 }
 
 // TODO BoolVal

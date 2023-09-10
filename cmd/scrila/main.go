@@ -12,7 +12,25 @@ import (
 
 func main() {
 	// fmt.Println(lexer.Tokenize("int x = 42;"))
-	repl()
+	// repl()
+	runFile("test.scri")
+}
+
+func runFile(filename string) {
+	parser := parser.NewParser()
+	env := runtime.NewEnvironment(nil)
+
+	fileContent, err := os.ReadFile(filename)
+	if err != nil {
+		fmt.Println("Error reading file '" + filename + "':")
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	//fmt.Printf("Tokens:   %s\n", lexer.NewLexer().Tokenize(string(fileContent)))
+	program := parser.ProduceAST(string(fileContent))
+	//fmt.Printf("AST:       %s\n", program)
+	fmt.Printf("%s\n", runtime.Evaluate(program, env))
 }
 
 func repl() {

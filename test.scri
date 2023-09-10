@@ -1,0 +1,9 @@
+int foo = 42;
+ 
+obj exampleObj = {
+    x: 30,
+    y: null,
+    z: false,
+    bar: foo,
+    foo: foo,
+};

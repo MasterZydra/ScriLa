@@ -7,6 +7,12 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+func setupScope(env *Environment) {
+	env.declareVar("null", NewNullVal(), true)
+	env.declareVar("true", NewBoolVal(true), true)
+	env.declareVar("false", NewBoolVal(false), true)
+}
+
 type Environment struct {
 	parent    *Environment
 	variables map[string]IRuntimeVal
@@ -14,15 +20,16 @@ type Environment struct {
 }
 
 func NewEnvironment(parentEnv *Environment) *Environment {
+	isGlobal := parentEnv == nil
 	env := &Environment{
 		parent:    parentEnv,
 		variables: make(map[string]IRuntimeVal),
 		constants: make([]string, 0),
 	}
 
-	env.declareVar("null", NewNullVal(), true)
-	env.declareVar("true", NewBoolVal(true), true)
-	env.declareVar("false", NewBoolVal(false), true)
+	if isGlobal {
+		setupScope(env)
+	}
 	return env
 }
 

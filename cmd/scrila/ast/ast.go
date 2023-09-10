@@ -10,13 +10,17 @@ const (
 	VarDeclarationNode NodeType = "VarDeclaration"
 
 	// Expressions
-	AssignmentExprNode      NodeType = "AssignmentExpr"
-	BinaryExprNode          NodeType = "BinaryExpr"
-	CallExprNode            NodeType = "CallExpr"
+	AssignmentExprNode NodeType = "AssignmentExpr"
+	BinaryExprNode     NodeType = "BinaryExpr"
+	UnaryExprNode      NodeType = "UnaryExpr"
+	CallExprNode       NodeType = "CallExpr"
+
+	// Literals
+	PropertyNode            NodeType = "Property"
+	ObjectLiteralNode       NodeType = "ObjectLiteral"
 	FunctionDeclarationNode NodeType = "FunctionDeclaration"
 	IdentifierNode          NodeType = "Identifier"
 	IntLiteralNode          NodeType = "IntLiteral"
-	UnaryExprNode           NodeType = "UnaryExpr"
 )
 
 type IStatement interface {
@@ -241,4 +245,69 @@ func (self *IntLiteral) GetKind() NodeType {
 
 func (self *IntLiteral) GetValue() int64 {
 	return self.value
+}
+
+type IProperty interface {
+	IExpr
+	GetKey() string
+	GetValue() IExpr
+}
+
+type Property struct {
+	kind  NodeType
+	key   string
+	value IExpr
+}
+
+func (self *Property) String() string {
+	return fmt.Sprintf("&{%s %s %s}", self.GetKind(), self.GetKey(), self.GetValue())
+}
+
+func NewProperty(key string, value IExpr) *Property {
+	return &Property{
+		kind:  PropertyNode,
+		key:   key,
+		value: value,
+	}
+}
+
+func (self *Property) GetKind() NodeType {
+	return self.kind
+}
+
+func (self *Property) GetKey() string {
+	return self.key
+}
+
+func (self *Property) GetValue() IExpr {
+	return self.value
+}
+
+type IObjectLiteral interface {
+	IExpr
+	GetProperties() []IProperty
+}
+
+type ObjectLiteral struct {
+	kind       NodeType
+	properties []IProperty
+}
+
+func (self *ObjectLiteral) String() string {
+	return fmt.Sprintf("&{%s %s}", self.GetKind(), self.GetProperties())
+}
+
+func NewObjectLiteral(properties []IProperty) *ObjectLiteral {
+	return &ObjectLiteral{
+		kind:       ObjectLiteralNode,
+		properties: properties,
+	}
+}
+
+func (self *ObjectLiteral) GetKind() NodeType {
+	return self.kind
+}
+
+func (self *ObjectLiteral) GetProperties() []IProperty {
+	return self.properties
 }
