@@ -41,8 +41,28 @@ func (self *Parser) notEOF() bool {
 }
 
 func (self *Parser) parseStatement() ast.IStatement {
-	// Skip for now
-	return self.parseExpr()
+	switch self.at().TokenType {
+	case lexer.Const, lexer.IntType:
+		return self.parseVarDeclaration()
+	default:
+		return self.parseExpr()
+	}
+}
+
+// [CONST] INT IDENT = EXPR;
+func (self *Parser) parseVarDeclaration() ast.IStatement {
+	isConstant := self.at().TokenType == lexer.Const
+	if isConstant {
+		self.eat()
+	}
+
+	// TODO Check if type matches with result of parseExpr()
+	self.expect(lexer.IntType, "Variable type not given or supported.")
+	identifier := self.expect(lexer.Identifier, "Expected identifier name following [const] [int] keywords.").Value
+	self.expect(lexer.Equals, "Expected equals token following identifier in var declaration.")
+	declaration := ast.NewVarDeclaration(isConstant, identifier, self.parseExpr())
+	self.expect(lexer.Semicolon, "Variable declaration statement must end with semicolon.")
+	return declaration
 }
 
 func (self *Parser) parseExpr() ast.IExpr {
@@ -133,10 +153,9 @@ func (self *Parser) at() *lexer.Token {
 }
 
 func (self *Parser) expect(tokenType lexer.TokenType, errMsg string) *lexer.Token {
-	var prev *lexer.Token
-	prev, self.tokens = self.tokens[0], self.tokens[1:]
+	prev := self.eat()
 	if prev.TokenType != tokenType {
-		fmt.Printf("\nParser Error: %s\nExpected: %s\n", errMsg, prev)
+		fmt.Printf("\nParser Error: %s\nExpected: %s\nGot: %s\n", errMsg, tokenType, prev)
 		os.Exit(1)
 	}
 	return prev

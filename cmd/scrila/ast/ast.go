@@ -5,12 +5,16 @@ import "fmt"
 type NodeType string
 
 const (
+	// Statements
+	ProgramNode        NodeType = "Program"
+	VarDeclarationNode NodeType = "VarDeclaration"
+
+	// Expressions
 	BinaryExprNode          NodeType = "BinaryExpr"
 	CallExprNode            NodeType = "CallExpr"
 	FunctionDeclarationNode NodeType = "FunctionDeclaration"
 	IdentifierNode          NodeType = "Identifier"
 	IntLiteralNode          NodeType = "IntLiteral"
-	ProgramNode             NodeType = "Program"
 	UnaryExprNode           NodeType = "UnaryExpr"
 )
 
@@ -53,6 +57,49 @@ func (self *Program) GetKind() NodeType {
 
 func (self *Program) GetBody() []IStatement {
 	return self.Body
+}
+
+type IVarDeclaration interface {
+	IStatement
+	IsConstant() bool
+	GetIdentifier() string
+	GetValue() IExpr
+}
+
+type VarDeclaration struct {
+	kind       NodeType
+	constant   bool
+	identifier string
+	value      IExpr
+}
+
+func (self *VarDeclaration) String() string {
+	return fmt.Sprintf("&{%s %t %s %s}", self.GetKind(), self.IsConstant(), self.GetIdentifier(), self.GetValue())
+}
+
+func NewVarDeclaration(constant bool, identifier string, value IExpr) *VarDeclaration {
+	return &VarDeclaration{
+		kind:       VarDeclarationNode,
+		constant:   constant,
+		identifier: identifier,
+		value:      value,
+	}
+}
+
+func (self *VarDeclaration) GetKind() NodeType {
+	return self.kind
+}
+
+func (self *VarDeclaration) IsConstant() bool {
+	return self.constant
+}
+
+func (self *VarDeclaration) GetIdentifier() string {
+	return self.identifier
+}
+
+func (self *VarDeclaration) GetValue() IExpr {
+	return self.value
 }
 
 type IExpr interface {

@@ -3,38 +3,53 @@ package runtime
 import (
 	"fmt"
 	"os"
+
+	"golang.org/x/exp/slices"
 )
 
 type Environment struct {
 	parent    *Environment
 	variables map[string]IRuntimeVal
+	constants []string
 }
 
 func NewEnvironment(parentEnv *Environment) *Environment {
 	env := &Environment{
 		parent:    parentEnv,
 		variables: make(map[string]IRuntimeVal),
+		constants: make([]string, 0),
 	}
 
-	env.declareVar("x", NewIntVal(100))
-	env.declareVar("null", NewNullVal())
-	env.declareVar("true", NewBoolVal(true))
-	env.declareVar("false", NewBoolVal(false))
+	env.declareVar("x", NewIntVal(100), false)
+	env.declareVar("null", NewNullVal(), true)
+	env.declareVar("true", NewBoolVal(true), true)
+	env.declareVar("false", NewBoolVal(false), true)
 	return env
 }
 
-func (self *Environment) declareVar(varName string, value IRuntimeVal) IRuntimeVal {
+func (self *Environment) declareVar(varName string, value IRuntimeVal, isConstant bool) IRuntimeVal {
 	if _, ok := self.variables[varName]; ok {
-		fmt.Println("Cannot declare variable", varName, ". As it already is defined.")
+		fmt.Println("Cannot declare variable '" + varName + "'. As it already is defined.")
 		os.Exit(1)
 	}
 
 	self.variables[varName] = value
+
+	if isConstant {
+		self.constants = append(self.constants, varName)
+	}
 	return value
 }
 
 func (self *Environment) assignVar(varName string, value IRuntimeVal) IRuntimeVal {
 	env := self.resolve(varName)
+
+	// Cannot assign to constant
+	if slices.Contains(self.constants, varName) {
+		fmt.Println("Cannot reasign to variable '" + varName + "' as it was declared constant.")
+		os.Exit(1)
+	}
+
 	env.variables[varName] = value
 	return value
 }

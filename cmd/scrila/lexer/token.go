@@ -1,5 +1,7 @@
 package lexer
 
+import "fmt"
+
 var singleCharTokens = map[string]TokenType{
 	"-": BinaryOperator,
 	";": Semicolon,
@@ -12,9 +14,10 @@ var singleCharTokens = map[string]TokenType{
 }
 
 var keywords = map[string]TokenType{
-	"bool": BoolType,
-	"int":  IntType,
-	"str":  StrType,
+	"bool":  BoolType,
+	"const": Const,
+	"int":   IntType,
+	"str":   StrType,
 }
 
 type TokenType string
@@ -33,6 +36,7 @@ const (
 	// Variable types
 	Bool     TokenType = "BoolValue"
 	BoolType TokenType = "BoolType"
+	Const    TokenType = "Const"
 	Int      TokenType = "IntValue"
 	IntType  TokenType = "IntType"
 	Str      TokenType = "StrValue"
@@ -42,4 +46,8 @@ const (
 type Token struct {
 	TokenType TokenType
 	Value     string
+}
+
+func (self *Token) String() string {
+	return fmt.Sprintf("&{Token %s %s}", self.TokenType, self.Value)
 }

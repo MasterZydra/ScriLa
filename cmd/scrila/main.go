@@ -29,7 +29,7 @@ func repl() {
 			os.Exit(0)
 		}
 
-		fmt.Printf("Tokens:   %#v\n", lexer.Tokenize(input))
+		fmt.Printf("Tokens:   %s\n", lexer.Tokenize(input))
 
 		program := parser.ProduceAST(input)
 		fmt.Printf("AST:       %s\n", program)
