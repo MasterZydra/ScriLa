@@ -7,3 +7,6 @@ obj exampleObj = {
     bar: foo,
     foo: foo,
 };
+
+exampleObj.foo(x, exampleObj.z);
+int i = exampleObj.x;

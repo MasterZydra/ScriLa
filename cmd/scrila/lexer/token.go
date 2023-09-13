@@ -6,11 +6,14 @@ var singleCharTokens = map[string]TokenType{
 	"-": BinaryOperator,
 	":": Colon,
 	",": Comma,
+	".": Dot,
 	";": Semicolon,
 	"(": OpenParen,
 	")": CloseParen,
 	"{": OpenBrace,
 	"}": CloseBrace,
+	"[": OpenBracket,
+	"]": CloseBracket,
 	"*": BinaryOperator,
 	"/": BinaryOperator,
 	"+": BinaryOperator,
@@ -28,12 +31,15 @@ var keywords = map[string]TokenType{
 type TokenType string
 
 const (
-	Semicolon  TokenType = "Semicolon"
-	Comma      TokenType = "Comma"
-	Colon      TokenType = "Colon"
-	OpenBrace  TokenType = "OpenBrace"  // {
-	CloseBrace TokenType = "CloseBrace" // }
-	EndOfFile  TokenType = "EOF"
+	Semicolon    TokenType = "Semicolon"
+	Comma        TokenType = "Comma"
+	Colon        TokenType = "Colon"
+	Dot          TokenType = "Dot"
+	OpenBrace    TokenType = "OpenBrace"  // {
+	CloseBrace   TokenType = "CloseBrace" // }
+	OpenBracket  TokenType = "OpenBrace"  // [
+	CloseBracket TokenType = "CloseBrace" // ]
+	EndOfFile    TokenType = "EOF"
 	// --- Operations ---
 	BinaryOperator TokenType = "BinaryOperator"
 	// --- Priority ---

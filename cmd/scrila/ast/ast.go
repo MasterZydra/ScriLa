@@ -14,6 +14,7 @@ const (
 	BinaryExprNode     NodeType = "BinaryExpr"
 	UnaryExprNode      NodeType = "UnaryExpr"
 	CallExprNode       NodeType = "CallExpr"
+	MemberExprNode     NodeType = "MemberExpr"
 
 	// Literals
 	PropertyNode            NodeType = "Property"
@@ -195,6 +196,89 @@ func (self *BinaryExpr) GetRight() IExpr {
 
 func (self *BinaryExpr) GetOperator() string {
 	return self.operator
+}
+
+type ICallExpr interface {
+	IExpr
+	GetArgs() []IExpr
+	GetCaller() IExpr
+}
+
+type CallExpr struct {
+	kind   NodeType
+	args   []IExpr
+	caller IExpr
+}
+
+func (self *CallExpr) String() string {
+	return fmt.Sprintf("&{%s %s %s}", self.GetKind(), self.GetCaller(), self.GetArgs())
+}
+
+func NewCallExpr(caller IExpr, args []IExpr) *CallExpr {
+	return &CallExpr{
+		kind:   CallExprNode,
+		args:   args,
+		caller: caller,
+	}
+}
+
+func (self *CallExpr) GetKind() NodeType {
+	return self.kind
+}
+
+func (self *CallExpr) GetCaller() IExpr {
+	return self.caller
+}
+
+func (self *CallExpr) GetArgs() []IExpr {
+	return self.args
+}
+
+// foo.bar()
+// foo["bar"]() <- Computed
+// foo[getBar()]() <- Computed
+
+type IMemberExpr interface {
+	IExpr
+	GetObject() IExpr
+	GetProperty() IExpr
+	IsComputed() bool
+}
+
+type MemberExpr struct {
+	kind       NodeType
+	object     IExpr
+	property   IExpr
+	isComputed bool
+}
+
+func (self *MemberExpr) String() string {
+	return fmt.Sprintf("&{%s %s %s %t}", self.GetKind(), self.GetObject(), self.GetProperty(), self.IsComputed())
+}
+
+func NewMemberExpr(object IExpr, property IExpr, isComputed bool) *MemberExpr {
+	return &MemberExpr{
+		kind:       MemberExprNode,
+		object:     object,
+		property:   property,
+		isComputed: isComputed,
+	}
+}
+
+func (self *MemberExpr) GetKind() NodeType {
+	return self.kind
+}
+
+func (self *MemberExpr) GetObject() IExpr {
+	return self.object
+}
+
+func (self *MemberExpr) GetProperty() IExpr {
+	return self.property
+}
+
+func (self *MemberExpr) IsComputed() bool {
+	return self.isComputed
 }
 
 type IIdentifier interface {
