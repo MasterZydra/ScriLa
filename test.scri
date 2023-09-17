@@ -9,10 +9,37 @@ obj exampleObj = {
     foo: foo,
 };
 
-
 print(foo, 13);
 
 int timeNow = time();
 print(timeNow);
 
 print(time());
+
+func add(a, b) {
+    int result = a + b;
+    print(result);
+}
+
+print(add);
+add(1, 2);
+
+func sub(a, b) {
+    int result = 0;
+    func add(a, b) {
+        result = a + b;
+    }
+
+    add(a, b);
+    result = result - 2 * b;
+    print(result);
+}
+
+sub(6, 4);
+
+func addWithReturn(a, b) {
+    int result = a + b;
+    result;
+}
+
+print(addWithReturn(10, 11));

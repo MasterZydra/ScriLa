@@ -23,6 +23,7 @@ var singleCharTokens = map[string]TokenType{
 var keywords = map[string]TokenType{
 	"bool":  BoolType,
 	"const": Const,
+	"func":  Function,
 	"int":   IntType,
 	"obj":   ObjType,
 	"str":   StrType,
@@ -40,6 +41,7 @@ const (
 	OpenBracket  TokenType = "OpenBrace"  // [
 	CloseBracket TokenType = "CloseBrace" // ]
 	EndOfFile    TokenType = "EOF"
+	Function     TokenType = "Function"
 	// --- Operations ---
 	BinaryOperator TokenType = "BinaryOperator"
 	// --- Priority ---

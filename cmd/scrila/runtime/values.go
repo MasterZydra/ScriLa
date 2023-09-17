@@ -1,16 +1,20 @@
 package runtime
 
-import "fmt"
+import (
+	"ScriLa/cmd/scrila/ast"
+	"fmt"
+)
 
 type ValueType string
 
 const (
-	BoolValueType ValueType = "bool"
-	IntValueType  ValueType = "int"
-	NativeFnType  ValueType = "native-func"
-	NullValueType ValueType = "null"
-	ObjValueType  ValueType = "obj"
-	StrValueType  ValueType = "str"
+	BoolValueType     ValueType = "bool"
+	FunctionValueType ValueType = "function"
+	IntValueType      ValueType = "int"
+	NativeFnType      ValueType = "native-func"
+	NullValueType     ValueType = "null"
+	ObjValueType      ValueType = "obj"
+	StrValueType      ValueType = "str"
 )
 
 type IRuntimeVal interface {
@@ -154,6 +158,52 @@ func (self *NativeFunc) GetType() ValueType {
 
 func (self *NativeFunc) GetCall() FunctionCall {
 	return self.call
+}
+
+type IFunctionVal interface {
+	IRuntimeVal
+	GetName() string
+	GetParams() []string
+	GetDeclarationEnv() *Environment
+	GetBody() []ast.IStatement
+}
+
+type FunctionVal struct {
+	valueType      ValueType
+	name           string
+	params         []string
+	declarationEnv *Environment
+	body           []ast.IStatement
+}
+
+func NewFunctionVal(name string, params []string, declarationEnv *Environment, body []ast.IStatement) *FunctionVal {
+	return &FunctionVal{
+		valueType:      FunctionValueType,
+		name:           name,
+		params:         params,
+		declarationEnv: declarationEnv,
+		body:           body,
+	}
+}
+
+func (self *FunctionVal) GetType() ValueType {
+	return self.valueType
+}
+
+func (self *FunctionVal) GetName() string {
+	return self.name
+}
+
+func (self *FunctionVal) GetParams() []string {
+	return self.params
+}
+
+func (self *FunctionVal) GetDeclarationEnv() *Environment {
+	return self.declarationEnv
+}
+
+func (self *FunctionVal) GetBody() []ast.IStatement {
+	return self.body
 }
 
 // TODO BoolVal

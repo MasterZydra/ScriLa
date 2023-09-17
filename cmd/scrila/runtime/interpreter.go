@@ -60,6 +60,12 @@ func Evaluate(astNode ast.IStatement, env *Environment) IRuntimeVal {
 		// TODO error handling
 		return evalVarDeclaration(varDeclaration, env)
 
+	case ast.FunctionDeclarationNode:
+		var i interface{} = astNode
+		funcDeclaration, _ := i.(ast.IFunctionDeclaration)
+		// TODO error handling
+		return evalFunctionDeclaration(funcDeclaration, env)
+
 	default:
 		fmt.Println("This AST Node has not been setup for interpretion:", astNode)
 		os.Exit(1)

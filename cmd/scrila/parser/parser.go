@@ -45,6 +45,8 @@ func (self *Parser) parseStatement() ast.IStatement {
 	switch self.at().TokenType {
 	case lexer.Const, lexer.IntType, lexer.ObjType:
 		statement = self.parseVarDeclaration()
+	case lexer.Function:
+		return self.parseFunctionDeclaration()
 	default:
 		statement = self.parseExpr()
 	}
@@ -71,6 +73,34 @@ func (self *Parser) parseVarDeclaration() ast.IStatement {
 	self.expect(lexer.Equals, "Expected equals token following identifier in var declaration.")
 	declaration := ast.NewVarDeclaration(isConstant, identifier, self.parseExpr())
 	return declaration
+}
+
+func (self *Parser) parseFunctionDeclaration() ast.IStatement {
+	self.eat()
+	name := self.expect(lexer.Identifier, "Expected function name following func keyword.").Value
+	args := self.parseArgs()
+	params := make([]string, 0)
+	for _, arg := range args {
+		if arg.GetKind() != ast.IdentifierNode {
+			fmt.Println("Inside function declaration expected parameters to be of type string.")
+			os.Exit(1)
+		}
+
+		var i interface{} = arg
+		identifier, _ := i.(ast.IIdentifier)
+		params = append(params, identifier.GetSymbol())
+	}
+	self.expect(lexer.OpenBrace, "Expected function body following declaration.")
+
+	body := make([]ast.IStatement, 0)
+
+	for self.notEOF() && self.at().TokenType != lexer.CloseBracket {
+		body = append(body, self.parseStatement())
+	}
+
+	self.expect(lexer.CloseBrace, "Closing brace expected inside function declaration.")
+
+	return ast.NewFunctionDeclaration(name, params, body)
 }
 
 func (self *Parser) parseExpr() ast.IExpr {

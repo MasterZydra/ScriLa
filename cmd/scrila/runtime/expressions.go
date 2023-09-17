@@ -75,13 +75,37 @@ func evalCallExpr(call ast.ICallExpr, env *Environment) IRuntimeVal {
 		args = append(args, Evaluate(arg, env))
 	}
 
-	var i interface{} = Evaluate(call.GetCaller(), env)
-	fn, _ := i.(INativeFunc)
+	caller := Evaluate(call.GetCaller(), env)
 
-	if fn.GetType() != NativeFnType {
-		fmt.Println("Cannot call value that is not a function:", fn)
+	switch caller.GetType() {
+	case NativeFnType:
+		var i interface{} = caller
+		fn, _ := i.(INativeFunc)
+		return fn.GetCall()(args, env)
+
+	case FunctionValueType:
+		var i interface{} = caller
+		fn, _ := i.(IFunctionVal)
+		scope := NewEnvironment(fn.GetDeclarationEnv())
+
+		// Create variables for the parameters list
+		for i := 0; i < len(fn.GetParams()); i++ {
+			// TODO Check the bounds here. Verify arity of function.
+			// Which means: len(fn.GetParams()) == len(args)
+			scope.declareVar(fn.GetParams()[i], args[i], false)
+		}
+
+		var result IRuntimeVal
+		result = NewNullVal()
+		// Evaluate the function body line by line
+		for _, stmt := range fn.GetBody() {
+			result = Evaluate(stmt, scope)
+		}
+		return result
+
+	default:
+		fmt.Println("Cannot call value that is not a function:", caller)
 		os.Exit(1)
+		return NewNullVal()
 	}
-
-	return fn.GetCall()(args, env)
 }

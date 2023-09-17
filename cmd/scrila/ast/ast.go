@@ -6,8 +6,9 @@ type NodeType string
 
 const (
 	// Statements
-	ProgramNode        NodeType = "Program"
-	VarDeclarationNode NodeType = "VarDeclaration"
+	ProgramNode             NodeType = "Program"
+	VarDeclarationNode      NodeType = "VarDeclaration"
+	FunctionDeclarationNode NodeType = "FunctionDeclaration"
 
 	// Expressions
 	AssignmentExprNode NodeType = "AssignmentExpr"
@@ -17,11 +18,10 @@ const (
 	MemberExprNode     NodeType = "MemberExpr"
 
 	// Literals
-	PropertyNode            NodeType = "Property"
-	ObjectLiteralNode       NodeType = "ObjectLiteral"
-	FunctionDeclarationNode NodeType = "FunctionDeclaration"
-	IdentifierNode          NodeType = "Identifier"
-	IntLiteralNode          NodeType = "IntLiteral"
+	PropertyNode      NodeType = "Property"
+	ObjectLiteralNode NodeType = "ObjectLiteral"
+	IdentifierNode    NodeType = "Identifier"
+	IntLiteralNode    NodeType = "IntLiteral"
 )
 
 type IStatement interface {
@@ -106,6 +106,50 @@ func (self *VarDeclaration) GetIdentifier() string {
 
 func (self *VarDeclaration) GetValue() IExpr {
 	return self.value
+}
+
+type IFunctionDeclaration interface {
+	IStatement
+	GetParameters() []string
+	GetName() string
+	GetBody() []IStatement
+	// TODO Return type
+}
+
+type FunctionDeclaration struct {
+	kind       NodeType
+	parameters []string
+	name       string
+	body       []IStatement
+}
+
+func (self *FunctionDeclaration) String() string {
+	return fmt.Sprintf("&{%s %s %s %s}", self.GetKind(), self.GetName(), self.GetParameters(), self.GetBody())
+}
+
+func NewFunctionDeclaration(name string, parameters []string, body []IStatement) *FunctionDeclaration {
+	return &FunctionDeclaration{
+		kind:       FunctionDeclarationNode,
+		name:       name,
+		parameters: parameters,
+		body:       body,
+	}
+}
+
+func (self *FunctionDeclaration) GetKind() NodeType {
+	return self.kind
+}
+
+func (self *FunctionDeclaration) GetName() string {
+	return self.name
+}
+
+func (self *FunctionDeclaration) GetParameters() []string {
+	return self.parameters
+}
+
+func (self *FunctionDeclaration) GetBody() []IStatement {
+	return self.body
 }
 
 type IExpr interface {
