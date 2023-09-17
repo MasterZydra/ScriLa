@@ -68,6 +68,34 @@ func evalObjectExpr(object ast.IObjectLiteral, env *Environment) IRuntimeVal {
 	return obj
 }
 
+func evalMemberExpr(memberExpr ast.IMemberExpr, env *Environment) IRuntimeVal {
+	if memberExpr.GetObject().GetKind() != ast.IdentifierNode {
+		fmt.Println("evalMemberExpr: Object - Node kind '" + memberExpr.GetObject().GetKind() + "' not supported")
+		os.Exit(1)
+	}
+
+	if memberExpr.GetProperty().GetKind() != ast.IdentifierNode {
+		fmt.Println("evalMemberExpr: Property - Node kind '" + memberExpr.GetProperty().GetKind() + "' not supported")
+		os.Exit(1)
+	}
+
+	var i interface{} = memberExpr.GetObject()
+	identifier, _ := i.(ast.IIdentifier)
+	obj := env.lookupVar(identifier.GetSymbol())
+	if obj.GetType() != ObjValueType {
+		fmt.Println("evalMemberExpr: variable '" + identifier.GetSymbol() + "' is not of type 'object'")
+		os.Exit(1)
+	}
+
+	i = obj
+	objVal, _ := i.(IObjVal)
+
+	i = memberExpr.GetProperty()
+	property, _ := i.(ast.IIdentifier)
+
+	return objVal.GetProperties()[property.GetSymbol()]
+}
+
 func evalCallExpr(call ast.ICallExpr, env *Environment) IRuntimeVal {
 	// TODO add helpers? https://zetcode.com/golang/filter-map/
 	var args []IRuntimeVal

@@ -46,6 +46,12 @@ func Evaluate(astNode ast.IStatement, env *Environment) IRuntimeVal {
 		// TODO error handling
 		return evalBinaryExpr(binaryExpr, env)
 
+	case ast.MemberExprNode:
+		var i interface{} = astNode
+		memberExpr, _ := i.(ast.IMemberExpr)
+		// TODO error handling
+		return evalMemberExpr(memberExpr, env)
+
 	// Handle Statements
 
 	case ast.ProgramNode:
