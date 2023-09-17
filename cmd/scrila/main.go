@@ -5,15 +5,41 @@ import (
 	"ScriLa/cmd/scrila/parser"
 	"ScriLa/cmd/scrila/runtime"
 	"bufio"
+	"flag"
 	"fmt"
 	"os"
 	"strings"
 )
 
+var printTokens bool
+var printAST bool
+
 func main() {
-	// fmt.Println(lexer.Tokenize("int x = 42;"))
-	// repl()
-	runFile("test.scri")
+	shallRepl := flag.Bool("repl", false, "Run repl")
+	shallInterprete := flag.Bool("i", false, "Shall the input be interpreted")
+	fileName := flag.String("f", "", "Path of file")
+	showTokens := flag.Bool("st", false, "Show tokens")
+	showAST := flag.Bool("sa", false, "Show AST")
+	flag.Parse()
+
+	printTokens = *showTokens
+	printAST = *showAST
+
+	if *fileName == "" {
+		fmt.Println("Usage of scrila:")
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+
+	if *shallRepl {
+		repl()
+		os.Exit(0)
+	}
+
+	if *shallInterprete {
+		runFile(*fileName)
+		os.Exit(0)
+	}
 }
 
 func runFile(filename string) {
@@ -27,9 +53,13 @@ func runFile(filename string) {
 		os.Exit(1)
 	}
 
-	//fmt.Printf("Tokens:   %s\n", lexer.NewLexer().Tokenize(string(fileContent)))
+	if printTokens {
+		fmt.Printf("Tokens:   %s\n", lexer.NewLexer().Tokenize(string(fileContent)))
+	}
 	program := parser.ProduceAST(string(fileContent))
-	//fmt.Printf("AST:       %s\n", program)
+	if printAST {
+		fmt.Printf("AST:       %s\n", program)
+	}
 	runtime.Evaluate(program, env)
 }
 
@@ -47,10 +77,14 @@ func repl() {
 			os.Exit(0)
 		}
 
-		fmt.Printf("Tokens:   %s\n", lexer.Tokenize(input))
+		if printTokens {
+			fmt.Printf("Tokens:   %s\n", lexer.Tokenize(input))
+		}
 
 		program := parser.ProduceAST(input)
-		fmt.Printf("AST:       %s\n", program)
+		if printAST {
+			fmt.Printf("AST:       %s\n", program)
+		}
 
 		result := runtime.Evaluate(program, env)
 		fmt.Println("Interpret:", result)

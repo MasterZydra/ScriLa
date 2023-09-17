@@ -304,7 +304,7 @@ func (self *Parser) parsePrimaryExpr() ast.IExpr {
 		self.expect(lexer.CloseParen, "Unexpexted token found inside parenthesised expression. Expected closing parenthesis.")
 		return value
 	default:
-		fmt.Println("Unexpected token found during parsing!", self.at())
+		fmt.Printf("Unexpected token '%s' ('%s') (Ln %d, Col %d) found during parsing\n", self.at().TokenType, self.at().Value, self.at().Ln, self.at().Col)
 		os.Exit(1)
 		return &ast.Expr{}
 	}

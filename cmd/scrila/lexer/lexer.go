@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 	"unicode"
+
+	"golang.org/x/exp/slices"
 )
 
 type Lexer struct {
@@ -40,7 +42,17 @@ func (self *Lexer) Tokenize(sourceCode string) []*Token {
 
 		// Handle single-character tokens
 		if reserved, ok := singleCharTokens[self.at()]; ok {
-			self.pushToken(self.eat(), reserved)
+			currChar := self.eat()
+
+			// Resolve short form operators like +=, -=, *=, /=, ...
+			if reserved == BinaryOperator && self.at() == "=" {
+				self.eat()
+				lastIdent := self.getLastToken(0)
+				self.pushToken("=", Equals)
+				self.pushToken(lastIdent.Value, lastIdent.TokenType)
+			}
+
+			self.pushToken(currChar, reserved)
 			continue
 		}
 
@@ -118,6 +130,10 @@ func (self *Lexer) pushToken(value string, tokenType TokenType) {
 	})
 }
 
+func (self *Lexer) getLastToken(offset int) *Token {
+	return self.tokens[len(self.tokens)-1-offset]
+}
+
 func isLetter(sourceChar string) bool {
 	return unicode.IsLetter([]rune(sourceChar)[0])
 }
@@ -127,5 +143,5 @@ func isDigit(sourceChar string) bool {
 }
 
 func isSkippable(sourceChar string) bool {
-	return sourceChar == " " || sourceChar == "\r" || sourceChar == "\n" || sourceChar == "\t"
+	return slices.Contains([]string{"\n", "\r", "\t", " "}, sourceChar)
 }
