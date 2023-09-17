@@ -64,8 +64,10 @@ const (
 type Token struct {
 	TokenType TokenType
 	Value     string
+	Ln        int
+	Col       int
 }
 
 func (self *Token) String() string {
-	return fmt.Sprintf("&{Token %s %s}", self.TokenType, self.Value)
+	return fmt.Sprintf("&{Token %s %s %d %d}", self.TokenType, self.Value, self.Ln, self.Col)
 }

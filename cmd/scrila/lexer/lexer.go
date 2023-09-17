@@ -10,15 +10,22 @@ import (
 type Lexer struct {
 	sourceChars []string
 	tokens      []*Token
+	currLn      int
+	currCol     int
 }
 
 func NewLexer() *Lexer {
 	return &Lexer{}
 }
 
-func (self *Lexer) Tokenize(sourceCode string) []*Token {
-	// Empty tokens array
+func (self *Lexer) init() {
 	self.tokens = make([]*Token, 0)
+	self.currLn = 1
+	self.currCol = 1
+}
+
+func (self *Lexer) Tokenize(sourceCode string) []*Token {
+	self.init()
 
 	// Split source code into an array of every character
 	self.sourceChars = strings.Split(sourceCode, "")
@@ -58,6 +65,11 @@ func (self *Lexer) Tokenize(sourceCode string) []*Token {
 		}
 
 		if isSkippable(self.at()) {
+			if self.at() == "\n" {
+				self.currLn += 1
+				self.currCol = 0
+			}
+
 			self.eat()
 			continue
 		}
@@ -80,13 +92,23 @@ func (self *Lexer) at() string {
 }
 
 func (self *Lexer) eat() string {
+	self.currCol += 1
 	var prev string
 	prev, self.sourceChars = self.sourceChars[0], self.sourceChars[1:]
 	return prev
 }
 
 func (self *Lexer) pushToken(value string, tokenType TokenType) {
-	self.tokens = append(self.tokens, &Token{TokenType: tokenType, Value: value})
+	col := self.currCol
+	if tokenType != EndOfFile {
+		col -= len(value)
+	}
+	self.tokens = append(self.tokens, &Token{
+		TokenType: tokenType,
+		Value:     value,
+		Ln:        self.currLn,
+		Col:       col,
+	})
 }
 
 func isLetter(sourceChar string) bool {
