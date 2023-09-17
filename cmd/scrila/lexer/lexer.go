@@ -31,6 +31,13 @@ func (self *Lexer) Tokenize(sourceCode string) []*Token {
 	self.sourceChars = strings.Split(sourceCode, "")
 
 	for self.isNotEof() {
+		// Handle comments
+		if self.at() == "#" {
+			for self.isNotEof() && self.at() != "\n" {
+				self.eat()
+			}
+		}
+
 		// Handle single-character tokens
 		if reserved, ok := singleCharTokens[self.at()]; ok {
 			self.pushToken(self.eat(), reserved)

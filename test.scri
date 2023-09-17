@@ -1,6 +1,8 @@
+# Variable declaration and assignment
 int foo = 21;
 foo = foo * 2;
 
+# Declare a object
 obj exampleObj = {
     x: 30,
     y: null,
@@ -9,6 +11,7 @@ obj exampleObj = {
     foo: foo,
 };
 
+# Buildin functions
 print(foo, 13);
 
 int timeNow = time();
@@ -16,6 +19,7 @@ print(timeNow);
 
 print(time());
 
+# User defined functions
 func add(a, b) {
     int result = a + b;
     print(result);
