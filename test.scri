@@ -22,6 +22,13 @@ obj exampleObj = {
     foo: foo,
 };
 
+# Add a new property to an object
+exampleObj.y = 43;
+print(exampleObj.y);
+
+# Assign another value to an existing object property
+exampleObj.x = 42;
+
 # Get object properties
 int prop = exampleObj.x;
 print(prop);

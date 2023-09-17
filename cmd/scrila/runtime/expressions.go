@@ -48,14 +48,56 @@ func evalIntBinaryExpr(lhs IIntVal, rhs IIntVal, operator string) IIntVal {
 }
 
 func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) IRuntimeVal {
+	if assignment.GetAssigne().GetKind() == ast.MemberExprNode {
+		return evalAssignmentObjMember(assignment, env)
+	}
+
 	if assignment.GetAssigne().GetKind() != ast.IdentifierNode {
-		fmt.Println("Invalid LHS inside assignment expr", assignment.GetAssigne())
+		fmt.Println("evalAssignment: Invalid LHS inside assignment expr", assignment.GetAssigne())
 		os.Exit(1)
 	}
 
 	var i interface{} = assignment.GetAssigne()
 	assigne, _ := i.(ast.IIdentifier)
 	return env.assignVar(assigne.GetSymbol(), Evaluate(assignment.GetValue(), env))
+}
+
+func evalAssignmentObjMember(assignment ast.IAssignmentExpr, env *Environment) IRuntimeVal {
+	if assignment.GetAssigne().GetKind() != ast.MemberExprNode {
+		fmt.Println("evalAssignmentObjMember: Invalid LHS inside assignment expr", assignment.GetAssigne())
+		os.Exit(1)
+	}
+
+	var i interface{} = assignment.GetAssigne()
+	memberExpr, _ := i.(ast.IMemberExpr)
+
+	if memberExpr.GetObject().GetKind() != ast.IdentifierNode {
+		fmt.Println("evalMemberExpr: Object - Node kind '" + memberExpr.GetObject().GetKind() + "' not supported")
+		os.Exit(1)
+	}
+
+	if memberExpr.GetProperty().GetKind() != ast.IdentifierNode {
+		fmt.Println("evalMemberExpr: Property - Node kind '" + memberExpr.GetProperty().GetKind() + "' not supported")
+		os.Exit(1)
+	}
+
+	i = memberExpr.GetObject()
+	identifier, _ := i.(ast.IIdentifier)
+	obj := env.lookupVar(identifier.GetSymbol())
+	if obj.GetType() != ObjValueType {
+		fmt.Println("evalMemberExpr: variable '" + identifier.GetSymbol() + "' is not of type 'object'")
+		os.Exit(1)
+	}
+
+	i = obj
+	objVal, _ := i.(IObjVal)
+
+	i = memberExpr.GetProperty()
+	property, _ := i.(ast.IIdentifier)
+
+	value := Evaluate(assignment.GetValue(), env)
+	objVal.GetProperties()[property.GetSymbol()] = value
+	return value
 }
 
 func evalObjectExpr(object ast.IObjectLiteral, env *Environment) IRuntimeVal {
