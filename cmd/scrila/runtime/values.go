@@ -7,6 +7,7 @@ type ValueType string
 const (
 	BoolValueType ValueType = "bool"
 	IntValueType  ValueType = "int"
+	NativeFnType  ValueType = "native-func"
 	NullValueType ValueType = "null"
 	ObjValueType  ValueType = "obj"
 	StrValueType  ValueType = "str"
@@ -125,7 +126,34 @@ func (self *ObjVal) GetType() ValueType {
 }
 
 func (self *ObjVal) GetProperties() map[string]IRuntimeVal {
-	return self.GetProperties()
+	return self.properties
+}
+
+type FunctionCall func(args []IRuntimeVal, env *Environment) IRuntimeVal
+
+type INativeFunc interface {
+	IRuntimeVal
+	GetCall() FunctionCall
+}
+
+type NativeFunc struct {
+	valueType ValueType
+	call      FunctionCall
+}
+
+func NewNativeFunc(function FunctionCall) *NativeFunc {
+	return &NativeFunc{
+		valueType: NativeFnType,
+		call:      function,
+	}
+}
+
+func (self *NativeFunc) GetType() ValueType {
+	return self.valueType
+}
+
+func (self *NativeFunc) GetCall() FunctionCall {
+	return self.call
 }
 
 // TODO BoolVal

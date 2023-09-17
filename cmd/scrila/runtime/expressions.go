@@ -67,3 +67,21 @@ func evalObjectExpr(object ast.IObjectLiteral, env *Environment) IRuntimeVal {
 
 	return obj
 }
+
+func evalCallExpr(call ast.ICallExpr, env *Environment) IRuntimeVal {
+	// TODO add helpers? https://zetcode.com/golang/filter-map/
+	var args []IRuntimeVal
+	for _, arg := range call.GetArgs() {
+		args = append(args, Evaluate(arg, env))
+	}
+
+	var i interface{} = Evaluate(call.GetCaller(), env)
+	fn, _ := i.(INativeFunc)
+
+	if fn.GetType() != NativeFnType {
+		fmt.Println("Cannot call value that is not a function:", fn)
+		os.Exit(1)
+	}
+
+	return fn.GetCall()(args, env)
+}

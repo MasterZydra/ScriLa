@@ -30,7 +30,7 @@ func runFile(filename string) {
 	//fmt.Printf("Tokens:   %s\n", lexer.NewLexer().Tokenize(string(fileContent)))
 	program := parser.ProduceAST(string(fileContent))
 	//fmt.Printf("AST:       %s\n", program)
-	fmt.Printf("%s\n", runtime.Evaluate(program, env))
+	runtime.Evaluate(program, env)
 }
 
 func repl() {

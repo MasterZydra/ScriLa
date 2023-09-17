@@ -1,5 +1,6 @@
-int foo = 42;
- 
+int foo = 21;
+foo = foo * 2;
+
 obj exampleObj = {
     x: 30,
     y: null,
@@ -8,5 +9,10 @@ obj exampleObj = {
     foo: foo,
 };
 
-exampleObj.foo(x, exampleObj.z);
-int i = exampleObj.x;
+
+print(foo, 13);
+
+int timeNow = time();
+print(timeNow);
+
+print(time());

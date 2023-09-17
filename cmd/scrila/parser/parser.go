@@ -41,12 +41,16 @@ func (self *Parser) notEOF() bool {
 }
 
 func (self *Parser) parseStatement() ast.IStatement {
+	var statement ast.IStatement
 	switch self.at().TokenType {
 	case lexer.Const, lexer.IntType, lexer.ObjType:
-		return self.parseVarDeclaration()
+		statement = self.parseVarDeclaration()
 	default:
-		return self.parseExpr()
+		statement = self.parseExpr()
 	}
+
+	self.expect(lexer.Semicolon, "Expressions must end with a semicolon.")
+	return statement
 }
 
 // [const] [int|obj] IDENT = EXPR;
@@ -66,7 +70,6 @@ func (self *Parser) parseVarDeclaration() ast.IStatement {
 	identifier := self.expect(lexer.Identifier, "Expected identifier name following [const] [int] keywords.").Value
 	self.expect(lexer.Equals, "Expected equals token following identifier in var declaration.")
 	declaration := ast.NewVarDeclaration(isConstant, identifier, self.parseExpr())
-	self.expect(lexer.Semicolon, "Variable declaration statement must end with semicolon.")
 	return declaration
 }
 
@@ -96,7 +99,6 @@ func (self *Parser) parseAssignmentExpr() ast.IExpr {
 		self.eat() // Advance past equals
 
 		value := self.parseAssignmentExpr() // This allows chaining e.g. x = y = 5;
-		self.expect(lexer.Semicolon, "Variable assignment expr must end with semicolon.")
 		return ast.NewAssignmentExpr(left, value)
 	}
 
@@ -188,8 +190,6 @@ func (self *Parser) parseCallExpr(caller ast.IExpr) ast.IExpr {
 	if self.at().TokenType == lexer.OpenParen {
 		callExpr = self.parseCallExpr(callExpr)
 	}
-
-	self.expect(lexer.Semicolon, "Function calls must end with a semicolon.")
 
 	return callExpr
 }
