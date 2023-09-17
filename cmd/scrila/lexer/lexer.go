@@ -74,7 +74,7 @@ func (self *Lexer) Tokenize(sourceCode string) []*Token {
 			continue
 		}
 
-		fmt.Println("Unrecognized character found:", self.at())
+		fmt.Printf("Unrecognized character '%s' found (Ln %d, Col %d)\n", self.at(), self.currLn, self.currCol)
 		os.Exit(1)
 	}
 
