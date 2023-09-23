@@ -38,6 +38,7 @@ func (self *Lexer) Tokenize(sourceCode string) []*Token {
 			for self.isNotEof() && self.at() != "\n" {
 				self.eat()
 			}
+			continue
 		}
 
 		// Handle strings
