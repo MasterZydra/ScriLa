@@ -25,15 +25,15 @@ func main() {
 	printTokens = *showTokens
 	printAST = *showAST
 
+	if *shallRepl {
+		repl()
+		os.Exit(0)
+	}
+
 	if *fileName == "" {
 		fmt.Println("Usage of scrila:")
 		flag.PrintDefaults()
 		os.Exit(1)
-	}
-
-	if *shallRepl {
-		repl()
-		os.Exit(0)
 	}
 
 	if *shallInterprete {
