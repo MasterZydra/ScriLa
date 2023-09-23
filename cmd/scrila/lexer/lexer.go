@@ -40,6 +40,18 @@ func (self *Lexer) Tokenize(sourceCode string) []*Token {
 			}
 		}
 
+		// Handle strings
+		if self.at() == "\"" {
+			self.eat()
+			content := ""
+			for self.isNotEof() && self.at() != "\"" {
+				content += self.eat()
+			}
+			self.eat()
+			self.pushToken(content, Str)
+			continue
+		}
+
 		// Handle single-character tokens
 		if reserved, ok := singleCharTokens[self.at()]; ok {
 			currChar := self.eat()

@@ -22,6 +22,14 @@ func evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) IRuntimeVal {
 		return evalIntBinaryExpr(left, right, binOp.GetOperator())
 	}
 
+	if lhs.GetType() == StrValueType && rhs.GetType() == StrValueType {
+		var i interface{} = lhs
+		left, _ := i.(IStrVal)
+		i = rhs
+		right, _ := i.(IStrVal)
+		return evalStrBinaryExpr(left, right, binOp.GetOperator())
+	}
+
 	// One or both are NULL, or another not yet supported type
 	return NewNullVal()
 }
@@ -45,6 +53,20 @@ func evalIntBinaryExpr(lhs IIntVal, rhs IIntVal, operator string) IIntVal {
 	}
 
 	return NewIntVal(result)
+}
+
+func evalStrBinaryExpr(lhs IStrVal, rhs IStrVal, operator string) IStrVal {
+	var result string
+
+	switch operator {
+	case "+":
+		result = lhs.GetValue() + rhs.GetValue()
+	default:
+		fmt.Println("Unsupported binary operator: ", operator)
+		os.Exit(1)
+	}
+
+	return NewStrVal(result)
 }
 
 func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) IRuntimeVal {

@@ -13,6 +13,11 @@ print(i);
 i /= 2;
 print(i);
 
+# Working with strings
+str s = "hello ";
+s += "world";
+print(s);
+
 # Declare a object
 obj exampleObj = {
     x: 30,

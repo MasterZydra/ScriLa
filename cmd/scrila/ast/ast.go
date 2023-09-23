@@ -22,6 +22,7 @@ const (
 	ObjectLiteralNode NodeType = "ObjectLiteral"
 	IdentifierNode    NodeType = "Identifier"
 	IntLiteralNode    NodeType = "IntLiteral"
+	StrLiteralNode    NodeType = "StrLiteral"
 )
 
 type IStatement interface {
@@ -372,6 +373,31 @@ func (self *IntLiteral) GetKind() NodeType {
 }
 
 func (self *IntLiteral) GetValue() int64 {
+	return self.value
+}
+
+type IStrLiteral interface {
+	IExpr
+	GetValue() string
+}
+
+type StrLiteral struct {
+	kind  NodeType
+	value string
+}
+
+func NewStrLiteral(value string) *StrLiteral {
+	return &StrLiteral{
+		kind:  StrLiteralNode,
+		value: value,
+	}
+}
+
+func (self *StrLiteral) GetKind() NodeType {
+	return self.kind
+}
+
+func (self *StrLiteral) GetValue() string {
 	return self.value
 }
 

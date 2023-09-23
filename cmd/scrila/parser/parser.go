@@ -43,7 +43,7 @@ func (self *Parser) notEOF() bool {
 func (self *Parser) parseStatement() ast.IStatement {
 	var statement ast.IStatement
 	switch self.at().TokenType {
-	case lexer.Const, lexer.IntType, lexer.ObjType:
+	case lexer.Const, lexer.IntType, lexer.StrType, lexer.ObjType:
 		statement = self.parseVarDeclaration()
 	case lexer.Function:
 		return self.parseFunctionDeclaration()
@@ -62,7 +62,7 @@ func (self *Parser) parseVarDeclaration() ast.IStatement {
 		self.eat()
 	}
 
-	if self.at().TokenType != lexer.ObjType && self.at().TokenType != lexer.IntType {
+	if !slices.Contains([]lexer.TokenType{lexer.ObjType, lexer.StrType, lexer.IntType}, self.at().TokenType) {
 		fmt.Println("Variable type not given or supported.", self.at())
 		os.Exit(1)
 	}
@@ -296,6 +296,8 @@ func (self *Parser) parsePrimaryExpr() ast.IExpr {
 			os.Exit(1)
 		}
 		return ast.NewIntLiteral(intValue)
+	case lexer.Str:
+		return ast.NewStrLiteral(self.eat().Value)
 	case lexer.OpenParen:
 		// Eat opening paren
 		self.eat()

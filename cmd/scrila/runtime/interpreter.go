@@ -16,6 +16,12 @@ func Evaluate(astNode ast.IStatement, env *Environment) IRuntimeVal {
 		// TODO error handling
 		return NewIntVal(intLiteral.GetValue())
 
+	case ast.StrLiteralNode:
+		var i interface{} = astNode
+		strLiteral, _ := i.(ast.IStrLiteral)
+		// TODO error handling
+		return NewStrVal(strLiteral.GetValue())
+
 	case ast.IdentifierNode:
 		var i interface{} = astNode
 		identifier, _ := i.(ast.IIdentifier)

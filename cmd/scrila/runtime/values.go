@@ -150,6 +150,35 @@ func (self *ObjVal) ToString() string {
 	return "ObjVal"
 }
 
+type IStrVal interface {
+	IRuntimeVal
+	GetValue() string
+}
+
+type StrVal struct {
+	valueType ValueType
+	value     string
+}
+
+func NewStrVal(value string) *StrVal {
+	return &StrVal{
+		valueType: StrValueType,
+		value:     value,
+	}
+}
+
+func (self *StrVal) GetType() ValueType {
+	return self.valueType
+}
+
+func (self *StrVal) GetValue() string {
+	return self.value
+}
+
+func (self *StrVal) ToString() string {
+	return self.value
+}
+
 type FunctionCall func(args []IRuntimeVal, env *Environment) IRuntimeVal
 
 type INativeFunc interface {
