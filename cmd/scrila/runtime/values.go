@@ -19,6 +19,7 @@ const (
 
 type IRuntimeVal interface {
 	GetType() ValueType
+	ToString() string
 }
 
 type RuntimeVal struct {
@@ -54,6 +55,10 @@ func (self *NullVal) GetValue() string {
 	return self.value
 }
 
+func (self *NullVal) ToString() string {
+	return self.value
+}
+
 type IIntVal interface {
 	IRuntimeVal
 	GetValue() int64
@@ -77,6 +82,10 @@ func (self *IntVal) GetType() ValueType {
 
 func (self *IntVal) GetValue() int64 {
 	return self.value
+}
+
+func (self *IntVal) ToString() string {
+	return fmt.Sprintf("%d", self.value)
 }
 
 type IBoolVal interface {
@@ -108,6 +117,10 @@ func (self *BoolVal) GetValue() bool {
 	return self.value
 }
 
+func (self *BoolVal) ToString() string {
+	return fmt.Sprintf("%t", self.value)
+}
+
 type IObjVal interface {
 	IRuntimeVal
 	GetProperties() map[string]IRuntimeVal
@@ -131,6 +144,10 @@ func (self *ObjVal) GetType() ValueType {
 
 func (self *ObjVal) GetProperties() map[string]IRuntimeVal {
 	return self.properties
+}
+
+func (self *ObjVal) ToString() string {
+	return "ObjVal"
 }
 
 type FunctionCall func(args []IRuntimeVal, env *Environment) IRuntimeVal
@@ -158,6 +175,10 @@ func (self *NativeFunc) GetType() ValueType {
 
 func (self *NativeFunc) GetCall() FunctionCall {
 	return self.call
+}
+
+func (self *NativeFunc) ToString() string {
+	return "NativeFunc"
 }
 
 type IFunctionVal interface {
@@ -206,4 +227,6 @@ func (self *FunctionVal) GetBody() []ast.IStatement {
 	return self.body
 }
 
-// TODO BoolVal
+func (self *FunctionVal) ToString() string {
+	return "FunctionVal"
+}

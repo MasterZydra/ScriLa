@@ -3,7 +3,6 @@ package runtime
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"golang.org/x/exp/slices"
 )
@@ -15,19 +14,8 @@ func setupScope(env *Environment) {
 	env.declareVar("false", NewBoolVal(false), true)
 
 	// Define native builtin methods
-	env.declareVar("print", NewNativeFunc(
-		func(args []IRuntimeVal, env *Environment) IRuntimeVal {
-			fmt.Print("print: ")
-			for _, arg := range args {
-				fmt.Print(arg, " ")
-			}
-			fmt.Println("")
-			return NewNullVal()
-		}), true)
-	env.declareVar("time", NewNativeFunc(
-		func(args []IRuntimeVal, env *Environment) IRuntimeVal {
-			return NewIntVal(time.Now().UnixMilli())
-		}), true)
+	env.declareVar("print", NewNativeFunc(nativePrint), true)
+	env.declareVar("time", NewNativeFunc(nativeTime), true)
 }
 
 type Environment struct {
