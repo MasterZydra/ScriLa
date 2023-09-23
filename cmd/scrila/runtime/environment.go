@@ -14,12 +14,13 @@ func setupScope(env *Environment) {
 	env.declareVar("false", NewBoolVal(false), true)
 
 	// Define native builtin methods
-	env.declareVar("print", NewNativeFunc(nativePrint), true)
-	env.declareVar("time", NewNativeFunc(nativeTime), true)
+	env.declareFunc("print", NewNativeFunc(nativePrint))
+	env.declareFunc("time", NewNativeFunc(nativeTime))
 }
 
 type Environment struct {
 	parent    *Environment
+	functions map[string]IRuntimeVal
 	variables map[string]IRuntimeVal
 	constants []string
 }
@@ -28,6 +29,7 @@ func NewEnvironment(parentEnv *Environment) *Environment {
 	isGlobal := parentEnv == nil
 	env := &Environment{
 		parent:    parentEnv,
+		functions: make(map[string]IRuntimeVal),
 		variables: make(map[string]IRuntimeVal),
 		constants: make([]string, 0),
 	}
@@ -36,6 +38,47 @@ func NewEnvironment(parentEnv *Environment) *Environment {
 		setupScope(env)
 	}
 	return env
+}
+
+func (self *Environment) declareFunc(funcName string, value IRuntimeVal) IRuntimeVal {
+	if self.isFuncDeclared(funcName) {
+		fmt.Println("Cannot declare function '" + funcName + "'. As it already is defined.")
+		os.Exit(1)
+	}
+
+	self.functions[funcName] = value
+
+	return value
+}
+
+func (self *Environment) isFuncDeclared(funcName string) bool {
+	if _, ok := self.functions[funcName]; ok {
+		return true
+	}
+
+	if self.parent == nil {
+		return false
+	}
+
+	return self.parent.isFuncDeclared(funcName)
+}
+
+func (self *Environment) resolveFunc(funcName string) *Environment {
+	if _, ok := self.functions[funcName]; ok {
+		return self
+	}
+
+	if self.parent == nil {
+		fmt.Println("Cannot resolve function '" + funcName + "' as it does not exist.")
+		os.Exit(1)
+	}
+
+	return self.parent.resolveFunc(funcName)
+}
+
+func (self *Environment) lookupFunc(funcName string) IRuntimeVal {
+	env := self.resolveFunc(funcName)
+	return env.functions[funcName]
 }
 
 func (self *Environment) declareVar(varName string, value IRuntimeVal, isConstant bool) IRuntimeVal {

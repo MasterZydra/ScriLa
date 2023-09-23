@@ -167,7 +167,13 @@ func evalCallExpr(call ast.ICallExpr, env *Environment) IRuntimeVal {
 		args = append(args, Evaluate(arg, env))
 	}
 
-	caller := Evaluate(call.GetCaller(), env)
+	if call.GetCaller().GetKind() != ast.IdentifierNode {
+		fmt.Println("Function caller has to be an identifier. Got:", call.GetCaller())
+		os.Exit(1)
+	}
+	var j interface{} = call.GetCaller()
+	identifier, _ := j.(ast.IIdentifier)
+	caller := env.lookupFunc(identifier.GetSymbol())
 
 	switch caller.GetType() {
 	case NativeFnType:

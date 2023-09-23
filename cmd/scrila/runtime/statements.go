@@ -22,5 +22,5 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) IR
 func evalFunctionDeclaration(funcDeclaration ast.IFunctionDeclaration, env *Environment) IRuntimeVal {
 	fn := NewFunctionVal(funcDeclaration.GetName(), funcDeclaration.GetParameters(), env, funcDeclaration.GetBody())
 
-	return env.declareVar(funcDeclaration.GetName(), fn, true)
+	return env.declareFunc(funcDeclaration.GetName(), fn)
 }
