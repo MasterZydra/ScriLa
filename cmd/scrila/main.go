@@ -86,8 +86,7 @@ func repl() {
 			fmt.Printf("AST:       %s\n", program)
 		}
 
-		result := runtime.Evaluate(program, env)
-		fmt.Println("Interpret:", result)
+		runtime.Evaluate(program, env)
 	}
 }
 
