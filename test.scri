@@ -53,16 +53,15 @@ func add(a, b) {
     print(result);
 }
 
-print(add);
 add(1, 2);
 
 func sub(a, b) {
     int result = 0;
-    func add(a, b) {
+    func internalAdd(a, b) {
         result = a + b;
     }
 
-    add(a, b);
+    internalAdd(a, b);
     result = result - 2 * b;
     print(result);
 }
