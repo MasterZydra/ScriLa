@@ -4,6 +4,7 @@ import (
 	"ScriLa/cmd/scrila/lexer"
 	"ScriLa/cmd/scrila/parser"
 	"ScriLa/cmd/scrila/runtime"
+	"ScriLa/cmd/scrila/transpiler"
 	"bufio"
 	"flag"
 	"fmt"
@@ -17,6 +18,7 @@ var printAST bool
 func main() {
 	shallRepl := flag.Bool("repl", false, "Run repl")
 	shallInterprete := flag.Bool("i", false, "Shall the input be interpreted")
+	shallTranspile := flag.Bool("t", false, "Shall the input be transpiled")
 	fileName := flag.String("f", "", "Path of file")
 	showTokens := flag.Bool("st", false, "Show tokens")
 	showAST := flag.Bool("sa", false, "Show AST")
@@ -36,10 +38,36 @@ func main() {
 		os.Exit(1)
 	}
 
+	if *shallTranspile {
+		transpile(*fileName)
+		os.Exit(0)
+	}
+
 	if *shallInterprete {
 		runFile(*fileName)
 		os.Exit(0)
 	}
+}
+
+func transpile(filename string) {
+	parser := parser.NewParser()
+	env := transpiler.NewEnvironment(nil)
+
+	fileContent, err := os.ReadFile(filename)
+	if err != nil {
+		fmt.Println("Error reading file '" + filename + "':")
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	if printTokens {
+		fmt.Printf("Tokens:   %s\n", lexer.NewLexer().Tokenize(string(fileContent)))
+	}
+	program := parser.ProduceAST(string(fileContent))
+	if printAST {
+		fmt.Printf("AST:       %s\n", program)
+	}
+	transpiler.Transpile(program, env, filename)
 }
 
 func runFile(filename string) {
