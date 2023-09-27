@@ -4,6 +4,7 @@ ScriLa is a scripting language with a Go and C++ like syntax that transpiles int
 
 **Documentation**  
 - [Syntax](doc/Syntax.md)
+- [AST](doc/AST.md)
 
 **Content**
 - [Development](#development)
