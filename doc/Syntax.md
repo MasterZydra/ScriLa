@@ -2,6 +2,7 @@
 
 **Content**
 - [Variables](#variables)
+- [Native functions](#native-functions)
 
 ## Variables
 **Integer**
@@ -31,4 +32,13 @@ obj o = {
 };
 o.a = 2;
 o.d = "d";
+```
+
+## Native functions
+**Print**  
+```
+print("str", 42, false, null);
+
+int i = 43;
+print("i =", i);
 ```
