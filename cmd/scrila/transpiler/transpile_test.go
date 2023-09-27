@@ -2,19 +2,29 @@ package transpiler
 
 import (
 	"ScriLa/cmd/scrila/parser"
+	"fmt"
+	"strings"
+	"testing"
 )
 
-func transpileTestMode(code string) {
+func setTestMode() {
 	testMode = true
+}
+
+func transpileTest(code string) error {
 	parser := parser.NewParser()
 	env := NewEnvironment(nil)
 
-	program := parser.ProduceAST(code)
-	Transpile(program, env, "")
+	program, err := parser.ProduceAST(code)
+	if err != nil {
+		return err
+	}
+	return Transpile(program, env, "")
 }
 
 func ExampleIntDeclaration() {
-	transpileTestMode(`
+	setTestMode()
+	transpileTest(`
 		int i = 42;
 		print(i);
 	`)
@@ -27,7 +37,8 @@ func ExampleIntDeclaration() {
 }
 
 func ExampleIntAssignment() {
-	transpileTestMode(`
+	setTestMode()
+	transpileTest(`
 		int i = 42;
 		i = 101;
 		print(i);
@@ -41,13 +52,24 @@ func ExampleIntAssignment() {
 	// echo "$i"
 }
 
-// TODO Rebuild code to work without os.exit
-// func ExampleIntAssignmentWithMissingDeclaration() {
-// 	transpileTestMode(`
-// 		i = 42;
-// 		print(i);
-// 	`)
+func TestIntDeclarationWithMissingSemicolon(t *testing.T) {
+	err := transpileTest(`
+		int i = 42
+		print(i);
+	`)
+	expected := fmt.Errorf("Parser Error: Expressions must end with a semicolon.")
+	if !strings.HasPrefix(err.Error(), expected.Error()) {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
 
-// 	// Output:
-// 	// "
-// }
+func TestIntAssignmentWithMissingDeclaration(t *testing.T) {
+	err := transpileTest(`
+		i = 42;
+		print(i);
+	`)
+	expected := fmt.Errorf("Cannot resolve variable 'i' as it does not exist.")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}

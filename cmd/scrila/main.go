@@ -61,13 +61,26 @@ func transpile(filename string) {
 	}
 
 	if printTokens {
-		fmt.Printf("Tokens:   %s\n", lexer.NewLexer().Tokenize(string(fileContent)))
+		tokens, err := lexer.NewLexer().Tokenize(string(fileContent))
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		fmt.Printf("Tokens:   %s\n", tokens)
 	}
-	program := parser.ProduceAST(string(fileContent))
+	program, err := parser.ProduceAST(string(fileContent))
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 	if printAST {
 		fmt.Printf("AST:       %s\n", program)
 	}
-	transpiler.Transpile(program, env, filename)
+	err = transpiler.Transpile(program, env, filename)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }
 
 func runFile(filename string) {
@@ -82,13 +95,26 @@ func runFile(filename string) {
 	}
 
 	if printTokens {
-		fmt.Printf("Tokens:   %s\n", lexer.NewLexer().Tokenize(string(fileContent)))
+		tokens, err := lexer.NewLexer().Tokenize(string(fileContent))
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		fmt.Printf("Tokens:   %s\n", tokens)
 	}
-	program := parser.ProduceAST(string(fileContent))
+	program, err := parser.ProduceAST(string(fileContent))
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 	if printAST {
 		fmt.Printf("AST:       %s\n", program)
 	}
-	runtime.Evaluate(program, env)
+	_, err = runtime.Evaluate(program, env)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }
 
 func repl() {
@@ -106,15 +132,28 @@ func repl() {
 		}
 
 		if printTokens {
-			fmt.Printf("Tokens:   %s\n", lexer.Tokenize(input))
+			tokens, err := lexer.Tokenize(input)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+			fmt.Printf("Tokens:   %s\n", tokens)
 		}
 
-		program := parser.ProduceAST(input)
+		program, err := parser.ProduceAST(input)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 		if printAST {
 			fmt.Printf("AST:       %s\n", program)
 		}
 
-		runtime.Evaluate(program, env)
+		_, err = runtime.Evaluate(program, env)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 	}
 }
 

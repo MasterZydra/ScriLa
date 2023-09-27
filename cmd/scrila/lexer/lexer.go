@@ -2,7 +2,6 @@ package lexer
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"unicode"
 
@@ -26,7 +25,7 @@ func (self *Lexer) init() {
 	self.currCol = 1
 }
 
-func (self *Lexer) Tokenize(sourceCode string) []*Token {
+func (self *Lexer) Tokenize(sourceCode string) ([]*Token, error) {
 	self.init()
 
 	// Split source code into an array of every character
@@ -106,13 +105,12 @@ func (self *Lexer) Tokenize(sourceCode string) []*Token {
 			continue
 		}
 
-		fmt.Printf("Unrecognized character '%s' found (Ln %d, Col %d)\n", self.at(), self.currLn, self.currCol)
-		os.Exit(1)
+		return self.tokens, fmt.Errorf("Unrecognized character '%s' found (Ln %d, Col %d)\n", self.at(), self.currLn, self.currCol)
 	}
 
 	self.pushToken("EOF", EndOfFile)
 
-	return self.tokens
+	return self.tokens, nil
 }
 
 func (self *Lexer) isNotEof() bool {

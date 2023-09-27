@@ -3,17 +3,22 @@ package transpiler
 import (
 	"ScriLa/cmd/scrila/ast"
 	"fmt"
-	"os"
 	"strconv"
 )
 
-func evalIdentifier(identifier ast.IIdentifier, env *Environment) IRuntimeVal {
+func evalIdentifier(identifier ast.IIdentifier, env *Environment) (IRuntimeVal, error) {
 	return env.lookupVar(identifier.GetSymbol())
 }
 
-func evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) IRuntimeVal {
-	lhs := transpile(binOp.GetLeft(), env)
-	rhs := transpile(binOp.GetRight(), env)
+func evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) (IRuntimeVal, error) {
+	lhs, lhsError := transpile(binOp.GetLeft(), env)
+	if lhsError != nil {
+		return NewNullVal(), lhsError
+	}
+	rhs, rhsError := transpile(binOp.GetRight(), env)
+	if rhsError != nil {
+		return NewNullVal(), rhsError
+	}
 
 	if lhs.GetType() == IntValueType && rhs.GetType() == IntValueType {
 		var i interface{} = lhs
@@ -31,11 +36,11 @@ func evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) IRuntimeVal {
 		return evalStrBinaryExpr(left, right, binOp.GetOperator())
 	}
 
-	// One or both are NULL, or another not yet supported type
-	return NewNullVal()
+	// TODO Return Error One or both are NULL, or another not yet supported type
+	return NewNullVal(), nil
 }
 
-func evalIntBinaryExpr(lhs IIntVal, rhs IIntVal, operator string) IIntVal {
+func evalIntBinaryExpr(lhs IIntVal, rhs IIntVal, operator string) (IIntVal, error) {
 	var result int64
 
 	writeToFile("$((")
@@ -54,36 +59,33 @@ func evalIntBinaryExpr(lhs IIntVal, rhs IIntVal, operator string) IIntVal {
 		// TODO Division by zero
 		result = lhs.GetValue() / rhs.GetValue()
 	default:
-		fmt.Println("Unsupported binary operator: ", operator)
-		os.Exit(1)
+		return NewIntVal(0), fmt.Errorf("evalIntBinaryExpr: Unsupported binary operator: %s", operator)
 	}
 	writeToFile("))")
 
-	return NewIntVal(result)
+	return NewIntVal(result), nil
 }
 
-func evalStrBinaryExpr(lhs IStrVal, rhs IStrVal, operator string) IStrVal {
+func evalStrBinaryExpr(lhs IStrVal, rhs IStrVal, operator string) (IStrVal, error) {
 	var result string
 
 	switch operator {
 	case "+":
 		result = lhs.GetValue() + rhs.GetValue()
 	default:
-		fmt.Println("Unsupported binary operator: ", operator)
-		os.Exit(1)
+		return NewStrVal(""), fmt.Errorf("evalStrBinaryExpr: Unsupported binary operator: %s", operator)
 	}
 
-	return NewStrVal(result)
+	return NewStrVal(result), nil
 }
 
-func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) IRuntimeVal {
+func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeVal, error) {
 	if assignment.GetAssigne().GetKind() == ast.MemberExprNode {
 		return evalAssignmentObjMember(assignment, env)
 	}
 
 	if assignment.GetAssigne().GetKind() != ast.IdentifierNode {
-		fmt.Println("evalAssignment: Invalid LHS inside assignment expr", assignment.GetAssigne())
-		os.Exit(1)
+		return NewNullVal(), fmt.Errorf("evalAssignment: Invalid LHS inside assignment expr %s", assignment.GetAssigne())
 	}
 
 	var i interface{} = assignment.GetAssigne()
@@ -94,36 +96,42 @@ func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) IRuntimeVa
 		intLiteral := i.(ast.IIntLiteral)
 		writeToFile(strconv.Itoa(int(intLiteral.GetValue())))
 	}
-	result := env.assignVar(assigne.GetSymbol(), transpile(assignment.GetValue(), env))
+	value, err := transpile(assignment.GetValue(), env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+	result, err := env.assignVar(assigne.GetSymbol(), value)
+	if err != nil {
+		return NewNullVal(), err
+	}
 	writeLnToFile("")
-	return result
+	return result, nil
 }
 
-func evalAssignmentObjMember(assignment ast.IAssignmentExpr, env *Environment) IRuntimeVal {
+func evalAssignmentObjMember(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeVal, error) {
 	if assignment.GetAssigne().GetKind() != ast.MemberExprNode {
-		fmt.Println("evalAssignmentObjMember: Invalid LHS inside assignment expr", assignment.GetAssigne())
-		os.Exit(1)
+		return NewNullVal(), fmt.Errorf("evalAssignmentObjMember: Invalid LHS inside assignment expr: %s", assignment.GetAssigne())
 	}
 
 	var i interface{} = assignment.GetAssigne()
 	memberExpr, _ := i.(ast.IMemberExpr)
 
 	if memberExpr.GetObject().GetKind() != ast.IdentifierNode {
-		fmt.Println("evalMemberExpr: Object - Node kind '" + memberExpr.GetObject().GetKind() + "' not supported")
-		os.Exit(1)
+		return NewNullVal(), fmt.Errorf("evalMemberExpr: Object - Node kind '%s' not supported", memberExpr.GetObject().GetKind())
 	}
 
 	if memberExpr.GetProperty().GetKind() != ast.IdentifierNode {
-		fmt.Println("evalMemberExpr: Property - Node kind '" + memberExpr.GetProperty().GetKind() + "' not supported")
-		os.Exit(1)
+		return NewNullVal(), fmt.Errorf("evalMemberExpr: Property - Node kind '%s' not supported", memberExpr.GetProperty().GetKind())
 	}
 
 	i = memberExpr.GetObject()
 	identifier, _ := i.(ast.IIdentifier)
-	obj := env.lookupVar(identifier.GetSymbol())
+	obj, err := env.lookupVar(identifier.GetSymbol())
+	if err != nil {
+		return NewNullVal(), err
+	}
 	if obj.GetType() != ObjValueType {
-		fmt.Println("evalMemberExpr: variable '" + identifier.GetSymbol() + "' is not of type 'object'")
-		os.Exit(1)
+		return NewNullVal(), fmt.Errorf("evalMemberExpr: variable '%s' is not of type 'object'", identifier.GetSymbol())
 	}
 
 	i = obj
@@ -132,38 +140,45 @@ func evalAssignmentObjMember(assignment ast.IAssignmentExpr, env *Environment) I
 	i = memberExpr.GetProperty()
 	property, _ := i.(ast.IIdentifier)
 
-	value := transpile(assignment.GetValue(), env)
+	value, err := transpile(assignment.GetValue(), env)
+	if err != nil {
+		return NewNullVal(), err
+	}
 	objVal.GetProperties()[property.GetSymbol()] = value
-	return value
+	return value, nil
 }
 
-func evalObjectExpr(object ast.IObjectLiteral, env *Environment) IRuntimeVal {
+func evalObjectExpr(object ast.IObjectLiteral, env *Environment) (IRuntimeVal, error) {
 	obj := NewObjVal()
 
 	for _, property := range object.GetProperties() {
-		obj.properties[property.GetKey()] = transpile(property.GetValue(), env)
+		value, err := transpile(property.GetValue(), env)
+		if err != nil {
+			return NewNullVal(), err
+		}
+		obj.properties[property.GetKey()] = value
 	}
 
-	return obj
+	return obj, nil
 }
 
-func evalMemberExpr(memberExpr ast.IMemberExpr, env *Environment) IRuntimeVal {
+func evalMemberExpr(memberExpr ast.IMemberExpr, env *Environment) (IRuntimeVal, error) {
 	if memberExpr.GetObject().GetKind() != ast.IdentifierNode {
-		fmt.Println("evalMemberExpr: Object - Node kind '" + memberExpr.GetObject().GetKind() + "' not supported")
-		os.Exit(1)
+		return NewNullVal(), fmt.Errorf("evalMemberExpr: Object - Node kind '%s' not supported", memberExpr.GetObject().GetKind())
 	}
 
 	if memberExpr.GetProperty().GetKind() != ast.IdentifierNode {
-		fmt.Println("evalMemberExpr: Property - Node kind '" + memberExpr.GetProperty().GetKind() + "' not supported")
-		os.Exit(1)
+		return NewNullVal(), fmt.Errorf("evalMemberExpr: Property - Node kind '%s' not supported", memberExpr.GetProperty().GetKind())
 	}
 
 	var i interface{} = memberExpr.GetObject()
 	identifier, _ := i.(ast.IIdentifier)
-	obj := env.lookupVar(identifier.GetSymbol())
+	obj, err := env.lookupVar(identifier.GetSymbol())
+	if err != nil {
+		return NewNullVal(), err
+	}
 	if obj.GetType() != ObjValueType {
-		fmt.Println("evalMemberExpr: variable '" + identifier.GetSymbol() + "' is not of type 'object'")
-		os.Exit(1)
+		return NewNullVal(), fmt.Errorf("evalMemberExpr: variable '%s' is not of type 'object'", identifier.GetSymbol())
 	}
 
 	i = obj
@@ -172,29 +187,35 @@ func evalMemberExpr(memberExpr ast.IMemberExpr, env *Environment) IRuntimeVal {
 	i = memberExpr.GetProperty()
 	property, _ := i.(ast.IIdentifier)
 
-	return objVal.GetProperties()[property.GetSymbol()]
+	return objVal.GetProperties()[property.GetSymbol()], nil
 }
 
-func evalCallExpr(call ast.ICallExpr, env *Environment) IRuntimeVal {
+func evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {
 	// TODO add helpers? https://zetcode.com/golang/filter-map/
 	var args []IRuntimeVal
 	for _, arg := range call.GetArgs() {
-		args = append(args, transpile(arg, env))
+		evalArg, err := transpile(arg, env)
+		if err != nil {
+			return NewNullVal(), err
+		}
+		args = append(args, evalArg)
 	}
 
 	if call.GetCaller().GetKind() != ast.IdentifierNode {
-		fmt.Println("Function caller has to be an identifier. Got:", call.GetCaller())
-		os.Exit(1)
+		return NewNullVal(), fmt.Errorf("Function caller has to be an identifier. Got: %s", call.GetCaller())
 	}
 	var j interface{} = call.GetCaller()
 	identifier, _ := j.(ast.IIdentifier)
-	caller := env.lookupFunc(identifier.GetSymbol())
+	caller, err := env.lookupFunc(identifier.GetSymbol())
+	if err != nil {
+		return NewNullVal(), err
+	}
 
 	switch caller.GetType() {
 	case NativeFnType:
 		var i interface{} = caller
 		fn, _ := i.(INativeFunc)
-		return fn.GetCall()(call.GetArgs(), env)
+		return fn.GetCall()(call.GetArgs(), env), nil
 
 	case FunctionValueType:
 		var i interface{} = caller
@@ -212,13 +233,15 @@ func evalCallExpr(call ast.ICallExpr, env *Environment) IRuntimeVal {
 		result = NewNullVal()
 		// Transpile the function body line by line
 		for _, stmt := range fn.GetBody() {
-			result = transpile(stmt, scope)
+			var err error
+			result, err = transpile(stmt, scope)
+			if err != nil {
+				return NewNullVal(), err
+			}
 		}
-		return result
+		return result, nil
 
 	default:
-		fmt.Println("Cannot call value that is not a function:", caller)
-		os.Exit(1)
-		return NewNullVal()
+		return NewNullVal(), fmt.Errorf("Cannot call value that is not a function: %s", caller)
 	}
 }

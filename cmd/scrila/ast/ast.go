@@ -6,11 +6,13 @@ type NodeType string
 
 const (
 	// Statements
+	StatementNode           NodeType = "Statement"
 	ProgramNode             NodeType = "Program"
 	VarDeclarationNode      NodeType = "VarDeclaration"
 	FunctionDeclarationNode NodeType = "FunctionDeclaration"
 
 	// Expressions
+	ExprNode           NodeType = "Expr"
 	AssignmentExprNode NodeType = "AssignmentExpr"
 	BinaryExprNode     NodeType = "BinaryExpr"
 	UnaryExprNode      NodeType = "UnaryExpr"
@@ -31,6 +33,12 @@ type IStatement interface {
 
 type Statement struct {
 	kind NodeType
+}
+
+func NewStatement() *Statement {
+	return &Statement{
+		kind: StatementNode,
+	}
 }
 
 func (self *Statement) GetKind() NodeType {
@@ -158,6 +166,12 @@ type IExpr interface {
 }
 type Expr struct {
 	kind NodeType
+}
+
+func NewExpr() *Expr {
+	return &Expr{
+		kind: ExprNode,
+	}
 }
 
 func (self *Expr) GetKind() NodeType {

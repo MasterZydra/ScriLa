@@ -19,99 +19,124 @@ func writeToFile(content string) {
 	if testMode {
 		fmt.Print(content)
 	} else {
-		outputFile.WriteString(content)
+		if outputFile != nil {
+			outputFile.WriteString(content)
+		}
 	}
 }
 
-func Transpile(astNode ast.IStatement, env *Environment, fileName string) {
-	outputFileName = fileName + ".sh"
-	f, err := os.Create(outputFileName)
-	if err != nil {
-		fmt.Println("Something went wrong creating the output file:", err)
+func Transpile(astNode ast.IStatement, env *Environment, fileName string) error {
+	if fileName != "" {
+		outputFileName = fileName + ".sh"
+		f, err := os.Create(outputFileName)
+		if err != nil {
+			fmt.Println("Something went wrong creating the output file:", err)
+		}
+		defer f.Close()
+		outputFile = f
 	}
-	defer f.Close()
-	outputFile = f
 
 	writeLnToFile("#!/bin/bash")
 	writeLnToFile("# Created by Scrila Transpiler v0.0.1")
-	transpile(astNode, env)
+	_, err := transpile(astNode, env)
+	return err
 }
 
-func transpile(astNode ast.IStatement, env *Environment) IRuntimeVal {
+func transpile(astNode ast.IStatement, env *Environment) (IRuntimeVal, error) {
 	switch astNode.GetKind() {
 	// Handle Expressions
 
 	case ast.IntLiteralNode:
 		var i interface{} = astNode
-		intLiteral, _ := i.(ast.IIntLiteral)
-		// TODO error handling
-		return NewIntVal(intLiteral.GetValue())
+		intLiteral, ok := i.(ast.IIntLiteral)
+		if !ok {
+			return NewNullVal(), fmt.Errorf("Evaluate: Failed to convert Statement to IntLiteral")
+		}
+		return NewIntVal(intLiteral.GetValue()), nil
 
 	case ast.StrLiteralNode:
 		var i interface{} = astNode
-		strLiteral, _ := i.(ast.IStrLiteral)
-		// TODO error handling
-		return NewStrVal(strLiteral.GetValue())
+		strLiteral, ok := i.(ast.IStrLiteral)
+		if !ok {
+			return NewNullVal(), fmt.Errorf("Evaluate: Failed to convert Statement to StrLiteral")
+		}
+		return NewStrVal(strLiteral.GetValue()), nil
 
 	case ast.IdentifierNode:
 		var i interface{} = astNode
-		identifier, _ := i.(ast.IIdentifier)
-		// TODO error handling
+		identifier, ok := i.(ast.IIdentifier)
+		if !ok {
+			return NewNullVal(), fmt.Errorf("Evaluate: Failed to convert Statement to Identifier")
+		}
 		return evalIdentifier(identifier, env)
 
 	case ast.ObjectLiteralNode:
 		var i interface{} = astNode
-		object, _ := i.(ast.IObjectLiteral)
-		// TODO error handling
+		object, ok := i.(ast.IObjectLiteral)
+		if !ok {
+			return NewNullVal(), fmt.Errorf("Evaluate: Failed to convert Statement to ObjectLiteral")
+		}
 		return evalObjectExpr(object, env)
 
 	case ast.CallExprNode:
 		var i interface{} = astNode
-		call, _ := i.(ast.ICallExpr)
-		// TODO error handling
+		call, ok := i.(ast.ICallExpr)
+		if !ok {
+			return NewNullVal(), fmt.Errorf("Evaluate: Failed to convert Statement to CallExpr")
+		}
 		return evalCallExpr(call, env)
 
 	case ast.AssignmentExprNode:
 		var i interface{} = astNode
-		assignment, _ := i.(ast.IAssignmentExpr)
-		// TODO error handling
+		assignment, ok := i.(ast.IAssignmentExpr)
+		if !ok {
+			return NewNullVal(), fmt.Errorf("Evaluate: Failed to convert Statement to AssignmentExpr")
+		}
 		return evalAssignment(assignment, env)
 
 	case ast.BinaryExprNode:
 		var i interface{} = astNode
-		binaryExpr, _ := i.(ast.IBinaryExpr)
-		// TODO error handling
+		binaryExpr, ok := i.(ast.IBinaryExpr)
+		if !ok {
+			return NewNullVal(), fmt.Errorf("Evaluate: Failed to convert Statement to BinaryExpr")
+		}
 		return evalBinaryExpr(binaryExpr, env)
 
 	case ast.MemberExprNode:
 		var i interface{} = astNode
-		memberExpr, _ := i.(ast.IMemberExpr)
-		// TODO error handling
+		memberExpr, ok := i.(ast.IMemberExpr)
+		if !ok {
+			return NewNullVal(), fmt.Errorf("Evaluate: Failed to convert Statement to MemberExpr")
+		}
 		return evalMemberExpr(memberExpr, env)
 
 	// Handle Statements
 
 	case ast.ProgramNode:
 		var i interface{} = astNode
-		program, _ := i.(ast.IProgram)
-		// TODO error handling
+		program, ok := i.(ast.IProgram)
+		if !ok {
+			return NewNullVal(), fmt.Errorf("Evaluate: Failed to convert Statement to Program")
+		}
 		return evalProgram(program, env)
 
 	case ast.VarDeclarationNode:
 		var i interface{} = astNode
-		varDeclaration, _ := i.(ast.IVarDeclaration)
-		// TODO error handling
+		varDeclaration, ok := i.(ast.IVarDeclaration)
+		if !ok {
+			return NewNullVal(), fmt.Errorf("Evaluate: Failed to convert Statement to VarDeclaration")
+		}
 		return evalVarDeclaration(varDeclaration, env)
 
 	case ast.FunctionDeclarationNode:
 		var i interface{} = astNode
-		funcDeclaration, _ := i.(ast.IFunctionDeclaration)
-		// TODO error handling
+		funcDeclaration, ok := i.(ast.IFunctionDeclaration)
+		if !ok {
+			return NewNullVal(), fmt.Errorf("Evaluate: Failed to convert Statement to FunctionDeclaration")
+		}
 		return evalFunctionDeclaration(funcDeclaration, env)
 
 	default:
-		fmt.Println("This AST Node has not been setup for interpretion:", astNode)
-		os.Exit(1)
-		return NewNullVal()
+		return NewNullVal(), fmt.Errorf("This AST Node has not been setup for interpretion: %s", astNode)
 	}
 }
