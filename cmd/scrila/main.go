@@ -143,7 +143,7 @@ func repl() {
 		program, err := parser.ProduceAST(input)
 		if err != nil {
 			fmt.Println(err)
-			os.Exit(1)
+			continue
 		}
 		if printAST {
 			fmt.Printf("AST:       %s\n", program)
@@ -152,7 +152,7 @@ func repl() {
 		_, err = runtime.Evaluate(program, env)
 		if err != nil {
 			fmt.Println(err)
-			os.Exit(1)
+			continue
 		}
 	}
 }

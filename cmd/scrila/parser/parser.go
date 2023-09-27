@@ -427,7 +427,7 @@ func (self *Parser) at() *lexer.Token {
 func (self *Parser) expect(tokenType lexer.TokenType, errMsg string) (*lexer.Token, error) {
 	prev := self.eat()
 	if prev.TokenType != tokenType {
-		return &lexer.Token{}, fmt.Errorf("Parser Error: %s\nExpected: %s\nGot: %s\n", errMsg, tokenType, prev)
+		return &lexer.Token{}, fmt.Errorf("Parser Error: %s\nExpected: %s\nGot: %s", errMsg, tokenType, prev)
 	}
 	return prev, nil
 }
