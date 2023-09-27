@@ -22,6 +22,36 @@ func transpileTest(code string) error {
 	return Transpile(program, env, "")
 }
 
+func ExamplePrintBaseTypes() {
+	setTestMode()
+	transpileTest(`
+		print(42, "str", true, false, null);
+	`)
+
+	// Output:
+	// #!/bin/bash
+	// # Created by Scrila Transpiler v0.0.1
+	// echo "42 str true false null"
+}
+
+func ExamplePrintVariables() {
+	setTestMode()
+	transpileTest(`
+		int i = 42;
+		str s = "hello world";
+		bool b = false;
+		print(i, s, b);
+	`)
+
+	// Output:
+	// #!/bin/bash
+	// # Created by Scrila Transpiler v0.0.1
+	// i=42
+	// s="hello world"
+	// b=false
+	// echo "$i $s $b"
+}
+
 func ExampleIntDeclaration() {
 	setTestMode()
 	transpileTest(`

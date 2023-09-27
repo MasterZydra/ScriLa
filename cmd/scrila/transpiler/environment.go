@@ -6,6 +6,8 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+var reservedIdentifiers = []string{"null", "true", "false"}
+
 func setupScope(env *Environment) {
 	// Create Default Global Environment
 	env.declareVar("null", NewNullVal(), true)
