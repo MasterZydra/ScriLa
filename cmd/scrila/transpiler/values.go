@@ -179,7 +179,7 @@ func (self *StrVal) ToString() string {
 	return self.value
 }
 
-type FunctionCall func(args []ast.IExpr, env *Environment) IRuntimeVal
+type FunctionCall func(args []ast.IExpr, env *Environment) (IRuntimeVal, error)
 
 type INativeFunc interface {
 	IRuntimeVal

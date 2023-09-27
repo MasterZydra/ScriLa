@@ -215,7 +215,7 @@ func evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {
 	case NativeFnType:
 		var i interface{} = caller
 		fn, _ := i.(INativeFunc)
-		return fn.GetCall()(call.GetArgs(), env), nil
+		return fn.GetCall()(call.GetArgs(), env)
 
 	case FunctionValueType:
 		var i interface{} = caller

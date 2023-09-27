@@ -5,11 +5,11 @@ import (
 	"time"
 )
 
-func nativeTime(args []ast.IExpr, env *Environment) IRuntimeVal {
-	return NewIntVal(time.Now().UnixMilli())
+func nativeTime(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+	return NewIntVal(time.Now().UnixMilli()), nil
 }
 
-func nativePrint(args []ast.IExpr, env *Environment) IRuntimeVal {
+func nativePrint(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
 	writeToFile("echo \"")
 	for _, arg := range args {
 		if arg.GetKind() == ast.IdentifierNode {
@@ -19,5 +19,5 @@ func nativePrint(args []ast.IExpr, env *Environment) IRuntimeVal {
 		}
 	}
 	writeLnToFile("\"")
-	return NewNullVal()
+	return NewNullVal(), nil
 }
