@@ -39,13 +39,8 @@ int prop = exampleObj.x;
 print(prop);
 print(exampleObj.x);
 
-# Buildin functions
+# Native functions
 print(foo, 13);
-
-int timeNow = time();
-print(timeNow);
-
-print(time());
 
 # User defined functions
 func add(a, b) {

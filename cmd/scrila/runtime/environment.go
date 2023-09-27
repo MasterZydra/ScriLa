@@ -14,7 +14,6 @@ func setupScope(env *Environment) {
 
 	// Define native builtin methods
 	env.declareFunc("print", NewNativeFunc(nativePrint))
-	env.declareFunc("time", NewNativeFunc(nativeTime))
 }
 
 type Environment struct {

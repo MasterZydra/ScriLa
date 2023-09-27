@@ -4,14 +4,9 @@ import (
 	"ScriLa/cmd/scrila/ast"
 	"fmt"
 	"strconv"
-	"time"
 
 	"golang.org/x/exp/slices"
 )
-
-func nativeTime(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
-	return NewIntVal(time.Now().UnixMilli()), nil
-}
 
 func nativePrint(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
 	writeToFile("echo \"")
