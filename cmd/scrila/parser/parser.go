@@ -11,7 +11,7 @@ import (
 
 var additiveOps = []string{"+", "-"}
 
-var multiplicitaveOps = []string{"*", "/"} // Modulo %
+var multiplicitaveOps = []string{"*", "/"} // TODO Modulo %
 
 type Parser struct {
 	lexer  *lexer.Lexer
@@ -146,7 +146,7 @@ func (self *Parser) parseExpr() (ast.IExpr, error) {
 	return self.parseAssignmentExpr()
 }
 
-// Orders of Prescidence:
+// Orders of Precedence:
 // Processed from top to bottom
 // Priority from bottom to top
 // - AssignmentExpr
@@ -218,7 +218,7 @@ func (self *Parser) parseObjectExpr() (ast.IExpr, error) {
 }
 
 func (self *Parser) parseAdditiveExpr() (ast.IExpr, error) {
-	// Lefthand Prescidence
+	// Lefthand Precedence
 	//
 	//      10 + 5 - 6      10 + (5 - 6)        10 * 5 - 6     10 + 5 * 6
 	//
@@ -250,7 +250,7 @@ func (self *Parser) parseAdditiveExpr() (ast.IExpr, error) {
 }
 
 func (self *Parser) parseMultiplicitaveExpr() (ast.IExpr, error) {
-	// Lefthand Prescidence (see func parseAdditiveExpr)
+	// Lefthand Precedence (see func parseAdditiveExpr)
 	left, err := self.parseCallMemberExpr()
 	if err != nil {
 		return ast.NewExpr(), err
@@ -293,6 +293,7 @@ func (self *Parser) parseCallExpr(caller ast.IExpr) (ast.IExpr, error) {
 	callExpr = ast.NewCallExpr(caller, args)
 
 	// This allows chaining of function calls: e.g. foo()()
+	// TODO Do not allow chaining
 	if self.at().TokenType == lexer.OpenParen {
 		var err error
 		callExpr, err = self.parseCallExpr(callExpr)
