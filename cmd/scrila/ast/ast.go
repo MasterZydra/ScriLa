@@ -7,6 +7,7 @@ type NodeType string
 const (
 	// Statements
 	StatementNode           NodeType = "Statement"
+	CommentNode             NodeType = "Comment"
 	ProgramNode             NodeType = "Program"
 	VarDeclarationNode      NodeType = "VarDeclaration"
 	FunctionDeclarationNode NodeType = "FunctionDeclaration"
@@ -72,6 +73,35 @@ func (self *Program) GetKind() NodeType {
 
 func (self *Program) GetBody() []IStatement {
 	return self.Body
+}
+
+type IComment interface {
+	IStatement
+	GetComment() string
+}
+
+type Comment struct {
+	kind    NodeType
+	comment string
+}
+
+func (self *Comment) String() string {
+	return fmt.Sprintf("&{%s '%s'}", self.GetKind(), self.GetComment())
+}
+
+func NewComment(comment string) *Comment {
+	return &Comment{
+		kind:    CommentNode,
+		comment: comment,
+	}
+}
+
+func (self *Comment) GetKind() NodeType {
+	return self.kind
+}
+
+func (self *Comment) GetComment() string {
+	return self.comment
 }
 
 type IVarDeclaration interface {

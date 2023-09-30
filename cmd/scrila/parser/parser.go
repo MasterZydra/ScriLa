@@ -54,6 +54,8 @@ func (self *Parser) parseStatement() (ast.IStatement, error) {
 	var statement ast.IStatement
 	var err error
 	switch self.at().TokenType {
+	case lexer.Comment:
+		return ast.NewComment(self.eat().Value), nil
 	case lexer.Const, lexer.BoolType, lexer.IntType, lexer.StrType, lexer.ObjType:
 		statement, err = self.parseVarDeclaration()
 		if err != nil {
