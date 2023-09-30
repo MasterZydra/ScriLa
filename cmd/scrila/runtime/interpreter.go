@@ -75,6 +75,9 @@ func Evaluate(astNode ast.IStatement, env *Environment) (IRuntimeVal, error) {
 
 	// Handle Statements
 
+	case ast.CommentNode:
+		return NewNullVal(), nil
+
 	case ast.ProgramNode:
 		var i interface{} = astNode
 		program, ok := i.(ast.IProgram)

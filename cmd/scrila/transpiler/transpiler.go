@@ -111,6 +111,14 @@ func transpile(astNode ast.IStatement, env *Environment) (IRuntimeVal, error) {
 		return evalMemberExpr(memberExpr, env)
 
 	// Handle Statements
+	case ast.CommentNode:
+		var i interface{} = astNode
+		comment, ok := i.(ast.IComment)
+		if !ok {
+			return NewNullVal(), fmt.Errorf("Evaluate: Failed to convert Statement to Comment")
+		}
+		writeLnToFile("# " + comment.GetComment())
+		return NewNullVal(), nil
 
 	case ast.ProgramNode:
 		var i interface{} = astNode
