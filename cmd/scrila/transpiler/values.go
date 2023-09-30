@@ -20,14 +20,25 @@ const (
 type IRuntimeVal interface {
 	GetType() ValueType
 	ToString() string
+	GetTranspilat() string
+	SetTranspilat(transpilat string)
 }
 
 type RuntimeVal struct {
-	valueType ValueType
+	valueType  ValueType
+	transpilat string
 }
 
 func (self *RuntimeVal) GetType() ValueType {
 	return self.valueType
+}
+
+func (self *RuntimeVal) GetTranspilat() string {
+	return self.transpilat
+}
+
+func (self *RuntimeVal) SetTranspilat(transpilat string) {
+	self.transpilat = transpilat
 }
 
 type INullVal interface {
@@ -36,8 +47,9 @@ type INullVal interface {
 }
 
 type NullVal struct {
-	valueType ValueType
-	value     string
+	valueType  ValueType
+	value      string
+	transpilat string
 }
 
 func NewNullVal() *NullVal {
@@ -55,6 +67,14 @@ func (self *NullVal) GetValue() string {
 	return self.value
 }
 
+func (self *NullVal) GetTranspilat() string {
+	return self.transpilat
+}
+
+func (self *NullVal) SetTranspilat(transpilat string) {
+	self.transpilat = transpilat
+}
+
 func (self *NullVal) ToString() string {
 	return self.value
 }
@@ -65,8 +85,9 @@ type IIntVal interface {
 }
 
 type IntVal struct {
-	valueType ValueType
-	value     int64
+	valueType  ValueType
+	value      int64
+	transpilat string
 }
 
 func NewIntVal(value int64) *IntVal {
@@ -84,6 +105,14 @@ func (self *IntVal) GetValue() int64 {
 	return self.value
 }
 
+func (self *IntVal) GetTranspilat() string {
+	return self.transpilat
+}
+
+func (self *IntVal) SetTranspilat(transpilat string) {
+	self.transpilat = transpilat
+}
+
 func (self *IntVal) ToString() string {
 	return fmt.Sprintf("%d", self.value)
 }
@@ -94,8 +123,9 @@ type IBoolVal interface {
 }
 
 type BoolVal struct {
-	valueType ValueType
-	value     bool
+	valueType  ValueType
+	value      bool
+	transpilat string
 }
 
 func (self *BoolVal) String() string {
@@ -117,6 +147,14 @@ func (self *BoolVal) GetValue() bool {
 	return self.value
 }
 
+func (self *BoolVal) GetTranspilat() string {
+	return self.transpilat
+}
+
+func (self *BoolVal) SetTranspilat(transpilat string) {
+	self.transpilat = transpilat
+}
+
 func (self *BoolVal) ToString() string {
 	return fmt.Sprintf("%t", self.value)
 }
@@ -129,6 +167,7 @@ type IObjVal interface {
 type ObjVal struct {
 	valueType  ValueType
 	properties map[string]IRuntimeVal
+	transpilat string
 }
 
 func NewObjVal() *ObjVal {
@@ -146,6 +185,14 @@ func (self *ObjVal) GetProperties() map[string]IRuntimeVal {
 	return self.properties
 }
 
+func (self *ObjVal) GetTranspilat() string {
+	return self.transpilat
+}
+
+func (self *ObjVal) SetTranspilat(transpilat string) {
+	self.transpilat = transpilat
+}
+
 func (self *ObjVal) ToString() string {
 	return "ObjVal"
 }
@@ -156,8 +203,9 @@ type IStrVal interface {
 }
 
 type StrVal struct {
-	valueType ValueType
-	value     string
+	valueType  ValueType
+	value      string
+	transpilat string
 }
 
 func NewStrVal(value string) *StrVal {
@@ -175,6 +223,14 @@ func (self *StrVal) GetValue() string {
 	return self.value
 }
 
+func (self *StrVal) GetTranspilat() string {
+	return self.transpilat
+}
+
+func (self *StrVal) SetTranspilat(transpilat string) {
+	self.transpilat = transpilat
+}
+
 func (self *StrVal) ToString() string {
 	return self.value
 }
@@ -187,8 +243,9 @@ type INativeFunc interface {
 }
 
 type NativeFunc struct {
-	valueType ValueType
-	call      FunctionCall
+	valueType  ValueType
+	call       FunctionCall
+	transpilat string
 }
 
 func NewNativeFunc(function FunctionCall) *NativeFunc {
@@ -204,6 +261,14 @@ func (self *NativeFunc) GetType() ValueType {
 
 func (self *NativeFunc) GetCall() FunctionCall {
 	return self.call
+}
+
+func (self *NativeFunc) GetTranspilat() string {
+	return self.transpilat
+}
+
+func (self *NativeFunc) SetTranspilat(transpilat string) {
+	self.transpilat = transpilat
 }
 
 func (self *NativeFunc) ToString() string {
@@ -224,6 +289,7 @@ type FunctionVal struct {
 	params         []string
 	declarationEnv *Environment
 	body           []ast.IStatement
+	transpilat     string
 }
 
 func NewFunctionVal(name string, params []string, declarationEnv *Environment, body []ast.IStatement) *FunctionVal {
@@ -254,6 +320,14 @@ func (self *FunctionVal) GetDeclarationEnv() *Environment {
 
 func (self *FunctionVal) GetBody() []ast.IStatement {
 	return self.body
+}
+
+func (self *FunctionVal) GetTranspilat() string {
+	return self.transpilat
+}
+
+func (self *FunctionVal) SetTranspilat(transpilat string) {
+	self.transpilat = transpilat
 }
 
 func (self *FunctionVal) ToString() string {
