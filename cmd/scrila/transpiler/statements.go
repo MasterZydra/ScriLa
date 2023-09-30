@@ -34,9 +34,7 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 		if slices.Contains(reservedIdentifiers, identifier.GetSymbol()) {
 			writeLnToFile(identifier.GetSymbol())
 		} else {
-			// TODO How to handle vars?
-			// writeToFile("$" + identifier.GetSymbol())
-			return NewNullVal(), fmt.Errorf("evalVarDeclaration: value kind '%s' not supported", varDeclaration.GetValue())
+			writeLnToFile("$" + identifier.GetSymbol())
 		}
 	case ast.BinaryExprNode:
 		writeLnToFile(value.GetTranspilat())
