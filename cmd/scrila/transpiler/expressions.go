@@ -21,7 +21,7 @@ func evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) (IRuntimeVal, error
 		var i interface{} = binOp.GetLeft()
 		identifier, _ := i.(ast.IIdentifier)
 		lhs.SetTranspilat("$" + identifier.GetSymbol())
-	case ast.IntLiteralNode:
+	case ast.IntLiteralNode, ast.StrLiteralNode:
 		lhs.SetTranspilat(lhs.ToString())
 	default:
 		return NewNullVal(), fmt.Errorf("evalBinaryExpr: left kind '%s' not supported", binOp.GetLeft())
@@ -38,7 +38,7 @@ func evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) (IRuntimeVal, error
 		var i interface{} = binOp.GetRight()
 		identifier, _ := i.(ast.IIdentifier)
 		rhs.SetTranspilat("$" + identifier.GetSymbol())
-	case ast.IntLiteralNode:
+	case ast.IntLiteralNode, ast.StrLiteralNode:
 		rhs.SetTranspilat(rhs.ToString())
 	default:
 		return NewNullVal(), fmt.Errorf("evalBinaryExpr: right kind '%s' not supported", binOp.GetLeft())
@@ -92,16 +92,16 @@ func evalIntBinaryExpr(lhs IIntVal, rhs IIntVal, operator string) (IIntVal, erro
 }
 
 func evalStrBinaryExpr(lhs IStrVal, rhs IStrVal, operator string) (IStrVal, error) {
-	var result string
-
 	switch operator {
 	case "+":
-		result = lhs.GetValue() + rhs.GetValue()
+		transpilat := lhs.GetTranspilat() + rhs.GetTranspilat()
+		result := lhs.GetValue() + rhs.GetValue()
+		strVal := NewStrVal(result)
+		strVal.SetTranspilat(transpilat)
+		return strVal, nil
 	default:
 		return NewStrVal(""), fmt.Errorf("evalStrBinaryExpr: Unsupported binary operator: %s", operator)
 	}
-
-	return NewStrVal(result), nil
 }
 
 func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeVal, error) {
