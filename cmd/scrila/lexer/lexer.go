@@ -82,7 +82,7 @@ func (self *Lexer) Tokenize(sourceCode string) ([]*Token, error) {
 
 		if isLetter(self.at()) {
 			ident := ""
-			for self.isNotEof() && isLetter(self.at()) {
+			for self.isNotEof() && (isLetter(self.at()) || isDigit(self.at())) {
 				ident += self.eat()
 			}
 
