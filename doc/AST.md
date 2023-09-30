@@ -2,6 +2,7 @@
 
 ```mermaid
 classDiagram
+  Statement <|-- Comment
   Statement <|-- Program
   Statement <|-- VarDeclaration
   Statement <|-- FunctionDeclaration
