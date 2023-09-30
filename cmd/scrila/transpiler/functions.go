@@ -35,6 +35,12 @@ func nativePrint(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
 			var i interface{} = arg
 			strLiteral, _ := i.(ast.IStrLiteral)
 			writeToFile(strLiteral.GetValue())
+		case ast.BinaryExprNode:
+			value, err := transpile(arg, env)
+			if err != nil {
+				return NewNullVal(), err
+			}
+			writeToFile(value.GetTranspilat())
 		default:
 			return NewNullVal(), fmt.Errorf("nativePrint: Arg kind '%s' not supported", arg)
 		}

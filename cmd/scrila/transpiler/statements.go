@@ -2,6 +2,9 @@ package transpiler
 
 import (
 	"ScriLa/cmd/scrila/ast"
+	"fmt"
+
+	"golang.org/x/exp/slices"
 )
 
 func evalProgram(program ast.IProgram, env *Environment) (IRuntimeVal, error) {
@@ -24,11 +27,27 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 	if err != nil {
 		return NewNullVal(), err
 	}
-	if value.GetType() == StrValueType {
+	switch varDeclaration.GetValue().GetKind() {
+	case ast.IdentifierNode:
+		var i interface{} = varDeclaration.GetValue()
+		identifier, _ := i.(ast.IIdentifier)
+		if slices.Contains(reservedIdentifiers, identifier.GetSymbol()) {
+			writeLnToFile(identifier.GetSymbol())
+		} else {
+			// TODO How to handle vars?
+			// writeToFile("$" + identifier.GetSymbol())
+			return NewNullVal(), fmt.Errorf("evalVarDeclaration: value kind '%s' not supported", varDeclaration.GetValue())
+		}
+	case ast.BinaryExprNode:
+		writeLnToFile(value.GetTranspilat())
+	case ast.StrLiteralNode:
 		writeLnToFile("\"" + value.ToString() + "\"")
-	} else {
+	case ast.IntLiteralNode:
 		writeLnToFile(value.ToString())
+	default:
+		return NewNullVal(), fmt.Errorf("evalVarDeclaration: value kind '%s' not supported", varDeclaration.GetValue())
 	}
+
 	return env.declareVar(varDeclaration.GetIdentifier(), value, varDeclaration.IsConstant())
 }
 

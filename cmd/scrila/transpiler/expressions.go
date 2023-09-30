@@ -3,7 +3,6 @@ package transpiler
 import (
 	"ScriLa/cmd/scrila/ast"
 	"fmt"
-	"strconv"
 )
 
 func evalIdentifier(identifier ast.IIdentifier, env *Environment) (IRuntimeVal, error) {
@@ -15,9 +14,34 @@ func evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) (IRuntimeVal, error
 	if lhsError != nil {
 		return NewNullVal(), lhsError
 	}
+	switch binOp.GetLeft().GetKind() {
+	case ast.BinaryExprNode:
+		// Do nothing
+	case ast.IdentifierNode:
+		var i interface{} = binOp.GetLeft()
+		identifier, _ := i.(ast.IIdentifier)
+		lhs.SetTranspilat("$" + identifier.GetSymbol())
+	case ast.IntLiteralNode:
+		lhs.SetTranspilat(lhs.ToString())
+	default:
+		return NewNullVal(), fmt.Errorf("evalBinaryExpr: left kind '%s' not supported", binOp.GetLeft())
+	}
+
 	rhs, rhsError := transpile(binOp.GetRight(), env)
 	if rhsError != nil {
 		return NewNullVal(), rhsError
+	}
+	switch binOp.GetRight().GetKind() {
+	case ast.BinaryExprNode:
+		// Do nothing
+	case ast.IdentifierNode:
+		var i interface{} = binOp.GetRight()
+		identifier, _ := i.(ast.IIdentifier)
+		rhs.SetTranspilat("$" + identifier.GetSymbol())
+	case ast.IntLiteralNode:
+		rhs.SetTranspilat(rhs.ToString())
+	default:
+		return NewNullVal(), fmt.Errorf("evalBinaryExpr: right kind '%s' not supported", binOp.GetLeft())
 	}
 
 	if lhs.GetType() == IntValueType && rhs.GetType() == IntValueType {
@@ -42,28 +66,29 @@ func evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) (IRuntimeVal, error
 
 func evalIntBinaryExpr(lhs IIntVal, rhs IIntVal, operator string) (IIntVal, error) {
 	var result int64
-
-	writeToFile("$((")
+	transpilat := "$(("
 	switch operator {
 	case "+":
-		writeToFile(strconv.Itoa(int(lhs.GetValue())) + " + " + strconv.Itoa(int(rhs.GetValue())))
+		transpilat += lhs.GetTranspilat() + " + " + rhs.GetTranspilat()
 		result = lhs.GetValue() + rhs.GetValue()
 	case "-":
-		writeToFile(strconv.Itoa(int(lhs.GetValue())) + " - " + strconv.Itoa(int(rhs.GetValue())))
+		transpilat += lhs.GetTranspilat() + " - " + rhs.GetTranspilat()
 		result = lhs.GetValue() - rhs.GetValue()
 	case "*":
-		writeToFile(strconv.Itoa(int(lhs.GetValue())) + " * " + strconv.Itoa(int(rhs.GetValue())))
+		transpilat += lhs.GetTranspilat() + " * " + rhs.GetTranspilat()
 		result = lhs.GetValue() * rhs.GetValue()
 	case "/":
-		writeToFile(strconv.Itoa(int(lhs.GetValue())) + " / " + strconv.Itoa(int(rhs.GetValue())))
+		transpilat += lhs.GetTranspilat() + " / " + rhs.GetTranspilat()
 		// TODO Division by zero
 		result = lhs.GetValue() / rhs.GetValue()
 	default:
 		return NewIntVal(0), fmt.Errorf("evalIntBinaryExpr: Unsupported binary operator: %s", operator)
 	}
-	writeToFile("))")
+	transpilat += "))"
 
-	return NewIntVal(result), nil
+	intVal := NewIntVal(result)
+	intVal.SetTranspilat(transpilat)
+	return intVal, nil
 }
 
 func evalStrBinaryExpr(lhs IStrVal, rhs IStrVal, operator string) (IStrVal, error) {
@@ -91,15 +116,21 @@ func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeV
 	var i interface{} = assignment.GetAssigne()
 	assigne, _ := i.(ast.IIdentifier)
 	writeToFile(assigne.GetSymbol() + "=")
-	if assignment.GetValue().GetKind() == ast.IntLiteralNode {
-		i = assignment.GetValue()
-		intLiteral := i.(ast.IIntLiteral)
-		writeToFile(strconv.Itoa(int(intLiteral.GetValue())))
-	}
+
 	value, err := transpile(assignment.GetValue(), env)
 	if err != nil {
 		return NewNullVal(), err
 	}
+
+	switch assignment.GetValue().GetKind() {
+	case ast.BinaryExprNode:
+		writeToFile(value.GetTranspilat())
+	case ast.IntLiteralNode:
+		writeToFile(value.ToString())
+	default:
+		return NewNullVal(), fmt.Errorf("evalAssignment: value kind '%s' not supported", assignment.GetValue())
+	}
+
 	result, err := env.assignVar(assigne.GetSymbol(), value)
 	if err != nil {
 		return NewNullVal(), err

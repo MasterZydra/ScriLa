@@ -97,3 +97,31 @@ func TestIntAssignmentWithMissingDeclaration(t *testing.T) {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
 }
+
+func ExampleIntAssignmentBinaryExpr() {
+	setTestMode()
+	transpileTest(`
+		int i = 42 * 2;
+	`)
+
+	// Output:
+	// #!/bin/bash
+	// # Created by Scrila Transpiler v0.0.1
+	// i=$((42 * 2))
+}
+
+func ExampleIntAssignmentBinaryExprWithVar() {
+	setTestMode()
+	transpileTest(`
+		int i = 42;
+		int j = i * 2;
+		j = (i + 2) * i;
+	`)
+
+	// Output:
+	// #!/bin/bash
+	// # Created by Scrila Transpiler v0.0.1
+	// i=42
+	// j=$(($i * 2))
+	// j=$(($(($i + 2)) * $i))
+}
