@@ -17,7 +17,7 @@ ScriLa is a scripting language with a Go and C++ like syntax that transpiles int
 **Build executable**  
 `go build -o . ./...`
 
-**Run all tests**
+**Run all tests**  
 `go test -v ./...`
 
 **Resources**  
