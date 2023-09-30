@@ -34,9 +34,12 @@ func (self *Lexer) Tokenize(sourceCode string) ([]*Token, error) {
 	for self.isNotEof() {
 		// Handle comments
 		if self.at() == "#" {
+			self.eat()
+			comment := ""
 			for self.isNotEof() && self.at() != "\n" {
-				self.eat()
+				comment += self.eat()
 			}
+			self.pushToken(strings.TrimSpace(comment), Comment)
 			continue
 		}
 

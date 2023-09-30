@@ -42,6 +42,7 @@ const (
 	CloseBracket TokenType = "CloseBrace" // ]
 	EndOfFile    TokenType = "EOF"
 	Function     TokenType = "Function"
+	Comment      TokenType = "Comment"
 	// --- Operations ---
 	BinaryOperator TokenType = "BinaryOperator"
 	// --- Priority ---
