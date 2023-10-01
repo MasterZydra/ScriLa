@@ -141,3 +141,19 @@ func ExampleStrAssignmentBinaryExprWithVar() {
 	// b="World"
 	// c=$a $b
 }
+
+func ExampleComment() {
+	setTestMode()
+	transpileTest(`
+		# Comment 1
+		int i = 42;
+		#  Comment 2
+	`)
+
+	// Output:
+	// #!/bin/bash
+	// # Created by Scrila Transpiler v0.0.1
+	// # Comment 1
+	// i=42
+	// # Comment 2
+}
