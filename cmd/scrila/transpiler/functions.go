@@ -8,8 +8,25 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-func nativePrint(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+func nativePrintLn(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
 	writeToFile("echo \"")
+	if err := printArgs(args, env); err != nil {
+		return NewNullVal(), err
+	}
+	writeLnToFile("\"")
+	return NewNullVal(), nil
+}
+
+func nativePrint(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+	writeToFile("echo -n \"")
+	if err := printArgs(args, env); err != nil {
+		return NewNullVal(), err
+	}
+	writeLnToFile("\"")
+	return NewNullVal(), nil
+}
+
+func printArgs(args []ast.IExpr, env *Environment) error {
 	var isFirst bool = true
 	for _, arg := range args {
 		if !isFirst {
@@ -38,13 +55,12 @@ func nativePrint(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
 		case ast.BinaryExprNode:
 			value, err := transpile(arg, env)
 			if err != nil {
-				return NewNullVal(), err
+				return err
 			}
 			writeToFile(value.GetTranspilat())
 		default:
-			return NewNullVal(), fmt.Errorf("nativePrint: Arg kind '%s' not supported", arg)
+			return fmt.Errorf("nativePrint: Arg kind '%s' not supported", arg)
 		}
 	}
-	writeLnToFile("\"")
-	return NewNullVal(), nil
+	return nil
 }

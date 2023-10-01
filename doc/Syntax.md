@@ -37,8 +37,11 @@ o.d = "d";
 ## Native functions
 **Print**  
 ```
-print("str", 42, false, null);
+print("Hello ");
+printLn("World);
+
+printLn("str", 42, false, null);
 
 int i = 43;
-print("i =", i);
+printLn("i =", i);
 ```

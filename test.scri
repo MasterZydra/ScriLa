@@ -5,18 +5,18 @@ foo = foo * 2;
 # Short form operators
 int i = 10;
 i += 2;
-print(i);
+printLn(i);
 i -= 2;
-print(i);
+printLn(i);
 i *= 4;
-print(i);
+printLn(i);
 i /= 2;
-print(i);
+printLn(i);
 
 # Working with strings
 str s = "hello ";
 s += "world";
-print(s);
+printLn(s);
 
 # Declare a object
 obj exampleObj = {
@@ -29,23 +29,23 @@ obj exampleObj = {
 
 # Add a new property to an object
 exampleObj.y = 43;
-print(exampleObj.y);
+printLn(exampleObj.y);
 
 # Assign another value to an existing object property
 exampleObj.x = 42;
 
 # Get object properties
 int prop = exampleObj.x;
-print(prop);
-print(exampleObj.x);
+printLn(prop);
+printLn(exampleObj.x);
 
 # Native functions
-print(foo, 13);
+printLn(foo, 13);
 
 # User defined functions
 func add(a, b) {
     int result = a + b;
-    print(result);
+    printLn(result);
 }
 
 add(1, 2);
@@ -58,7 +58,7 @@ func sub(a, b) {
 
     internalAdd(a, b);
     result = result - 2 * b;
-    print(result);
+    printLn(result);
 }
 
 sub(6, 4);
@@ -68,4 +68,4 @@ func addWithReturn(a, b) {
     result;
 }
 
-print(addWithReturn(10, 11));
+printLn(addWithReturn(10, 11));

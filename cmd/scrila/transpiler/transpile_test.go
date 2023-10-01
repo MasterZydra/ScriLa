@@ -22,10 +22,25 @@ func transpileTest(code string) error {
 	return Transpile(program, env, "")
 }
 
+func ExmaplePrint() {
+	setTestMode()
+	transpileTest(`
+		print("Hello ");
+		printLn("World");
+		printLn("!");
+	`)
+
+	// Output:
+	// #!/bin/bash
+	// echo -n "Hello "
+	// echo "World"
+	// echo "!"
+}
+
 func ExamplePrintBaseTypes() {
 	setTestMode()
 	transpileTest(`
-		print(42, "str", true, false, null);
+		printLn(42, "str", true, false, null);
 	`)
 
 	// Output:
@@ -40,7 +55,7 @@ func ExamplePrintVariables() {
 		int i = 42;
 		str s = "hello world";
 		bool b = false;
-		print(i, s, b);
+		printLn(i, s, b);
 	`)
 
 	// Output:
