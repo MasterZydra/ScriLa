@@ -32,26 +32,13 @@ func (self *Lexer) Tokenize(sourceCode string) ([]*Token, error) {
 	self.sourceChars = strings.Split(sourceCode, "")
 
 	for self.isNotEof() {
-		// Handle comments
 		if self.at() == "#" {
-			self.eat()
-			comment := ""
-			for self.isNotEof() && self.at() != "\n" {
-				comment += self.eat()
-			}
-			self.pushToken(strings.TrimSpace(comment), Comment)
+			self.tokenizeComment()
 			continue
 		}
 
-		// Handle strings
 		if self.at() == "\"" {
-			self.eat()
-			content := ""
-			for self.isNotEof() && self.at() != "\"" {
-				content += self.eat()
-			}
-			self.eat()
-			self.pushToken(content, Str)
+			self.tokenizeString()
 			continue
 		}
 
@@ -73,28 +60,13 @@ func (self *Lexer) Tokenize(sourceCode string) ([]*Token, error) {
 
 		// --- Handle multi-character tokens ---
 
-		// Build Int token
 		if isDigit(self.at()) {
-			num := ""
-			for self.isNotEof() && isDigit(self.at()) {
-				num += self.eat()
-			}
-			self.pushToken(num, Int)
+			self.tokenizeInt()
 			continue
 		}
 
 		if isLetter(self.at()) {
-			ident := ""
-			for self.isNotEof() && (isLetter(self.at()) || isDigit(self.at())) {
-				ident += self.eat()
-			}
-
-			// Check for reserved keywords
-			if reserved, ok := keywords[ident]; ok {
-				self.pushToken(ident, reserved)
-			} else {
-				self.pushToken(ident, Identifier)
-			}
+			self.tokenizeIdentifier()
 			continue
 		}
 
@@ -114,6 +86,47 @@ func (self *Lexer) Tokenize(sourceCode string) ([]*Token, error) {
 	self.pushToken("EOF", EndOfFile)
 
 	return self.tokens, nil
+}
+
+func (self *Lexer) tokenizeComment() {
+	self.eat()
+	comment := ""
+	for self.isNotEof() && self.at() != "\n" {
+		comment += self.eat()
+	}
+	self.pushToken(strings.TrimSpace(comment), Comment)
+}
+
+func (self *Lexer) tokenizeString() {
+	self.eat()
+	content := ""
+	for self.isNotEof() && self.at() != "\"" {
+		content += self.eat()
+	}
+	self.eat()
+	self.pushToken(content, Str)
+}
+
+func (self *Lexer) tokenizeInt() {
+	num := ""
+	for self.isNotEof() && isDigit(self.at()) {
+		num += self.eat()
+	}
+	self.pushToken(num, Int)
+}
+
+func (self *Lexer) tokenizeIdentifier() {
+	ident := ""
+	for self.isNotEof() && (isLetter(self.at()) || isDigit(self.at())) {
+		ident += self.eat()
+	}
+
+	// Check for reserved keywords
+	if reserved, ok := keywords[ident]; ok {
+		self.pushToken(ident, reserved)
+	} else {
+		self.pushToken(ident, Identifier)
+	}
 }
 
 func (self *Lexer) isNotEof() bool {

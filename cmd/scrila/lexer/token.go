@@ -32,34 +32,32 @@ var keywords = map[string]TokenType{
 type TokenType string
 
 const (
+	Function       TokenType = "Function"
+	Comment        TokenType = "Comment"
+	BinaryOperator TokenType = "BinaryOperator"
+	// Characters
 	Semicolon    TokenType = "Semicolon"
 	Comma        TokenType = "Comma"
 	Colon        TokenType = "Colon"
 	Dot          TokenType = "Dot"
+	Equals       TokenType = "Equals"
 	OpenBrace    TokenType = "OpenBrace"  // {
 	CloseBrace   TokenType = "CloseBrace" // }
 	OpenBracket  TokenType = "OpenBrace"  // [
 	CloseBracket TokenType = "CloseBrace" // ]
+	OpenParen    TokenType = "OpenParen"  // (
+	CloseParen   TokenType = "CloseParen" // )
 	EndOfFile    TokenType = "EOF"
-	Function     TokenType = "Function"
-	Comment      TokenType = "Comment"
-	// --- Operations ---
-	BinaryOperator TokenType = "BinaryOperator"
-	// --- Priority ---
-	OpenParen  TokenType = "OpenParen"  // (
-	CloseParen TokenType = "CloseParen" // )
-	// --- Variables ---
+	// Variables
 	Identifier TokenType = "Identifier"
-	Equals     TokenType = "Equals"
-	// Variable types
-	Bool     TokenType = "BoolValue"
-	BoolType TokenType = "BoolType"
-	Const    TokenType = "Const"
-	Int      TokenType = "IntValue"
-	IntType  TokenType = "IntType"
-	ObjType  TokenType = "ObjType"
-	Str      TokenType = "StrValue"
-	StrType  TokenType = "StrType"
+	Bool       TokenType = "BoolValue"
+	BoolType   TokenType = "BoolType"
+	Const      TokenType = "Const"
+	Int        TokenType = "IntValue"
+	IntType    TokenType = "IntType"
+	ObjType    TokenType = "ObjType"
+	Str        TokenType = "StrValue"
+	StrType    TokenType = "StrType"
 )
 
 type Token struct {
