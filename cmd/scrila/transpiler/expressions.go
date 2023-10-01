@@ -61,8 +61,7 @@ func evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) (IRuntimeVal, error
 		return evalStrBinaryExpr(left, right, binOp.GetOperator())
 	}
 
-	// TODO Return Error One or both are NULL, or another not yet supported type
-	return NewNullVal(), nil
+	return NewNullVal(), fmt.Errorf("evalBinaryExpr: Give types not supported (lhs: %s, rhs: %s)", lhs, rhs)
 }
 
 func evalIntBinaryExpr(lhs IIntVal, rhs IIntVal, operator string) (IIntVal, error) {
