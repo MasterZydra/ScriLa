@@ -2,7 +2,6 @@ package runtime
 
 import (
 	"ScriLa/cmd/scrila/ast"
-	"ScriLa/cmd/scrila/lexer"
 	"fmt"
 )
 
@@ -210,7 +209,7 @@ func evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {
 			// TODO Check the bounds here. Verify arity of function.
 			// Which means: len(fn.GetParams()) == len(args)
 			// TODO var type - Get from function declaration and validate type against given type
-			scope.declareVar(fn.GetParams()[i], args[i], false, lexer.Identifier)
+			scope.declareVar(fn.GetParams()[i].GetName(), args[i], false, fn.GetParams()[i].GetParamType())
 		}
 
 		var result IRuntimeVal

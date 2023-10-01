@@ -111,19 +111,9 @@ func (self *Parser) parseFunctionDeclaration() (ast.IStatement, error) {
 		return ast.NewStatement(), err
 	}
 	name := token.Value
-	args, err := self.parseArgs()
+	params, err := self.parseParams()
 	if err != nil {
 		return ast.NewStatement(), err
-	}
-	params := make([]string, 0)
-	for _, arg := range args {
-		if arg.GetKind() != ast.IdentifierNode {
-			return ast.NewStatement(), fmt.Errorf("Inside function declaration expected parameters to be of type string.")
-		}
-
-		var i interface{} = arg
-		identifier, _ := i.(ast.IIdentifier)
-		params = append(params, identifier.GetSymbol())
 	}
 	_, err = self.expect(lexer.OpenBrace, "Expected function body following declaration.")
 	if err != nil {
@@ -305,6 +295,52 @@ func (self *Parser) parseCallExpr(caller ast.IExpr) (ast.IExpr, error) {
 	}
 
 	return callExpr, nil
+}
+
+func (self *Parser) parseParams() ([]*ast.Parameter, error) {
+	var args []*ast.Parameter
+	_, err := self.expect(lexer.OpenParen, "Expected open parenthesis")
+	if err != nil {
+		return args, err
+	}
+	if self.at().TokenType == lexer.CloseParen {
+		args = make([]*ast.Parameter, 0)
+	} else {
+		var err error
+		args, err = self.parseParametersList()
+		if err != nil {
+			return args, err
+		}
+	}
+
+	_, err = self.expect(lexer.CloseParen, "Missing closing parenthesis inside arguments list")
+	return args, err
+}
+
+func (self *Parser) parseParametersList() ([]*ast.Parameter, error) {
+	params := make([]*ast.Parameter, 0)
+
+	if !slices.Contains([]lexer.TokenType{lexer.StrType, lexer.BoolType, lexer.IntType, lexer.ObjType}, self.at().TokenType) {
+		return params, fmt.Errorf("parseParametersList: Expected param type but got: %s", self.at())
+	}
+
+	for self.notEOF() && slices.Contains([]lexer.TokenType{lexer.StrType, lexer.BoolType, lexer.IntType, lexer.ObjType}, self.at().TokenType) {
+		paramType := self.eat().TokenType
+		ident, err := self.expect(lexer.Identifier, "parseParametersList: Expected identifier following param type.")
+		if err != nil {
+			return params, err
+		}
+		params = append(params, ast.NewParameter(ident.Value, paramType))
+
+		if self.at().TokenType == lexer.Comma {
+			self.eat()
+		} else if self.at().TokenType == lexer.CloseParen {
+			return params, nil
+		} else {
+			return params, fmt.Errorf("parseParametersList: Unexpected token: %s", self.at())
+		}
+	}
+	return params, fmt.Errorf("parseParametersList: Unexpected token: %s", self.at())
 }
 
 // func add(a, b) {} <- a & b are parameters

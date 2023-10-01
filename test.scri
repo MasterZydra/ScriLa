@@ -43,16 +43,16 @@ printLn(exampleObj.x);
 printLn(foo, 13);
 
 # User defined functions
-func add(a, b) {
+func add(int a, int b) {
     int result = a + b;
     printLn(result);
 }
 
 add(1, 2);
 
-func sub(a, b) {
+func sub(int a, int b) {
     int result = 0;
-    func internalAdd(a, b) {
+    func internalAdd(int a, int b) {
         result = a + b;
     }
 
@@ -63,7 +63,7 @@ func sub(a, b) {
 
 sub(6, 4);
 
-func addWithReturn(a, b) {
+func addWithReturn(int a, int b) {
     int result = a + b;
     result;
 }

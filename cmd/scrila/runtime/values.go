@@ -233,7 +233,7 @@ func (self *NativeFunc) ToString() string {
 type IFunctionVal interface {
 	IRuntimeVal
 	GetName() string
-	GetParams() []string
+	GetParams() []*ast.Parameter
 	GetDeclarationEnv() *Environment
 	GetBody() []ast.IStatement
 }
@@ -241,12 +241,12 @@ type IFunctionVal interface {
 type FunctionVal struct {
 	runtimeVal     *RuntimeVal
 	name           string
-	params         []string
+	params         []*ast.Parameter
 	declarationEnv *Environment
 	body           []ast.IStatement
 }
 
-func NewFunctionVal(name string, params []string, declarationEnv *Environment, body []ast.IStatement) *FunctionVal {
+func NewFunctionVal(name string, params []*ast.Parameter, declarationEnv *Environment, body []ast.IStatement) *FunctionVal {
 	return &FunctionVal{
 		runtimeVal:     NewRuntimeVal(FunctionValueType),
 		name:           name,
@@ -264,7 +264,7 @@ func (self *FunctionVal) GetName() string {
 	return self.name
 }
 
-func (self *FunctionVal) GetParams() []string {
+func (self *FunctionVal) GetParams() []*ast.Parameter {
 	return self.params
 }
 

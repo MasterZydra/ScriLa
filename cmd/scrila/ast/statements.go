@@ -141,9 +141,33 @@ func (self *VarDeclaration) GetValue() IExpr {
 
 // FunctionDeclaration
 
+type Parameter struct {
+	name      string
+	paramType lexer.TokenType
+}
+
+func NewParameter(name string, paramType lexer.TokenType) *Parameter {
+	return &Parameter{
+		name:      name,
+		paramType: paramType,
+	}
+}
+
+func (self *Parameter) GetName() string {
+	return self.name
+}
+
+func (self *Parameter) GetParamType() lexer.TokenType {
+	return self.paramType
+}
+
+func (self *Parameter) String() string {
+	return fmt.Sprintf("&{Parameter %s %s}", self.GetName(), self.GetParamType())
+}
+
 type IFunctionDeclaration interface {
 	IStatement
-	GetParameters() []string
+	GetParameters() []*Parameter
 	GetName() string
 	GetBody() []IStatement
 	// TODO Return type
@@ -151,7 +175,7 @@ type IFunctionDeclaration interface {
 
 type FunctionDeclaration struct {
 	statement  *Statement
-	parameters []string
+	parameters []*Parameter
 	name       string
 	body       []IStatement
 }
@@ -160,7 +184,7 @@ func (self *FunctionDeclaration) String() string {
 	return fmt.Sprintf("&{%s %s %s %s}", self.GetKind(), self.GetName(), self.GetParameters(), self.GetBody())
 }
 
-func NewFunctionDeclaration(name string, parameters []string, body []IStatement) *FunctionDeclaration {
+func NewFunctionDeclaration(name string, parameters []*Parameter, body []IStatement) *FunctionDeclaration {
 	return &FunctionDeclaration{
 		statement:  &Statement{kind: FunctionDeclarationNode},
 		name:       name,
@@ -177,7 +201,7 @@ func (self *FunctionDeclaration) GetName() string {
 	return self.name
 }
 
-func (self *FunctionDeclaration) GetParameters() []string {
+func (self *FunctionDeclaration) GetParameters() []*Parameter {
 	return self.parameters
 }
 
