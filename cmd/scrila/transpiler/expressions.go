@@ -131,14 +131,14 @@ func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeV
 		}
 		switch varType {
 		case lexer.StrType:
-			writeToFile("\"" + value.GetTranspilat() + "\"")
+			writeLnToFile("\"" + value.GetTranspilat() + "\"")
 		case lexer.IntType:
 			writeLnToFile(value.GetTranspilat())
 		default:
 			return NewNullVal(), fmt.Errorf("evalAssignment - BinaryExpr: Unsupported varType '%s'", varType)
 		}
 	case ast.IntLiteralNode:
-		writeToFile(value.ToString())
+		writeLnToFile(value.ToString())
 	default:
 		return NewNullVal(), fmt.Errorf("evalAssignment: value kind '%s' not supported", assignment.GetValue())
 	}
@@ -147,7 +147,6 @@ func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeV
 	if err != nil {
 		return NewNullVal(), err
 	}
-	writeLnToFile("")
 	return result, nil
 }
 
