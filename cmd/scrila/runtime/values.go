@@ -17,6 +17,8 @@ const (
 	StrValueType      ValueType = "str"
 )
 
+// RuntimeVal
+
 type IRuntimeVal interface {
 	GetType() ValueType
 	ToString() string
@@ -26,9 +28,15 @@ type RuntimeVal struct {
 	valueType ValueType
 }
 
+func NewRuntimeVal(valueType ValueType) *RuntimeVal {
+	return &RuntimeVal{valueType: valueType}
+}
+
 func (self *RuntimeVal) GetType() ValueType {
 	return self.valueType
 }
+
+// NullVal
 
 type INullVal interface {
 	IRuntimeVal
@@ -36,19 +44,19 @@ type INullVal interface {
 }
 
 type NullVal struct {
-	valueType ValueType
-	value     string
+	runtimeVal *RuntimeVal
+	value      string
 }
 
 func NewNullVal() *NullVal {
 	return &NullVal{
-		valueType: NullValueType,
-		value:     "null",
+		runtimeVal: NewRuntimeVal(NullValueType),
+		value:      "null",
 	}
 }
 
 func (self *NullVal) GetType() ValueType {
-	return self.valueType
+	return self.runtimeVal.GetType()
 }
 
 func (self *NullVal) GetValue() string {
@@ -59,25 +67,27 @@ func (self *NullVal) ToString() string {
 	return self.value
 }
 
+// IntVal
+
 type IIntVal interface {
 	IRuntimeVal
 	GetValue() int64
 }
 
 type IntVal struct {
-	valueType ValueType
-	value     int64
+	runtimeVal *RuntimeVal
+	value      int64
 }
 
 func NewIntVal(value int64) *IntVal {
 	return &IntVal{
-		valueType: IntValueType,
-		value:     value,
+		runtimeVal: NewRuntimeVal(IntValueType),
+		value:      value,
 	}
 }
 
 func (self *IntVal) GetType() ValueType {
-	return self.valueType
+	return self.runtimeVal.GetType()
 }
 
 func (self *IntVal) GetValue() int64 {
@@ -88,14 +98,16 @@ func (self *IntVal) ToString() string {
 	return fmt.Sprintf("%d", self.value)
 }
 
+// BoolVal
+
 type IBoolVal interface {
 	IRuntimeVal
 	GetValue() bool
 }
 
 type BoolVal struct {
-	valueType ValueType
-	value     bool
+	runtimeVal *RuntimeVal
+	value      bool
 }
 
 func (self *BoolVal) String() string {
@@ -104,13 +116,13 @@ func (self *BoolVal) String() string {
 
 func NewBoolVal(value bool) *BoolVal {
 	return &BoolVal{
-		valueType: BoolValueType,
-		value:     value,
+		runtimeVal: NewRuntimeVal(BoolValueType),
+		value:      value,
 	}
 }
 
 func (self *BoolVal) GetType() ValueType {
-	return self.valueType
+	return self.runtimeVal.GetType()
 }
 
 func (self *BoolVal) GetValue() bool {
@@ -121,25 +133,27 @@ func (self *BoolVal) ToString() string {
 	return fmt.Sprintf("%t", self.value)
 }
 
+// ObjVal
+
 type IObjVal interface {
 	IRuntimeVal
 	GetProperties() map[string]IRuntimeVal
 }
 
 type ObjVal struct {
-	valueType  ValueType
+	runtimeVal *RuntimeVal
 	properties map[string]IRuntimeVal
 }
 
 func NewObjVal() *ObjVal {
 	return &ObjVal{
-		valueType:  ObjValueType,
+		runtimeVal: NewRuntimeVal(ObjValueType),
 		properties: make(map[string]IRuntimeVal),
 	}
 }
 
 func (self *ObjVal) GetType() ValueType {
-	return self.valueType
+	return self.runtimeVal.GetType()
 }
 
 func (self *ObjVal) GetProperties() map[string]IRuntimeVal {
@@ -150,25 +164,27 @@ func (self *ObjVal) ToString() string {
 	return "ObjVal"
 }
 
+// StrVal
+
 type IStrVal interface {
 	IRuntimeVal
 	GetValue() string
 }
 
 type StrVal struct {
-	valueType ValueType
-	value     string
+	runtimeVal *RuntimeVal
+	value      string
 }
 
 func NewStrVal(value string) *StrVal {
 	return &StrVal{
-		valueType: StrValueType,
-		value:     value,
+		runtimeVal: NewRuntimeVal(StrValueType),
+		value:      value,
 	}
 }
 
 func (self *StrVal) GetType() ValueType {
-	return self.valueType
+	return self.runtimeVal.GetType()
 }
 
 func (self *StrVal) GetValue() string {
@@ -179,6 +195,8 @@ func (self *StrVal) ToString() string {
 	return self.value
 }
 
+// NativeFunc
+
 type FunctionCall func(args []IRuntimeVal, env *Environment) IRuntimeVal
 
 type INativeFunc interface {
@@ -187,19 +205,19 @@ type INativeFunc interface {
 }
 
 type NativeFunc struct {
-	valueType ValueType
-	call      FunctionCall
+	runtimeVal *RuntimeVal
+	call       FunctionCall
 }
 
 func NewNativeFunc(function FunctionCall) *NativeFunc {
 	return &NativeFunc{
-		valueType: NativeFnType,
-		call:      function,
+		runtimeVal: NewRuntimeVal(NativeFnType),
+		call:       function,
 	}
 }
 
 func (self *NativeFunc) GetType() ValueType {
-	return self.valueType
+	return self.runtimeVal.GetType()
 }
 
 func (self *NativeFunc) GetCall() FunctionCall {
@@ -210,6 +228,8 @@ func (self *NativeFunc) ToString() string {
 	return "NativeFunc"
 }
 
+// FunctionVal
+
 type IFunctionVal interface {
 	IRuntimeVal
 	GetName() string
@@ -219,7 +239,7 @@ type IFunctionVal interface {
 }
 
 type FunctionVal struct {
-	valueType      ValueType
+	runtimeVal     *RuntimeVal
 	name           string
 	params         []string
 	declarationEnv *Environment
@@ -228,7 +248,7 @@ type FunctionVal struct {
 
 func NewFunctionVal(name string, params []string, declarationEnv *Environment, body []ast.IStatement) *FunctionVal {
 	return &FunctionVal{
-		valueType:      FunctionValueType,
+		runtimeVal:     NewRuntimeVal(FunctionValueType),
 		name:           name,
 		params:         params,
 		declarationEnv: declarationEnv,
@@ -237,7 +257,7 @@ func NewFunctionVal(name string, params []string, declarationEnv *Environment, b
 }
 
 func (self *FunctionVal) GetType() ValueType {
-	return self.valueType
+	return self.runtimeVal.GetType()
 }
 
 func (self *FunctionVal) GetName() string {
