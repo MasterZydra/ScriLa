@@ -17,6 +17,8 @@ const (
 	StrValueType      ValueType = "str"
 )
 
+// RuntimeVal
+
 type IRuntimeVal interface {
 	GetType() ValueType
 	ToString() string
@@ -27,6 +29,10 @@ type IRuntimeVal interface {
 type RuntimeVal struct {
 	valueType  ValueType
 	transpilat string
+}
+
+func NewRuntimeVal(valueType ValueType) *RuntimeVal {
+	return &RuntimeVal{valueType: valueType}
 }
 
 func (self *RuntimeVal) GetType() ValueType {
@@ -41,26 +47,27 @@ func (self *RuntimeVal) SetTranspilat(transpilat string) {
 	self.transpilat = transpilat
 }
 
+// NullVal
+
 type INullVal interface {
 	IRuntimeVal
 	GetValue() string
 }
 
 type NullVal struct {
-	valueType  ValueType
+	runtimeVal *RuntimeVal
 	value      string
-	transpilat string
 }
 
 func NewNullVal() *NullVal {
 	return &NullVal{
-		valueType: NullValueType,
-		value:     "null",
+		runtimeVal: NewRuntimeVal(NullValueType),
+		value:      "null",
 	}
 }
 
 func (self *NullVal) GetType() ValueType {
-	return self.valueType
+	return self.runtimeVal.GetType()
 }
 
 func (self *NullVal) GetValue() string {
@@ -68,16 +75,18 @@ func (self *NullVal) GetValue() string {
 }
 
 func (self *NullVal) GetTranspilat() string {
-	return self.transpilat
+	return self.runtimeVal.transpilat
 }
 
 func (self *NullVal) SetTranspilat(transpilat string) {
-	self.transpilat = transpilat
+	self.runtimeVal.transpilat = transpilat
 }
 
 func (self *NullVal) ToString() string {
 	return self.value
 }
+
+// IntVal
 
 type IIntVal interface {
 	IRuntimeVal
@@ -85,20 +94,19 @@ type IIntVal interface {
 }
 
 type IntVal struct {
-	valueType  ValueType
+	runtimeVal *RuntimeVal
 	value      int64
-	transpilat string
 }
 
 func NewIntVal(value int64) *IntVal {
 	return &IntVal{
-		valueType: IntValueType,
-		value:     value,
+		runtimeVal: NewRuntimeVal(IntValueType),
+		value:      value,
 	}
 }
 
 func (self *IntVal) GetType() ValueType {
-	return self.valueType
+	return self.runtimeVal.GetType()
 }
 
 func (self *IntVal) GetValue() int64 {
@@ -106,16 +114,18 @@ func (self *IntVal) GetValue() int64 {
 }
 
 func (self *IntVal) GetTranspilat() string {
-	return self.transpilat
+	return self.runtimeVal.transpilat
 }
 
 func (self *IntVal) SetTranspilat(transpilat string) {
-	self.transpilat = transpilat
+	self.runtimeVal.transpilat = transpilat
 }
 
 func (self *IntVal) ToString() string {
 	return fmt.Sprintf("%d", self.value)
 }
+
+// BoolVal
 
 type IBoolVal interface {
 	IRuntimeVal
@@ -123,9 +133,8 @@ type IBoolVal interface {
 }
 
 type BoolVal struct {
-	valueType  ValueType
+	runtimeVal *RuntimeVal
 	value      bool
-	transpilat string
 }
 
 func (self *BoolVal) String() string {
@@ -134,13 +143,13 @@ func (self *BoolVal) String() string {
 
 func NewBoolVal(value bool) *BoolVal {
 	return &BoolVal{
-		valueType: BoolValueType,
-		value:     value,
+		runtimeVal: NewRuntimeVal(BoolValueType),
+		value:      value,
 	}
 }
 
 func (self *BoolVal) GetType() ValueType {
-	return self.valueType
+	return self.runtimeVal.GetType()
 }
 
 func (self *BoolVal) GetValue() bool {
@@ -148,16 +157,18 @@ func (self *BoolVal) GetValue() bool {
 }
 
 func (self *BoolVal) GetTranspilat() string {
-	return self.transpilat
+	return self.runtimeVal.transpilat
 }
 
 func (self *BoolVal) SetTranspilat(transpilat string) {
-	self.transpilat = transpilat
+	self.runtimeVal.transpilat = transpilat
 }
 
 func (self *BoolVal) ToString() string {
 	return fmt.Sprintf("%t", self.value)
 }
+
+// ObjVal
 
 type IObjVal interface {
 	IRuntimeVal
@@ -165,20 +176,19 @@ type IObjVal interface {
 }
 
 type ObjVal struct {
-	valueType  ValueType
+	runtimeVal *RuntimeVal
 	properties map[string]IRuntimeVal
-	transpilat string
 }
 
 func NewObjVal() *ObjVal {
 	return &ObjVal{
-		valueType:  ObjValueType,
+		runtimeVal: NewRuntimeVal(ObjValueType),
 		properties: make(map[string]IRuntimeVal),
 	}
 }
 
 func (self *ObjVal) GetType() ValueType {
-	return self.valueType
+	return self.runtimeVal.GetType()
 }
 
 func (self *ObjVal) GetProperties() map[string]IRuntimeVal {
@@ -186,16 +196,18 @@ func (self *ObjVal) GetProperties() map[string]IRuntimeVal {
 }
 
 func (self *ObjVal) GetTranspilat() string {
-	return self.transpilat
+	return self.runtimeVal.transpilat
 }
 
 func (self *ObjVal) SetTranspilat(transpilat string) {
-	self.transpilat = transpilat
+	self.runtimeVal.transpilat = transpilat
 }
 
 func (self *ObjVal) ToString() string {
 	return "ObjVal"
 }
+
+// StrVal
 
 type IStrVal interface {
 	IRuntimeVal
@@ -203,20 +215,19 @@ type IStrVal interface {
 }
 
 type StrVal struct {
-	valueType  ValueType
+	runtimeVal *RuntimeVal
 	value      string
-	transpilat string
 }
 
 func NewStrVal(value string) *StrVal {
 	return &StrVal{
-		valueType: StrValueType,
-		value:     value,
+		runtimeVal: NewRuntimeVal(StrValueType),
+		value:      value,
 	}
 }
 
 func (self *StrVal) GetType() ValueType {
-	return self.valueType
+	return self.runtimeVal.GetType()
 }
 
 func (self *StrVal) GetValue() string {
@@ -224,16 +235,18 @@ func (self *StrVal) GetValue() string {
 }
 
 func (self *StrVal) GetTranspilat() string {
-	return self.transpilat
+	return self.runtimeVal.transpilat
 }
 
 func (self *StrVal) SetTranspilat(transpilat string) {
-	self.transpilat = transpilat
+	self.runtimeVal.transpilat = transpilat
 }
 
 func (self *StrVal) ToString() string {
 	return self.value
 }
+
+// NativeFunc
 
 type FunctionCall func(args []ast.IExpr, env *Environment) (IRuntimeVal, error)
 
@@ -243,20 +256,19 @@ type INativeFunc interface {
 }
 
 type NativeFunc struct {
-	valueType  ValueType
+	runtimeVal *RuntimeVal
 	call       FunctionCall
-	transpilat string
 }
 
 func NewNativeFunc(function FunctionCall) *NativeFunc {
 	return &NativeFunc{
-		valueType: NativeFnType,
-		call:      function,
+		runtimeVal: NewRuntimeVal(NativeFnType),
+		call:       function,
 	}
 }
 
 func (self *NativeFunc) GetType() ValueType {
-	return self.valueType
+	return self.runtimeVal.GetType()
 }
 
 func (self *NativeFunc) GetCall() FunctionCall {
@@ -264,16 +276,18 @@ func (self *NativeFunc) GetCall() FunctionCall {
 }
 
 func (self *NativeFunc) GetTranspilat() string {
-	return self.transpilat
+	return self.runtimeVal.transpilat
 }
 
 func (self *NativeFunc) SetTranspilat(transpilat string) {
-	self.transpilat = transpilat
+	self.runtimeVal.transpilat = transpilat
 }
 
 func (self *NativeFunc) ToString() string {
 	return "NativeFunc"
 }
+
+// FunctionVal
 
 type IFunctionVal interface {
 	IRuntimeVal
@@ -284,17 +298,16 @@ type IFunctionVal interface {
 }
 
 type FunctionVal struct {
-	valueType      ValueType
+	runtimeVal     *RuntimeVal
 	name           string
 	params         []string
 	declarationEnv *Environment
 	body           []ast.IStatement
-	transpilat     string
 }
 
 func NewFunctionVal(name string, params []string, declarationEnv *Environment, body []ast.IStatement) *FunctionVal {
 	return &FunctionVal{
-		valueType:      FunctionValueType,
+		runtimeVal:     NewRuntimeVal(FunctionValueType),
 		name:           name,
 		params:         params,
 		declarationEnv: declarationEnv,
@@ -303,7 +316,7 @@ func NewFunctionVal(name string, params []string, declarationEnv *Environment, b
 }
 
 func (self *FunctionVal) GetType() ValueType {
-	return self.valueType
+	return self.runtimeVal.GetType()
 }
 
 func (self *FunctionVal) GetName() string {
@@ -323,11 +336,11 @@ func (self *FunctionVal) GetBody() []ast.IStatement {
 }
 
 func (self *FunctionVal) GetTranspilat() string {
-	return self.transpilat
+	return self.runtimeVal.transpilat
 }
 
 func (self *FunctionVal) SetTranspilat(transpilat string) {
-	self.transpilat = transpilat
+	self.runtimeVal.transpilat = transpilat
 }
 
 func (self *FunctionVal) ToString() string {
