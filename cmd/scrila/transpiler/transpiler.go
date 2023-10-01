@@ -10,6 +10,7 @@ var outputFileName string
 var outputFile *os.File
 
 var testMode bool
+var funcContext bool
 
 func writeLnToFile(content string) {
 	writeToFile(content + "\n")

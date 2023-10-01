@@ -139,8 +139,12 @@ func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeV
 		}
 	case ast.IntLiteralNode:
 		writeLnToFile(value.ToString())
+	case ast.IdentifierNode:
+		var i interface{} = assignment.GetValue()
+		identifier, _ := i.(ast.IIdentifier)
+		writeLnToFile("$" + identifier.GetSymbol())
 	default:
-		return NewNullVal(), fmt.Errorf("evalAssignment: value kind '%s' not supported", assignment.GetValue())
+		return NewNullVal(), fmt.Errorf("evalAssignment: value kind '%s' not supported", assignment.GetValue().GetKind())
 	}
 
 	result, err := env.assignVar(assigne.GetSymbol(), value)
@@ -262,27 +266,34 @@ func evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {
 	case FunctionValueType:
 		var i interface{} = caller
 		fn, _ := i.(IFunctionVal)
-		scope := NewEnvironment(fn.GetDeclarationEnv())
 
-		// Create variables for the parameters list
-		for i := 0; i < len(fn.GetParams()); i++ {
-			// TODO Check the bounds here. Verify arity of function.
-			// Which means: len(fn.GetParams()) == len(args)
+		writeToFile(fn.GetName())
+		for i, param := range fn.GetParams() {
 			// TODO var type - Get from function declaration and validate type against given type
-			scope.declareVar(fn.GetParams()[i], args[i], false, lexer.Identifier)
-		}
-
-		var result IRuntimeVal
-		result = NewNullVal()
-		// Transpile the function body line by line
-		for _, stmt := range fn.GetBody() {
-			var err error
-			result, err = transpile(stmt, scope)
-			if err != nil {
-				return NewNullVal(), err
+			// args[i] param.GetParamType()
+			switch call.GetArgs()[i].GetKind() {
+			case ast.IntLiteralNode:
+				writeToFile(" " + args[i].ToString())
+			case ast.StrLiteralNode:
+				writeToFile(" \"" + args[i].ToString() + "\"")
+			case ast.IdentifierNode:
+				var iIdent interface{} = call.GetArgs()[i]
+				ident, _ := iIdent.(ast.IIdentifier)
+				switch param.GetParamType() {
+				case lexer.IntType:
+					writeToFile(" $" + ident.GetSymbol())
+				case lexer.StrType:
+					writeToFile(" \"$" + ident.GetSymbol() + "\"")
+				default:
+					return NewNullVal(), fmt.Errorf("evalCallExpr - Identifier: Param type '%s' not supported", param.GetParamType())
+				}
+			default:
+				return NewNullVal(), fmt.Errorf("evalCallExpr: Arg type '%s' not supported", call.GetArgs()[i].GetKind())
 			}
 		}
-		return result, nil
+
+		writeLnToFile("")
+		return NewNullVal(), nil
 
 	default:
 		return NewNullVal(), fmt.Errorf("Cannot call value that is not a function: %s", caller)

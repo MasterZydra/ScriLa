@@ -4,6 +4,7 @@ import (
 	"ScriLa/cmd/scrila/ast"
 	"ScriLa/cmd/scrila/lexer"
 	"fmt"
+	"strconv"
 
 	"golang.org/x/exp/slices"
 )
@@ -23,6 +24,9 @@ func evalProgram(program ast.IProgram, env *Environment) (IRuntimeVal, error) {
 }
 
 func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (IRuntimeVal, error) {
+	if funcContext {
+		writeToFile("local ")
+	}
 	writeToFile(varDeclaration.GetIdentifier() + "=")
 	value, err := transpile(varDeclaration.GetValue(), env)
 	if err != nil {
@@ -59,6 +63,44 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 
 func evalFunctionDeclaration(funcDeclaration ast.IFunctionDeclaration, env *Environment) (IRuntimeVal, error) {
 	fn := NewFunctionVal(funcDeclaration.GetName(), funcDeclaration.GetParameters(), env, funcDeclaration.GetBody())
+	scope := NewEnvironment(fn.GetDeclarationEnv())
 
-	return env.declareFunc(funcDeclaration.GetName(), fn)
+	writeLnToFile(funcDeclaration.GetName() + " () {")
+	for i, param := range funcDeclaration.GetParameters() {
+		// TODO Check the bounds here. Verify arity of function.
+		// Which means: len(fn.GetParams()) == len(args)
+		// TODO var type - Get from function declaration and validate type against given type
+		var value IRuntimeVal
+		switch fn.GetParams()[i].GetParamType() {
+		case lexer.IntType:
+			value = NewIntVal(1)
+		case lexer.StrType:
+			value = NewStrVal("str")
+		default:
+			return NewNullVal(), fmt.Errorf("evalFunctionDeclaration: Param type '%s' not supported. (%s)", fn.GetParams()[i].GetParamType(), fn.GetParams()[i])
+		}
+		scope.declareVar(fn.GetParams()[i].GetName(), value, false, fn.GetParams()[i].GetParamType())
+		writeLnToFile("\tlocal " + param.GetName() + "=$" + strconv.Itoa(i+1))
+	}
+
+	// Transpile the function body line by line
+	funcContext = true
+	var result IRuntimeVal
+	result = NewNullVal()
+	for _, stmt := range fn.GetBody() {
+		var err error
+		writeToFile("\t")
+		result, err = transpile(stmt, scope)
+		if err != nil {
+			return NewNullVal(), err
+		}
+	}
+	funcContext = false
+
+	writeLnToFile("}\n")
+	_, err := env.declareFunc(funcDeclaration.GetName(), fn)
+	if err != nil {
+		return result, err
+	}
+	return result, nil
 }

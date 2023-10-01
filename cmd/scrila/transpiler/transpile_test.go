@@ -176,3 +176,51 @@ func ExampleComment() {
 	// i=42
 	// # Comment 2
 }
+
+func ExampleFuncDeclarationWithCall() {
+	setTestMode()
+	transpileTest(`
+		# Function without params
+		func funcWithoutParams() {
+			str str1 = "Test";
+			printLn(str1);
+		}
+
+		# Function with params
+		func funcWithParams(int a, str s) {
+			int b = a;
+			str t = s;
+			printLn(a, b, s, t);
+		}
+
+		funcWithoutParams();
+		funcWithParams(123, "abc");
+		int i = 123;
+		str s = "abc";
+		funcWithParams(i, s);
+	`)
+
+	// Output:
+	// #!/bin/bash
+	// # Created by Scrila Transpiler v0.0.1
+	// # Function without params
+	// funcWithoutParams () {
+	// 	local str1="Test"
+	// 	echo "${str1}"
+	// }
+	//
+	// # Function with params
+	// funcWithParams () {
+	// 	local a=$1
+	// 	local s=$2
+	// 	local b=${a}
+	// 	local t=${s}
+	// 	echo "${a} ${b} ${s} ${t}"
+	// }
+	//
+	// funcWithoutParams
+	// funcWithParams 123 "abc"
+	// i=123
+	// s="abc"
+	// funcWithParams $i "$s"
+}
