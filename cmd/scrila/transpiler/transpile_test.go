@@ -64,7 +64,7 @@ func ExamplePrintVariables() {
 	// i=42
 	// s="hello world"
 	// b=false
-	// echo "$i $s $b"
+	// echo "${i} ${s} ${b}"
 }
 
 func ExampleIntDeclaration() {
@@ -137,8 +137,8 @@ func ExampleIntAssignmentBinaryExprWithVar() {
 	// #!/bin/bash
 	// # Created by Scrila Transpiler v0.0.1
 	// i=42
-	// j=$(($i * 2))
-	// j=$(($(($i + 2)) * $i))
+	// j=$((${i} * 2))
+	// j=$(($((${i} + 2)) * ${i}))
 }
 
 func ExampleStrAssignmentBinaryExprWithVar() {
@@ -147,6 +147,8 @@ func ExampleStrAssignmentBinaryExprWithVar() {
 		str a = "Hello";
 		str b = "World";
 		str c = a + " " + b;
+		str d = a + " World";
+		d = a + " World";
 	`)
 
 	// Output:
@@ -154,7 +156,9 @@ func ExampleStrAssignmentBinaryExprWithVar() {
 	// # Created by Scrila Transpiler v0.0.1
 	// a="Hello"
 	// b="World"
-	// c=$a $b
+	// c="${a} ${b}"
+	// d="${a} World"
+	// d="${a} World"
 }
 
 func ExampleComment() {

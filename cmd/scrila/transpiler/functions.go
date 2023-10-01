@@ -42,7 +42,7 @@ func printArgs(args []ast.IExpr, env *Environment) error {
 			if slices.Contains(reservedIdentifiers, identifier.GetSymbol()) {
 				writeToFile(identifier.GetSymbol())
 			} else {
-				writeToFile("$" + identifier.GetSymbol())
+				writeToFile("${" + identifier.GetSymbol() + "}")
 			}
 		case ast.IntLiteralNode:
 			var i interface{} = arg

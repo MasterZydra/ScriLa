@@ -35,10 +35,17 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 		if slices.Contains(reservedIdentifiers, identifier.GetSymbol()) {
 			writeLnToFile(identifier.GetSymbol())
 		} else {
-			writeLnToFile("$" + identifier.GetSymbol())
+			writeLnToFile("${" + identifier.GetSymbol() + "}")
 		}
 	case ast.BinaryExprNode:
+		switch varDeclaration.GetVarType() {
+		case lexer.StrType:
+			writeLnToFile("\"" + value.GetTranspilat() + "\"")
+		case lexer.IntType:
 			writeLnToFile(value.GetTranspilat())
+		default:
+			return NewNullVal(), fmt.Errorf("evalVarDeclaration - BinaryExpr: Unsupported varType '%s'", varDeclaration.GetVarType())
+		}
 	case ast.StrLiteralNode:
 		writeLnToFile("\"" + value.ToString() + "\"")
 	case ast.IntLiteralNode:

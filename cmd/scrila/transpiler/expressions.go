@@ -21,7 +21,7 @@ func evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) (IRuntimeVal, error
 	case ast.IdentifierNode:
 		var i interface{} = binOp.GetLeft()
 		identifier, _ := i.(ast.IIdentifier)
-		lhs.SetTranspilat("$" + identifier.GetSymbol())
+		lhs.SetTranspilat("${" + identifier.GetSymbol() + "}")
 	case ast.IntLiteralNode, ast.StrLiteralNode:
 		lhs.SetTranspilat(lhs.ToString())
 	default:
@@ -38,7 +38,7 @@ func evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) (IRuntimeVal, error
 	case ast.IdentifierNode:
 		var i interface{} = binOp.GetRight()
 		identifier, _ := i.(ast.IIdentifier)
-		rhs.SetTranspilat("$" + identifier.GetSymbol())
+		rhs.SetTranspilat("${" + identifier.GetSymbol() + "}")
 	case ast.IntLiteralNode, ast.StrLiteralNode:
 		rhs.SetTranspilat(rhs.ToString())
 	default:
@@ -125,7 +125,18 @@ func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeV
 
 	switch assignment.GetValue().GetKind() {
 	case ast.BinaryExprNode:
-		writeToFile(value.GetTranspilat())
+		varType, err := env.lookupVarType(assigne.GetSymbol())
+		if err != nil {
+			return NewNullVal(), err
+		}
+		switch varType {
+		case lexer.StrType:
+			writeToFile("\"" + value.GetTranspilat() + "\"")
+		case lexer.IntType:
+			writeLnToFile(value.GetTranspilat())
+		default:
+			return NewNullVal(), fmt.Errorf("evalAssignment - BinaryExpr: Unsupported varType '%s'", varType)
+		}
 	case ast.IntLiteralNode:
 		writeToFile(value.ToString())
 	default:
