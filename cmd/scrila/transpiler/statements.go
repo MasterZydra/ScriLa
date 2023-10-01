@@ -2,6 +2,7 @@ package transpiler
 
 import (
 	"ScriLa/cmd/scrila/ast"
+	"ScriLa/cmd/scrila/lexer"
 	"fmt"
 
 	"golang.org/x/exp/slices"
@@ -37,7 +38,7 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 			writeLnToFile("$" + identifier.GetSymbol())
 		}
 	case ast.BinaryExprNode:
-		writeLnToFile(value.GetTranspilat())
+			writeLnToFile(value.GetTranspilat())
 	case ast.StrLiteralNode:
 		writeLnToFile("\"" + value.ToString() + "\"")
 	case ast.IntLiteralNode:
@@ -46,7 +47,7 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 		return NewNullVal(), fmt.Errorf("evalVarDeclaration: value kind '%s' not supported", varDeclaration.GetValue())
 	}
 
-	return env.declareVar(varDeclaration.GetIdentifier(), value, varDeclaration.IsConstant())
+	return env.declareVar(varDeclaration.GetIdentifier(), value, varDeclaration.IsConstant(), varDeclaration.GetVarType())
 }
 
 func evalFunctionDeclaration(funcDeclaration ast.IFunctionDeclaration, env *Environment) (IRuntimeVal, error) {

@@ -1,6 +1,9 @@
 package ast
 
-import "fmt"
+import (
+	"ScriLa/cmd/scrila/lexer"
+	"fmt"
+)
 
 // Statement
 
@@ -88,6 +91,7 @@ func (self *Comment) GetComment() string {
 
 type IVarDeclaration interface {
 	IStatement
+	GetVarType() lexer.TokenType
 	IsConstant() bool
 	GetIdentifier() string
 	GetValue() IExpr
@@ -95,17 +99,19 @@ type IVarDeclaration interface {
 
 type VarDeclaration struct {
 	statement  *Statement
+	varType    lexer.TokenType
 	constant   bool
 	identifier string
 	value      IExpr
 }
 
 func (self *VarDeclaration) String() string {
-	return fmt.Sprintf("&{%s %t %s %s}", self.GetKind(), self.IsConstant(), self.GetIdentifier(), self.GetValue())
+	return fmt.Sprintf("&{%s %s %t %s %s}", self.GetKind(), self.GetVarType(), self.IsConstant(), self.GetIdentifier(), self.GetValue())
 }
 
-func NewVarDeclaration(constant bool, identifier string, value IExpr) *VarDeclaration {
+func NewVarDeclaration(varType lexer.TokenType, constant bool, identifier string, value IExpr) *VarDeclaration {
 	return &VarDeclaration{
+		varType:    varType,
 		statement:  &Statement{kind: VarDeclarationNode},
 		constant:   constant,
 		identifier: identifier,
@@ -115,6 +121,10 @@ func NewVarDeclaration(constant bool, identifier string, value IExpr) *VarDeclar
 
 func (self *VarDeclaration) GetKind() NodeType {
 	return self.statement.kind
+}
+
+func (self *VarDeclaration) GetVarType() lexer.TokenType {
+	return self.varType
 }
 
 func (self *VarDeclaration) IsConstant() bool {

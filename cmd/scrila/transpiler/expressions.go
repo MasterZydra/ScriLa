@@ -2,6 +2,7 @@ package transpiler
 
 import (
 	"ScriLa/cmd/scrila/ast"
+	"ScriLa/cmd/scrila/lexer"
 	"fmt"
 )
 
@@ -257,7 +258,8 @@ func evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {
 		for i := 0; i < len(fn.GetParams()); i++ {
 			// TODO Check the bounds here. Verify arity of function.
 			// Which means: len(fn.GetParams()) == len(args)
-			scope.declareVar(fn.GetParams()[i], args[i], false)
+			// TODO var type - Get from function declaration and validate type against given type
+			scope.declareVar(fn.GetParams()[i], args[i], false, lexer.Identifier)
 		}
 
 		var result IRuntimeVal

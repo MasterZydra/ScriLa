@@ -23,7 +23,7 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 	if err != nil {
 		return NewNullVal(), err
 	}
-	return env.declareVar(varDeclaration.GetIdentifier(), value, varDeclaration.IsConstant())
+	return env.declareVar(varDeclaration.GetIdentifier(), value, varDeclaration.IsConstant(), varDeclaration.GetVarType())
 }
 
 func evalFunctionDeclaration(funcDeclaration ast.IFunctionDeclaration, env *Environment) (IRuntimeVal, error) {

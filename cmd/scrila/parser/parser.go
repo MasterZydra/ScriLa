@@ -84,7 +84,7 @@ func (self *Parser) parseVarDeclaration() (ast.IStatement, error) {
 	if !slices.Contains([]lexer.TokenType{lexer.ObjType, lexer.StrType, lexer.IntType, lexer.BoolType}, self.at().TokenType) {
 		return ast.NewStatement(), fmt.Errorf("Variable type not given or supported. %s", self.at())
 	}
-	self.eat()
+	varType := self.eat().TokenType
 
 	// TODO Check if type matches with result of parseExpr()
 	token, err := self.expect(lexer.Identifier, "Expected identifier name following [const] [int] keywords.")
@@ -100,7 +100,7 @@ func (self *Parser) parseVarDeclaration() (ast.IStatement, error) {
 	if err != nil {
 		return ast.NewStatement(), err
 	}
-	declaration := ast.NewVarDeclaration(isConstant, identifier, expr)
+	declaration := ast.NewVarDeclaration(varType, isConstant, identifier, expr)
 	return declaration, nil
 }
 

@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"ScriLa/cmd/scrila/lexer"
 	"fmt"
 
 	"golang.org/x/exp/slices"
@@ -8,9 +9,9 @@ import (
 
 func setupScope(env *Environment) {
 	// Create Default Global Environment
-	env.declareVar("null", NewNullVal(), true)
-	env.declareVar("true", NewBoolVal(true), true)
-	env.declareVar("false", NewBoolVal(false), true)
+	env.declareVar("null", NewNullVal(), true, lexer.Identifier)
+	env.declareVar("true", NewBoolVal(true), true, lexer.Bool)
+	env.declareVar("false", NewBoolVal(false), true, lexer.Bool)
 
 	// Define native builtin methods
 	env.declareFunc("print", NewNativeFunc(nativePrint))
@@ -21,6 +22,7 @@ type Environment struct {
 	parent    *Environment
 	functions map[string]IRuntimeVal
 	variables map[string]IRuntimeVal
+	varTypes  map[string]lexer.TokenType
 	constants []string
 }
 
@@ -30,6 +32,7 @@ func NewEnvironment(parentEnv *Environment) *Environment {
 		parent:    parentEnv,
 		functions: make(map[string]IRuntimeVal),
 		variables: make(map[string]IRuntimeVal),
+		varTypes:  make(map[string]lexer.TokenType),
 		constants: make([]string, 0),
 	}
 
@@ -81,12 +84,13 @@ func (self *Environment) lookupFunc(funcName string) (IRuntimeVal, error) {
 	return env.functions[funcName], nil
 }
 
-func (self *Environment) declareVar(varName string, value IRuntimeVal, isConstant bool) (IRuntimeVal, error) {
+func (self *Environment) declareVar(varName string, value IRuntimeVal, isConstant bool, varType lexer.TokenType) (IRuntimeVal, error) {
 	if _, ok := self.variables[varName]; ok {
 		return NewNullVal(), fmt.Errorf("Cannot declare variable '%s'. As it already is defined.", varName)
 	}
 
 	self.variables[varName] = value
+	self.varTypes[varName] = varType
 
 	if isConstant {
 		self.constants = append(self.constants, varName)
@@ -127,4 +131,12 @@ func (self *Environment) lookupVar(varName string) (IRuntimeVal, error) {
 		return NewNullVal(), err
 	}
 	return env.variables[varName], nil
+}
+
+func (self *Environment) lookupVarType(varName string) (lexer.TokenType, error) {
+	env, err := self.resolve(varName)
+	if err != nil {
+		return lexer.EndOfFile, err
+	}
+	return env.varTypes[varName], nil
 }
