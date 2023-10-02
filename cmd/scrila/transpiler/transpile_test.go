@@ -198,6 +198,13 @@ func ExampleFuncDeclarationWithCall() {
 		int i = 123;
 		str s = "abc";
 		funcWithParams(i, s);
+
+		# Function with return value
+		func add(int a, int b) {
+			return a + b;
+		}
+		int sum = add(i, 321);
+		printLn(add(123, 321));
 	`)
 
 	// Output:
@@ -223,4 +230,15 @@ func ExampleFuncDeclarationWithCall() {
 	// i=123
 	// s="abc"
 	// funcWithParams $i "$s"
+	// # Function with return value
+	// add () {
+	// 	local a=$1
+	// 	local b=$2
+	// 	return $((${a} + ${b}))
+	// }
+	//
+	// add $i 321
+	// sum=$?
+	// add 123 321
+	// echo "$?"
 }
