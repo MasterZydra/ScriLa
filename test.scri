@@ -65,7 +65,7 @@ sub(6, 4);
 
 func addWithReturn(int a, int b) {
     int result = a + b;
-    result;
+    return result;
 }
 
 printLn(addWithReturn(10, 11));
