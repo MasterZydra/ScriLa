@@ -5,8 +5,9 @@
 ```mermaid
 classDiagram
   parseStatement o-- parseFunctionDeclaration
-  parseFunctionDeclaration o-- parseArgs
+  parseFunctionDeclaration o-- parseParams : Params
   parseFunctionDeclaration o-- parseStatement : Function body
+  parseParams o-- parseParametersList
 
   parseStatement o-- parseVarDeclaration
   parseVarDeclaration o-- parseExpr
