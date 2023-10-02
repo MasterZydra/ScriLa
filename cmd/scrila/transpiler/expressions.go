@@ -164,11 +164,11 @@ func evalAssignmentObjMember(assignment ast.IAssignmentExpr, env *Environment) (
 	memberExpr, _ := i.(ast.IMemberExpr)
 
 	if memberExpr.GetObject().GetKind() != ast.IdentifierNode {
-		return NewNullVal(), fmt.Errorf("evalMemberExpr: Object - Node kind '%s' not supported", memberExpr.GetObject().GetKind())
+		return NewNullVal(), fmt.Errorf("evalAssignmentObjMember: Object - Node kind '%s' not supported", memberExpr.GetObject().GetKind())
 	}
 
 	if memberExpr.GetProperty().GetKind() != ast.IdentifierNode {
-		return NewNullVal(), fmt.Errorf("evalMemberExpr: Property - Node kind '%s' not supported", memberExpr.GetProperty().GetKind())
+		return NewNullVal(), fmt.Errorf("evalAssignmentObjMember: Property - Node kind '%s' not supported", memberExpr.GetProperty().GetKind())
 	}
 
 	i = memberExpr.GetObject()
@@ -178,7 +178,7 @@ func evalAssignmentObjMember(assignment ast.IAssignmentExpr, env *Environment) (
 		return NewNullVal(), err
 	}
 	if obj.GetType() != ObjValueType {
-		return NewNullVal(), fmt.Errorf("evalMemberExpr: variable '%s' is not of type 'object'", identifier.GetSymbol())
+		return NewNullVal(), fmt.Errorf("evalAssignmentObjMember: variable '%s' is not of type 'object'", identifier.GetSymbol())
 	}
 
 	i = obj
