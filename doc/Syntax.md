@@ -3,6 +3,7 @@
 **Content**
 - [Variables](#variables)
 - [Native functions](#native-functions)
+- [User defined functions](#user-defined-functions)
 
 ## Variables
 **Integer**
@@ -44,4 +45,32 @@ printLn("str", 42, false, null);
 
 int i = 43;
 printLn("i =", i);
+```
+
+## User defined functions
+**Without parameters**
+```
+func printHelloWorld() {
+    printLn("Hello World!");
+}
+
+printHelloWorld();
+```
+
+**With parameters**
+```
+func printGivenString(str s) {
+    printLn("Given string: '" + s + "'");
+}
+
+printGivenString("Hello World");
+```
+
+**With return value**
+```
+func add(int a, int b) {
+    return a + b;
+}
+
+int c = add(123, 456);
 ```
