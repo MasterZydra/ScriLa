@@ -10,6 +10,7 @@ classDiagram
   Expr <|-- AssignmentExpr
   Expr <|-- BinaryExpr
   Expr <|-- CallExpr
+  Expr <|-- ReturnExpr
   Expr <|-- MemberExpr
   Expr <|-- Identifier
   Expr <|-- IntLiteral
