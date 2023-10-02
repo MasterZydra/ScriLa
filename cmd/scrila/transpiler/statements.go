@@ -24,15 +24,18 @@ func evalProgram(program ast.IProgram, env *Environment) (IRuntimeVal, error) {
 }
 
 func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (IRuntimeVal, error) {
-	if funcContext {
-		writeToFile("local ")
-	}
-	writeToFile(varDeclaration.GetIdentifier() + "=")
 	value, err := transpile(varDeclaration.GetValue(), env)
 	if err != nil {
 		return NewNullVal(), err
 	}
+	if funcContext {
+		writeToFile("local ")
+	}
+	writeToFile(varDeclaration.GetIdentifier() + "=")
+
 	switch varDeclaration.GetValue().GetKind() {
+	case ast.CallExprNode:
+		writeLnToFile("$?")
 	case ast.IdentifierNode:
 		var i interface{} = varDeclaration.GetValue()
 		identifier, _ := i.(ast.IIdentifier)
@@ -55,7 +58,7 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 	case ast.IntLiteralNode:
 		writeLnToFile(value.ToString())
 	default:
-		return NewNullVal(), fmt.Errorf("evalVarDeclaration: value kind '%s' not supported", varDeclaration.GetValue())
+		return NewNullVal(), fmt.Errorf("evalVarDeclaration: value kind '%s' not supported", varDeclaration.GetValue().GetKind())
 	}
 
 	return env.declareVar(varDeclaration.GetIdentifier(), value, varDeclaration.IsConstant(), varDeclaration.GetVarType())

@@ -36,6 +36,8 @@ func printArgs(args []ast.IExpr, env *Environment) error {
 			isFirst = false
 		}
 		switch arg.GetKind() {
+		case ast.CallExprNode:
+			writeToFile("$?")
 		case ast.IdentifierNode:
 			var i interface{} = arg
 			identifier, _ := i.(ast.IIdentifier)
@@ -59,7 +61,7 @@ func printArgs(args []ast.IExpr, env *Environment) error {
 			}
 			writeToFile(value.GetTranspilat())
 		default:
-			return fmt.Errorf("nativePrint: Arg kind '%s' not supported", arg)
+			return fmt.Errorf("nativePrint: Arg kind '%s' not supported", arg.GetKind())
 		}
 	}
 	return nil

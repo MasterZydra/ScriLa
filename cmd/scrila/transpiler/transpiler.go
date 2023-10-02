@@ -111,6 +111,14 @@ func transpile(astNode ast.IStatement, env *Environment) (IRuntimeVal, error) {
 		}
 		return evalMemberExpr(memberExpr, env)
 
+	case ast.ReturnExprNode:
+		var i interface{} = astNode
+		returnExpr, ok := i.(ast.IReturnExpr)
+		if !ok {
+			return NewNullVal(), fmt.Errorf("Evaluate: Failed to convert Statement to ReturnExpr")
+		}
+		return evalReturnExpr(returnExpr, env)
+
 	// Handle Statements
 	case ast.CommentNode:
 		var i interface{} = astNode

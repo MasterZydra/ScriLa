@@ -113,16 +113,18 @@ func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeV
 		return NewNullVal(), fmt.Errorf("evalAssignment: Invalid LHS inside assignment expr %s", assignment.GetAssigne())
 	}
 
-	var i interface{} = assignment.GetAssigne()
-	assigne, _ := i.(ast.IIdentifier)
-	writeToFile(assigne.GetSymbol() + "=")
-
 	value, err := transpile(assignment.GetValue(), env)
 	if err != nil {
 		return NewNullVal(), err
 	}
 
+	var i interface{} = assignment.GetAssigne()
+	assigne, _ := i.(ast.IIdentifier)
+	writeToFile(assigne.GetSymbol() + "=")
+
 	switch assignment.GetValue().GetKind() {
+	case ast.CallExprNode:
+		writeLnToFile("$?")
 	case ast.BinaryExprNode:
 		varType, err := env.lookupVarType(assigne.GetSymbol())
 		if err != nil {
@@ -297,4 +299,37 @@ func evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {
 	default:
 		return NewNullVal(), fmt.Errorf("Cannot call value that is not a function: %s", caller)
 	}
+}
+
+func evalReturnExpr(returnExpr ast.IReturnExpr, env *Environment) (IRuntimeVal, error) {
+	if !funcContext {
+		return NewNullVal(), fmt.Errorf("Return is only allowed inside of a function")
+	}
+
+	value, err := transpile(returnExpr.GetValue(), env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+
+	writeToFile("return ")
+	switch returnExpr.GetValue().GetKind() {
+	case ast.BinaryExprNode:
+		switch value.GetType() {
+		case StrValueType:
+			writeLnToFile("\"" + value.GetTranspilat() + "\"")
+		case IntValueType:
+			writeLnToFile(value.GetTranspilat())
+		default:
+			return NewNullVal(), fmt.Errorf("evalReturnExpr - BinaryExpr: Unsupported varType '%s'", value.GetType())
+		}
+	case ast.IntLiteralNode:
+		writeLnToFile(value.ToString())
+	case ast.IdentifierNode:
+		var i interface{} = returnExpr.GetValue()
+		identifier, _ := i.(ast.IIdentifier)
+		writeLnToFile("$" + identifier.GetSymbol())
+	default:
+		return NewNullVal(), fmt.Errorf("evalReturnExpr: Unsupported value kind '%s'", returnExpr.GetValue().GetKind())
+	}
+	return value, nil
 }
