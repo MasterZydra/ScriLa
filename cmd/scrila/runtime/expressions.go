@@ -20,19 +20,11 @@ func evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) (IRuntimeVal, error
 	}
 
 	if lhs.GetType() == IntValueType && rhs.GetType() == IntValueType {
-		var i interface{} = lhs
-		left, _ := i.(IIntVal)
-		i = rhs
-		right, _ := i.(IIntVal)
-		return evalIntBinaryExpr(left, right, binOp.GetOperator())
+		return evalIntBinaryExpr(runtimetoIntVal(lhs), runtimetoIntVal(rhs), binOp.GetOperator())
 	}
 
 	if lhs.GetType() == StrValueType && rhs.GetType() == StrValueType {
-		var i interface{} = lhs
-		left, _ := i.(IStrVal)
-		i = rhs
-		right, _ := i.(IStrVal)
-		return evalStrBinaryExpr(left, right, binOp.GetOperator())
+		return evalStrBinaryExpr(runtimetoStrVal(lhs), runtimetoStrVal(rhs), binOp.GetOperator())
 	}
 
 	return NewNullVal(), fmt.Errorf("evalBinaryExpr: Give types not supported (lhs: %s, rhs: %s)", lhs, rhs)
@@ -80,13 +72,13 @@ func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeV
 		return NewNullVal(), fmt.Errorf("evalAssignment: Invalid LHS inside assignment expr %s", assignment.GetAssigne())
 	}
 
-	var i interface{} = assignment.GetAssigne()
-	assigne, _ := i.(ast.IIdentifier)
+	varName := ast.ExprToIdent(assignment.GetAssigne()).GetSymbol()
+
 	value, err := Evaluate(assignment.GetValue(), env)
 	if err != nil {
 		return NewNullVal(), nil
 	}
-	return env.assignVar(assigne.GetSymbol(), value)
+	return env.assignVar(varName, value)
 }
 
 func evalAssignmentObjMember(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeVal, error) {
@@ -94,8 +86,7 @@ func evalAssignmentObjMember(assignment ast.IAssignmentExpr, env *Environment) (
 		return NewNullVal(), fmt.Errorf("evalAssignmentObjMember: Invalid LHS inside assignment expr %s", assignment.GetAssigne())
 	}
 
-	var i interface{} = assignment.GetAssigne()
-	memberExpr, _ := i.(ast.IMemberExpr)
+	memberExpr := ast.ExprToMemberExpr(assignment.GetAssigne())
 
 	if memberExpr.GetObject().GetKind() != ast.IdentifierNode {
 		return NewNullVal(), fmt.Errorf("evalMemberExpr: Object - Node kind '%s' not supported", memberExpr.GetObject().GetKind())
@@ -105,27 +96,20 @@ func evalAssignmentObjMember(assignment ast.IAssignmentExpr, env *Environment) (
 		return NewNullVal(), fmt.Errorf("evalMemberExpr: Property - Node kind '%s' not supported", memberExpr.GetProperty().GetKind())
 	}
 
-	i = memberExpr.GetObject()
-	identifier, _ := i.(ast.IIdentifier)
-	obj, err := env.lookupVar(identifier.GetSymbol())
+	objName := ast.ExprToIdent(memberExpr.GetObject()).GetSymbol()
+	obj, err := env.lookupVar(objName)
 	if err != nil {
 		return NewNullVal(), err
 	}
 	if obj.GetType() != ObjValueType {
-		return NewNullVal(), fmt.Errorf("evalMemberExpr: variable '%s' is not of type 'object'", identifier.GetSymbol())
+		return NewNullVal(), fmt.Errorf("evalMemberExpr: variable '%s' is not of type 'object'", objName)
 	}
-
-	i = obj
-	objVal, _ := i.(IObjVal)
-
-	i = memberExpr.GetProperty()
-	property, _ := i.(ast.IIdentifier)
 
 	value, err := Evaluate(assignment.GetValue(), env)
 	if err != nil {
 		return NewNullVal(), err
 	}
-	objVal.GetProperties()[property.GetSymbol()] = value
+	runtimetoObjVal(obj).GetProperties()[ast.ExprToIdent(memberExpr.GetProperty()).GetSymbol()] = value
 	return value, nil
 }
 
@@ -152,23 +136,16 @@ func evalMemberExpr(memberExpr ast.IMemberExpr, env *Environment) (IRuntimeVal, 
 		return NewNullVal(), fmt.Errorf("evalMemberExpr: Property - Node kind '%s' not supported", memberExpr.GetProperty().GetKind())
 	}
 
-	var i interface{} = memberExpr.GetObject()
-	identifier, _ := i.(ast.IIdentifier)
-	obj, err := env.lookupVar(identifier.GetSymbol())
+	objName := ast.ExprToIdent(memberExpr.GetObject()).GetSymbol()
+	obj, err := env.lookupVar(objName)
 	if err != nil {
 		return NewNullVal(), err
 	}
 	if obj.GetType() != ObjValueType {
-		return NewNullVal(), fmt.Errorf("evalMemberExpr: variable '%s' is not of type 'object'", identifier.GetSymbol())
+		return NewNullVal(), fmt.Errorf("evalMemberExpr: variable '%s' is not of type 'object'", objName)
 	}
 
-	i = obj
-	objVal, _ := i.(IObjVal)
-
-	i = memberExpr.GetProperty()
-	property, _ := i.(ast.IIdentifier)
-
-	return objVal.GetProperties()[property.GetSymbol()], nil
+	return runtimetoObjVal(obj).GetProperties()[ast.ExprToIdent(memberExpr.GetProperty()).GetSymbol()], nil
 }
 
 func evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {
@@ -185,22 +162,17 @@ func evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {
 	if call.GetCaller().GetKind() != ast.IdentifierNode {
 		return NewNullVal(), fmt.Errorf("Function caller has to be an identifier. Got: %s", call.GetCaller())
 	}
-	var j interface{} = call.GetCaller()
-	identifier, _ := j.(ast.IIdentifier)
-	caller, err := env.lookupFunc(identifier.GetSymbol())
+	caller, err := env.lookupFunc(ast.ExprToIdent(call.GetCaller()).GetSymbol())
 	if err != nil {
 		return NewNullVal(), err
 	}
 
 	switch caller.GetType() {
 	case NativeFnType:
-		var i interface{} = caller
-		fn, _ := i.(INativeFunc)
-		return fn.GetCall()(args, env)
+		return runtimetoNativeFunc(caller).GetCall()(args, env)
 
 	case FunctionValueType:
-		var i interface{} = caller
-		fn, _ := i.(IFunctionVal)
+		fn := runtimetoFuncVal(caller)
 		scope := NewEnvironment(fn.GetDeclarationEnv())
 
 		// Create variables for the parameters list

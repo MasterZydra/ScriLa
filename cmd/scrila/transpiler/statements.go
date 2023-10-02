@@ -39,9 +39,7 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 
 	switch varDeclaration.GetValue().GetKind() {
 	case ast.CallExprNode:
-		var i interface{} = varDeclaration.GetValue()
-		callExpr, _ := i.(ast.ICallExpr)
-		varName, err := getCallerResultVarName(callExpr, env)
+		varName, err := getCallerResultVarName(ast.ExprToCallExpr(varDeclaration.GetValue()), env)
 		if err != nil {
 			return NewNullVal(), err
 		}
@@ -57,12 +55,10 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 		}
 
 	case ast.IdentifierNode:
-		var i interface{} = varDeclaration.GetValue()
-		identifier, _ := i.(ast.IIdentifier)
-		if slices.Contains(reservedIdentifiers, identifier.GetSymbol()) {
-			writeLnToFile(identifier.GetSymbol())
+		if symbol := identNodeGetSymbol(varDeclaration.GetValue()); slices.Contains(reservedIdentifiers, symbol) {
+			writeLnToFile(symbol)
 		} else {
-			writeLnToFile("${" + identifier.GetSymbol() + "}")
+			writeLnToFile(identNodeToBashVar(varDeclaration.GetValue()))
 		}
 	case ast.BinaryExprNode:
 		switch varDeclaration.GetVarType() {
@@ -78,9 +74,7 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 	case ast.IntLiteralNode:
 		writeLnToFile(value.ToString())
 	case ast.ObjectLiteralNode:
-		var i interface{} = varDeclaration.GetValue()
-		objectLiteral, _ := i.(ast.IObjectLiteral)
-		for _, prop := range objectLiteral.GetProperties() {
+		for _, prop := range ast.ExprToObjLit(varDeclaration.GetValue()).GetProperties() {
 			writeToFile(varDeclaration.GetIdentifier() + "[\"" + prop.GetKey() + "\"]=")
 			value, err := transpile(prop.GetValue(), env)
 			if err != nil {
@@ -92,23 +86,20 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 			case ast.StrLiteralNode:
 				writeLnToFile("\"" + value.ToString() + "\"")
 			case ast.IdentifierNode:
-				i = prop.GetValue()
-				identifier, _ := i.(ast.IIdentifier)
-				if identifier.GetSymbol() == "null" {
-					writeLnToFile("\"" + identifier.GetSymbol() + "\"")
-				} else if slices.Contains(reservedIdentifiers, identifier.GetSymbol()) {
-					writeLnToFile(identifier.GetSymbol())
+				symbol := identNodeGetSymbol(prop.GetValue())
+				if symbol == "null" {
+					writeLnToFile("\"" + symbol + "\"")
+				} else if slices.Contains(reservedIdentifiers, symbol) {
+					writeLnToFile(symbol)
 				} else {
-					writeLnToFile("$" + identifier.GetSymbol())
+					writeLnToFile(identNodeToBashVar(prop.GetValue()))
 				}
 			default:
 				return NewNullVal(), fmt.Errorf("evalVarDeclaration - ObjectLiteralNode: property kind '%s' not supported", prop.GetValue().GetKind())
 			}
 		}
 	case ast.MemberExprNode:
-		var i interface{} = varDeclaration.GetValue()
-		memberExpr, _ := i.(ast.IMemberExpr)
-		memberVal, err := evalMemberExpr(memberExpr, env)
+		memberVal, err := evalMemberExpr(ast.ExprToMemberExpr(varDeclaration.GetValue()), env)
 		if err != nil {
 			return NewNullVal(), err
 		}

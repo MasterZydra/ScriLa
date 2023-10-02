@@ -10,76 +10,31 @@ func Evaluate(astNode ast.IStatement, env *Environment) (IRuntimeVal, error) {
 	// Handle Expressions
 
 	case ast.IntLiteralNode:
-		var i interface{} = astNode
-		intLiteral, ok := i.(ast.IIntLiteral)
-		if !ok {
-			return NewNullVal(), fmt.Errorf("Evaluate: Failed to convert Statement to IntLiteral")
-		}
-		return NewIntVal(intLiteral.GetValue()), nil
+		return NewIntVal(ast.ExprToIntLit(astNode).GetValue()), nil
 
 	case ast.StrLiteralNode:
-		var i interface{} = astNode
-		strLiteral, ok := i.(ast.IStrLiteral)
-		if !ok {
-			return NewNullVal(), fmt.Errorf("Evaluate: Failed to convert Statement to StrLiteral")
-		}
-		return NewStrVal(strLiteral.GetValue()), nil
+		return NewStrVal(ast.ExprToStrLit(astNode).GetValue()), nil
 
 	case ast.IdentifierNode:
-		var i interface{} = astNode
-		identifier, ok := i.(ast.IIdentifier)
-		if !ok {
-			return NewNullVal(), fmt.Errorf("Evaluate: Failed to convert Statement to Identifier")
-		}
-		return evalIdentifier(identifier, env)
+		return evalIdentifier(ast.ExprToIdent(astNode), env)
 
 	case ast.ObjectLiteralNode:
-		var i interface{} = astNode
-		object, ok := i.(ast.IObjectLiteral)
-		if !ok {
-			return NewNullVal(), fmt.Errorf("Evaluate: Failed to convert Statement to ObjectLiteral")
-		}
-		return evalObjectExpr(object, env)
+		return evalObjectExpr(ast.ExprToObjLit(astNode), env)
 
 	case ast.CallExprNode:
-		var i interface{} = astNode
-		call, ok := i.(ast.ICallExpr)
-		if !ok {
-			return NewNullVal(), fmt.Errorf("Evaluate: Failed to convert Statement to CallExpr")
-		}
-		return evalCallExpr(call, env)
+		return evalCallExpr(ast.ExprToCallExpr(astNode), env)
 
 	case ast.AssignmentExprNode:
-		var i interface{} = astNode
-		assignment, ok := i.(ast.IAssignmentExpr)
-		if !ok {
-			return NewNullVal(), fmt.Errorf("Evaluate: Failed to convert Statement to AssignmentExpr")
-		}
-		return evalAssignment(assignment, env)
+		return evalAssignment(ast.ExprToAssignmentExpr(astNode), env)
 
 	case ast.BinaryExprNode:
-		var i interface{} = astNode
-		binaryExpr, ok := i.(ast.IBinaryExpr)
-		if !ok {
-			return NewNullVal(), fmt.Errorf("Evaluate: Failed to convert Statement to BinaryExpr")
-		}
-		return evalBinaryExpr(binaryExpr, env)
+		return evalBinaryExpr(ast.ExprToBinExpr(astNode), env)
 
 	case ast.MemberExprNode:
-		var i interface{} = astNode
-		memberExpr, ok := i.(ast.IMemberExpr)
-		if !ok {
-			return NewNullVal(), fmt.Errorf("Evaluate: Failed to convert Statement to MemberExpr")
-		}
-		return evalMemberExpr(memberExpr, env)
+		return evalMemberExpr(ast.ExprToMemberExpr(astNode), env)
 
 	case ast.ReturnExprNode:
-		var i interface{} = astNode
-		returnExpr, ok := i.(ast.IReturnExpr)
-		if !ok {
-			return NewNullVal(), fmt.Errorf("Evaluate: Failed to convert Statement to ReturnExpr")
-		}
-		return evalReturnExpr(returnExpr, env)
+		return evalReturnExpr(ast.ExprToReturnExpr(astNode), env)
 
 	// Handle Statements
 
@@ -87,28 +42,13 @@ func Evaluate(astNode ast.IStatement, env *Environment) (IRuntimeVal, error) {
 		return NewNullVal(), nil
 
 	case ast.ProgramNode:
-		var i interface{} = astNode
-		program, ok := i.(ast.IProgram)
-		if !ok {
-			return NewNullVal(), fmt.Errorf("Evaluate: Failed to convert Statement to Program")
-		}
-		return evalProgram(program, env)
+		return evalProgram(ast.ExprToProgram(astNode), env)
 
 	case ast.VarDeclarationNode:
-		var i interface{} = astNode
-		varDeclaration, ok := i.(ast.IVarDeclaration)
-		if !ok {
-			return NewNullVal(), fmt.Errorf("Evaluate: Failed to convert Statement to VarDeclaration")
-		}
-		return evalVarDeclaration(varDeclaration, env)
+		return evalVarDeclaration(ast.ExprToVarDecl(astNode), env)
 
 	case ast.FunctionDeclarationNode:
-		var i interface{} = astNode
-		funcDeclaration, ok := i.(ast.IFunctionDeclaration)
-		if !ok {
-			return NewNullVal(), fmt.Errorf("Evaluate: Failed to convert Statement to FunctionDeclaration")
-		}
-		return evalFunctionDeclaration(funcDeclaration, env)
+		return evalFunctionDeclaration(ast.ExprToFuncDecl(astNode), env)
 
 	default:
 		return NewNullVal(), fmt.Errorf("Evaluate: This AST Node has not been setup for interpretion: %s", astNode)

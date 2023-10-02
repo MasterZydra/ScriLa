@@ -229,7 +229,7 @@ func ExampleFuncDeclarationWithCall() {
 	// funcWithParams 123 "abc"
 	// i=123
 	// s="abc"
-	// funcWithParams $i "$s"
+	// funcWithParams ${i} "${s}"
 	// # Function with return value
 	// add () {
 	// 	local a=$1
@@ -237,7 +237,7 @@ func ExampleFuncDeclarationWithCall() {
 	// 	return $((${a} + ${b}))
 	// }
 	//
-	// add $i 321
+	// add ${i} 321
 	// sum=$?
 	// add 123 321
 	// echo "$?"
@@ -314,7 +314,7 @@ func ExampleInput() {
 	// # Created by Scrila Transpiler v0.0.1
 	// read -p "Enter username: " tmpStr
 	// s="${tmpStr}"
-	// read -p "$s " tmpStr
+	// read -p "${s} " tmpStr
 }
 
 func TestSleepWithoutSeconds(t *testing.T) {
@@ -340,5 +340,5 @@ func ExampleSleep() {
 	// # Created by Scrila Transpiler v0.0.1
 	// sleep 10
 	// i=10
-	// sleep $i
+	// sleep ${i}
 }

@@ -62,9 +62,7 @@ func nativeSleep(args []IRuntimeVal, env *Environment) (IRuntimeVal, error) {
 	}
 	switch args[0].GetType() {
 	case IntValueType:
-		var i interface{} = args[0]
-		intVal, _ := i.(IIntVal)
-		time.Sleep(time.Duration(intVal.GetValue()) * time.Second)
+		time.Sleep(time.Duration(runtimetoIntVal(args[0]).GetValue()) * time.Second)
 	default:
 		return NewNullVal(), fmt.Errorf("nativeSleep: Arg type '%s' not supported", args[0].GetType())
 	}
