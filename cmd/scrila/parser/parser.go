@@ -63,6 +63,13 @@ func (self *Parser) parseStatement() (ast.IStatement, error) {
 		}
 	case lexer.Function:
 		return self.parseFunctionDeclaration()
+	case lexer.Return:
+		self.eat()
+		value, err := self.parseExpr()
+		if err != nil {
+			return ast.NewStatement(), err
+		}
+		statement = ast.NewReturnExpr(value)
 	default:
 		statement, err = self.parseExpr()
 		if err != nil {
@@ -454,7 +461,7 @@ func (self *Parser) parsePrimaryExpr() (ast.IExpr, error) {
 		_, err = self.expect(lexer.CloseParen, "Unexpexted token found inside parenthesised expression. Expected closing parenthesis.")
 		return value, err
 	default:
-		return ast.NewExpr(), fmt.Errorf("Unexpected token '%s' ('%s') (Ln %d, Col %d) found during parsing\n", self.at().TokenType, self.at().Value, self.at().Ln, self.at().Col)
+		return ast.NewExpr(), fmt.Errorf("parsePrimaryExpr: Unexpected token '%s' ('%s') (Ln %d, Col %d) found during parsing\n", self.at().TokenType, self.at().Value, self.at().Ln, self.at().Col)
 	}
 }
 

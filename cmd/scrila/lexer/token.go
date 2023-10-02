@@ -21,12 +21,13 @@ var singleCharTokens = map[string]TokenType{
 }
 
 var keywords = map[string]TokenType{
-	"bool":  BoolType,
-	"const": Const,
-	"func":  Function,
-	"int":   IntType,
-	"obj":   ObjType,
-	"str":   StrType,
+	"bool":   BoolType,
+	"const":  Const,
+	"func":   Function,
+	"int":    IntType,
+	"obj":    ObjType,
+	"str":    StrType,
+	"return": Return,
 }
 
 type TokenType string
@@ -35,6 +36,7 @@ const (
 	Function       TokenType = "Function"
 	Comment        TokenType = "Comment"
 	BinaryOperator TokenType = "BinaryOperator"
+	Return         TokenType = "Return"
 	// Characters
 	Semicolon    TokenType = "Semicolon"
 	Comma        TokenType = "Comma"

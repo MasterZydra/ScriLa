@@ -217,3 +217,34 @@ func (self *Identifier) GetKind() NodeType {
 func (self *Identifier) GetSymbol() string {
 	return self.symbol
 }
+
+// ReturnExpr
+
+type IReturnExpr interface {
+	IExpr
+	GetValue() IExpr
+}
+
+type ReturnExpr struct {
+	expr  *Expr
+	value IExpr
+}
+
+func (self *ReturnExpr) String() string {
+	return fmt.Sprintf("&{%s %s}", self.GetKind(), self.GetValue())
+}
+
+func NewReturnExpr(value IExpr) *ReturnExpr {
+	return &ReturnExpr{
+		expr:  &Expr{statement: &Statement{kind: ReturnExprNode}},
+		value: value,
+	}
+}
+
+func (self *ReturnExpr) GetKind() NodeType {
+	return self.expr.statement.kind
+}
+
+func (self *ReturnExpr) GetValue() IExpr {
+	return self.value
+}

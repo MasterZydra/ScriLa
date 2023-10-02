@@ -17,6 +17,7 @@ const (
 	UnaryExprNode      NodeType = "UnaryExpr"
 	CallExprNode       NodeType = "CallExpr"
 	MemberExprNode     NodeType = "MemberExpr"
+	ReturnExprNode     NodeType = "ReturnExpr"
 
 	// Literals
 	PropertyNode      NodeType = "Property"
