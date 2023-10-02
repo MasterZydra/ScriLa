@@ -197,7 +197,7 @@ func (self *StrVal) ToString() string {
 
 // NativeFunc
 
-type FunctionCall func(args []IRuntimeVal, env *Environment) IRuntimeVal
+type FunctionCall func(args []IRuntimeVal, env *Environment) (IRuntimeVal, error)
 
 type INativeFunc interface {
 	IRuntimeVal

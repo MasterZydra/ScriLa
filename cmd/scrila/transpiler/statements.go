@@ -39,7 +39,23 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 
 	switch varDeclaration.GetValue().GetKind() {
 	case ast.CallExprNode:
-		writeLnToFile("$?")
+		var i interface{} = varDeclaration.GetValue()
+		callExpr, _ := i.(ast.ICallExpr)
+		varName, err := getCallerResultVarName(callExpr, env)
+		if err != nil {
+			return NewNullVal(), err
+		}
+		switch varDeclaration.GetVarType() {
+		case lexer.StrType:
+			writeLnToFile("\"" + varName + "\"")
+			value = NewStrVal("")
+		case lexer.IntType:
+			writeLnToFile(varName)
+			value = NewIntVal(1)
+		default:
+			return NewNullVal(), fmt.Errorf("evalVarDeclaration - CallExprNode: Unsupported varType '%s'", varDeclaration.GetVarType())
+		}
+
 	case ast.IdentifierNode:
 		var i interface{} = varDeclaration.GetValue()
 		identifier, _ := i.(ast.IIdentifier)

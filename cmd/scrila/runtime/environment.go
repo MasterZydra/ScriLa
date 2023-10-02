@@ -14,6 +14,7 @@ func setupScope(env *Environment) {
 	env.declareVar("false", NewBoolVal(false), true, lexer.Bool)
 
 	// Define native builtin methods
+	env.declareFunc("input", NewNativeFunc(nativeInput))
 	env.declareFunc("print", NewNativeFunc(nativePrint))
 	env.declareFunc("printLn", NewNativeFunc(nativePrintLn))
 }

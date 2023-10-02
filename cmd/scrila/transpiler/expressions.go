@@ -124,7 +124,27 @@ func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeV
 
 	switch assignment.GetValue().GetKind() {
 	case ast.CallExprNode:
-		writeLnToFile("$?")
+		i = assignment.GetValue()
+		callExpr, _ := i.(ast.ICallExpr)
+		varName, err := getCallerResultVarName(callExpr, env)
+		if err != nil {
+			return NewNullVal(), err
+		}
+
+		varType, err := env.lookupVarType(assigne.GetSymbol())
+		if err != nil {
+			return NewNullVal(), err
+		}
+		switch varType {
+		case lexer.StrType:
+			writeLnToFile("\"" + varName + "\"")
+			value = NewStrVal("")
+		case lexer.IntType:
+			writeLnToFile(varName)
+			value = NewIntVal(1)
+		default:
+			return NewNullVal(), fmt.Errorf("evalAssignment - CallExpr: Unsupported varType '%s'", varType)
+		}
 	case ast.BinaryExprNode:
 		varType, err := env.lookupVarType(assigne.GetSymbol())
 		if err != nil {
@@ -260,6 +280,35 @@ func evalMemberExpr(memberExpr ast.IMemberExpr, env *Environment) (IRuntimeVal, 
 	return result, nil
 }
 
+func getCallerResultVarName(call ast.ICallExpr, env *Environment) (string, error) {
+	if call.GetCaller().GetKind() != ast.IdentifierNode {
+		return "", fmt.Errorf("getCallerResultVarName: Function caller has to be an identifier. Got: %s", call.GetCaller())
+	}
+
+	var j interface{} = call.GetCaller()
+	identifier, _ := j.(ast.IIdentifier)
+	caller, err := env.lookupFunc(identifier.GetSymbol())
+	if err != nil {
+		return "", err
+	}
+	if caller.GetType() == FunctionValueType {
+		return "$?", nil
+	} else if caller.GetType() == NativeFnType {
+		// TODO Determine based on return type, if that is implemented
+		switch identifier.GetSymbol() {
+		case "print", "printLn":
+			return "", fmt.Errorf("'" + identifier.GetSymbol() + "' has no return value")
+		case "input":
+			return "${tmpStr}", nil
+		default:
+			return "", fmt.Errorf("getCallerResultVarName: Return type for func '%s' is unknown", identifier.GetSymbol())
+		}
+	} else {
+		return "", fmt.Errorf("getCallerResultVarName: Function type '%s' not supported", caller.GetType())
+
+	}
+}
+
 func evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {
 	// TODO add helpers? https://zetcode.com/golang/filter-map/
 	var args []IRuntimeVal
@@ -285,7 +334,12 @@ func evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {
 	case NativeFnType:
 		var i interface{} = caller
 		fn, _ := i.(INativeFunc)
-		return fn.GetCall()(call.GetArgs(), env)
+		result, err := fn.GetCall()(call.GetArgs(), env)
+		if err != nil {
+			return NewNullVal(), err
+		}
+		writeToFile(result.GetTranspilat())
+		return result, nil
 
 	case FunctionValueType:
 		var i interface{} = caller

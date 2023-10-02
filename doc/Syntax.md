@@ -47,6 +47,11 @@ int i = 43;
 printLn("i =", i);
 ```
 
+**Input**  
+```
+str userInput = input("Pleas enter your name:");
+```
+
 ## User defined functions
 **Without parameters**
 ```

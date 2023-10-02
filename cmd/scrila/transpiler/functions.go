@@ -2,6 +2,7 @@ package transpiler
 
 import (
 	"ScriLa/cmd/scrila/ast"
+	"ScriLa/cmd/scrila/lexer"
 	"fmt"
 	"strconv"
 
@@ -37,7 +38,13 @@ func printArgs(args []ast.IExpr, env *Environment) error {
 		}
 		switch arg.GetKind() {
 		case ast.CallExprNode:
-			writeToFile("$?")
+			var i interface{} = arg
+			callExpr, _ := i.(ast.ICallExpr)
+			varName, err := getCallerResultVarName(callExpr, env)
+			if err != nil {
+				return err
+			}
+			writeToFile(varName)
 		case ast.IdentifierNode:
 			var i interface{} = arg
 			identifier, _ := i.(ast.IIdentifier)
@@ -73,4 +80,41 @@ func printArgs(args []ast.IExpr, env *Environment) error {
 		}
 	}
 	return nil
+}
+
+func nativeInput(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+	if len(args) != 1 {
+		return NewNullVal(), fmt.Errorf("Expected syntax: input(str prompt)")
+	}
+	value, err := transpile(args[0], env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+
+	transpilat := "read -p "
+
+	switch args[0].GetKind() {
+	case ast.IdentifierNode:
+		var i interface{} = args[0]
+		identifier, _ := i.(ast.IIdentifier)
+		varType, err := env.lookupVarType(identifier.GetSymbol())
+		if err != nil {
+			return NewNullVal(), err
+		}
+		if varType != lexer.StrType {
+			return NewNullVal(), fmt.Errorf("input: parameter prompt has to be a string or a variable of type string. Got '%s'", varType)
+		}
+
+		transpilat += "\"$" + identifier.GetSymbol() + " \""
+	case ast.StrLiteralNode:
+		transpilat += "\"" + value.ToString() + " \""
+	default:
+		return NewNullVal(), fmt.Errorf("nativeInput: Arg kind '%s' not supported", args[0].GetKind())
+	}
+
+	transpilat += " tmpStr\n"
+
+	result := NewNullVal()
+	result.SetTranspilat(transpilat)
+	return result, nil
 }

@@ -291,3 +291,28 @@ func TestObjectWithMissingValue(t *testing.T) {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
 }
+
+func TestInputWithoutPrompt(t *testing.T) {
+	err := transpileTest(`
+		input();
+	`)
+	expected := fmt.Errorf("Expected syntax: input(str prompt)")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func ExampleInput() {
+	setTestMode()
+	transpileTest(`
+		str s = input("Enter username:");
+		input(s);
+	`)
+
+	// Output:
+	// #!/bin/bash
+	// # Created by Scrila Transpiler v0.0.1
+	// read -p "Enter username: " tmpStr
+	// s="${tmpStr}"
+	// read -p "$s " tmpStr
+}
