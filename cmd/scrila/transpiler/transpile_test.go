@@ -242,3 +242,52 @@ func ExampleFuncDeclarationWithCall() {
 	// add 123 321
 	// echo "$?"
 }
+
+func ExampleObject() {
+	setTestMode()
+	transpileTest(`
+		obj o = { p1: 123, p2: "str", p3: false, };
+		o.p1 = 321;
+		printLn(o.p2);
+	`)
+
+	// Output:
+	// #!/bin/bash
+	// # Created by Scrila Transpiler v0.0.1
+	// declare -A o
+	// o["p1"]=123
+	// o["p2"]="str"
+	// o["p3"]=false
+	// o["p1"]=321
+	// echo "${o["p2"]}"
+}
+
+func TestObjectWithMissingComma(t *testing.T) {
+	err := transpileTest(`
+		int o = { p1: 123 };
+	`)
+	expected := fmt.Errorf("Parser Error: Expected comma following Property.")
+	if !strings.HasPrefix(err.Error(), expected.Error()) {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestObjectWithMissingColon(t *testing.T) {
+	err := transpileTest(`
+		int o = { p1 };
+	`)
+	expected := fmt.Errorf("Parser Error: Missing colon following identifier in ObjectExpr.")
+	if !strings.HasPrefix(err.Error(), expected.Error()) {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestObjectWithMissingValue(t *testing.T) {
+	err := transpileTest(`
+		int o = { p1: , };
+	`)
+	expected := fmt.Errorf("parsePrimaryExpr: Unexpected token 'Comma'")
+	if !strings.HasPrefix(err.Error(), expected.Error()) {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}

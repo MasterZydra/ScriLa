@@ -191,6 +191,16 @@ func evalAssignmentObjMember(assignment ast.IAssignmentExpr, env *Environment) (
 	if err != nil {
 		return NewNullVal(), err
 	}
+
+	writeToFile(identifier.GetSymbol() + "[\"" + property.GetSymbol() + "\"]=")
+
+	switch assignment.GetValue().GetKind() {
+	case ast.IntLiteralNode:
+		writeLnToFile(value.ToString())
+	default:
+		return NewNullVal(), fmt.Errorf("evalAssignmentObjMember: value kind '%s' not supported", assignment.GetValue().GetKind())
+	}
+
 	objVal.GetProperties()[property.GetSymbol()] = value
 	return value, nil
 }
@@ -234,7 +244,20 @@ func evalMemberExpr(memberExpr ast.IMemberExpr, env *Environment) (IRuntimeVal, 
 	i = memberExpr.GetProperty()
 	property, _ := i.(ast.IIdentifier)
 
-	return objVal.GetProperties()[property.GetSymbol()], nil
+	propTranspilat := ""
+	switch memberExpr.GetProperty().GetKind() {
+	case ast.IdentifierNode:
+		i = memberExpr.GetProperty()
+		propIdent, _ := i.(ast.IIdentifier)
+		// propTranspilat = "${" + propIdent.GetSymbol() + "}"
+		propTranspilat = "\"" + propIdent.GetSymbol() + "\""
+	default:
+		return NewNullVal(), fmt.Errorf("evalMemberExpr: property kind '%s' not supported", memberExpr.GetProperty().GetKind())
+	}
+
+	result := objVal.GetProperties()[property.GetSymbol()]
+	result.SetTranspilat("${" + identifier.GetSymbol() + "[" + propTranspilat + "]}")
+	return result, nil
 }
 
 func evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {

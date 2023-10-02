@@ -31,7 +31,11 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 	if funcContext {
 		writeToFile("local ")
 	}
-	writeToFile(varDeclaration.GetIdentifier() + "=")
+	if varDeclaration.GetValue().GetKind() == ast.ObjectLiteralNode {
+		writeLnToFile("declare -A " + varDeclaration.GetIdentifier())
+	} else {
+		writeToFile(varDeclaration.GetIdentifier() + "=")
+	}
 
 	switch varDeclaration.GetValue().GetKind() {
 	case ast.CallExprNode:
@@ -57,6 +61,42 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 		writeLnToFile("\"" + value.ToString() + "\"")
 	case ast.IntLiteralNode:
 		writeLnToFile(value.ToString())
+	case ast.ObjectLiteralNode:
+		var i interface{} = varDeclaration.GetValue()
+		objectLiteral, _ := i.(ast.IObjectLiteral)
+		for _, prop := range objectLiteral.GetProperties() {
+			writeToFile(varDeclaration.GetIdentifier() + "[\"" + prop.GetKey() + "\"]=")
+			value, err := transpile(prop.GetValue(), env)
+			if err != nil {
+				return NewNullVal(), err
+			}
+			switch prop.GetValue().GetKind() {
+			case ast.IntLiteralNode:
+				writeLnToFile(value.ToString())
+			case ast.StrLiteralNode:
+				writeLnToFile("\"" + value.ToString() + "\"")
+			case ast.IdentifierNode:
+				i = prop.GetValue()
+				identifier, _ := i.(ast.IIdentifier)
+				if identifier.GetSymbol() == "null" {
+					writeLnToFile("\"" + identifier.GetSymbol() + "\"")
+				} else if slices.Contains(reservedIdentifiers, identifier.GetSymbol()) {
+					writeLnToFile(identifier.GetSymbol())
+				} else {
+					writeLnToFile("$" + identifier.GetSymbol())
+				}
+			default:
+				return NewNullVal(), fmt.Errorf("evalVarDeclaration - ObjectLiteralNode: property kind '%s' not supported", prop.GetValue().GetKind())
+			}
+		}
+	case ast.MemberExprNode:
+		var i interface{} = varDeclaration.GetValue()
+		memberExpr, _ := i.(ast.IMemberExpr)
+		memberVal, err := evalMemberExpr(memberExpr, env)
+		if err != nil {
+			return NewNullVal(), err
+		}
+		writeLnToFile(memberVal.GetTranspilat())
 	default:
 		return NewNullVal(), fmt.Errorf("evalVarDeclaration: value kind '%s' not supported", varDeclaration.GetValue().GetKind())
 	}

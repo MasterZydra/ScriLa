@@ -60,6 +60,14 @@ func printArgs(args []ast.IExpr, env *Environment) error {
 				return err
 			}
 			writeToFile(value.GetTranspilat())
+		case ast.MemberExprNode:
+			var i interface{} = arg
+			memberExpr, _ := i.(ast.IMemberExpr)
+			memberVal, err := evalMemberExpr(memberExpr, env)
+			if err != nil {
+				return err
+			}
+			writeToFile(memberVal.GetTranspilat())
 		default:
 			return fmt.Errorf("nativePrint: Arg kind '%s' not supported", arg.GetKind())
 		}
