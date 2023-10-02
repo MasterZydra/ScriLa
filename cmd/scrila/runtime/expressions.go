@@ -220,10 +220,17 @@ func evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {
 			if err != nil {
 				return NewNullVal(), err
 			}
+			if stmt.GetKind() == ast.ReturnExprNode {
+				return result, nil
+			}
 		}
 		return result, nil
 
 	default:
 		return NewNullVal(), fmt.Errorf("Cannot call value that is not a function: %s", caller)
 	}
+}
+
+func evalReturnExpr(returnExpr ast.IReturnExpr, env *Environment) (IRuntimeVal, error) {
+	return Evaluate(returnExpr.GetValue(), env)
 }
