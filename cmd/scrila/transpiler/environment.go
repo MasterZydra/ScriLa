@@ -19,9 +19,7 @@ func setupScope(env *Environment) {
 	env.declareVar("tmpStr", NewStrVal(""), false, lexer.StrType)
 
 	// Define native builtin methods
-	env.declareFunc("input", NewNativeFunc(nativeInput))
-	env.declareFunc("print", NewNativeFunc(nativePrint))
-	env.declareFunc("printLn", NewNativeFunc(nativePrintLn))
+	declareNativeFunctions(env)
 }
 
 type Environment struct {

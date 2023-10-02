@@ -43,6 +43,7 @@ printLn(exampleObj.x);
 printLn(foo, 13);
 str userInput = input("Please enter some text:");
 printLn("Given input: '" + userInput + "'");
+sleep(5);
 
 # User defined functions
 func add(int a, int b) {

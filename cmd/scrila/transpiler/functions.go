@@ -9,6 +9,19 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+func declareNativeFunctions(env *Environment) {
+	var nativeFunctions = map[string]FunctionCall{
+		"input":   nativeInput,
+		"print":   nativePrint,
+		"printLn": nativePrintLn,
+		"sleep":   nativeSleep,
+	}
+
+	for name, function := range nativeFunctions {
+		env.declareFunc(name, NewNativeFunc(function))
+	}
+}
+
 func nativePrintLn(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
 	writeToFile("echo \"")
 	if err := printArgs(args, env); err != nil {
@@ -114,6 +127,39 @@ func nativeInput(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
 
 	transpilat += " tmpStr\n"
 
+	result := NewNullVal()
+	result.SetTranspilat(transpilat)
+	return result, nil
+}
+
+func nativeSleep(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+	if len(args) != 1 {
+		return NewNullVal(), fmt.Errorf("Expected syntax: sleep(int seconds)")
+	}
+	value, err := transpile(args[0], env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+
+	transpilat := "sleep "
+	switch args[0].GetKind() {
+	case ast.IdentifierNode:
+		var i interface{} = args[0]
+		identifier, _ := i.(ast.IIdentifier)
+		varType, err := env.lookupVarType(identifier.GetSymbol())
+		if err != nil {
+			return NewNullVal(), err
+		}
+		if varType != lexer.IntType {
+			return NewNullVal(), fmt.Errorf("sleep: parameter has to be a int or a variable of type int. Got '%s'", varType)
+		}
+
+		transpilat += "$" + identifier.GetSymbol() + "\n"
+	case ast.IntLiteralNode:
+		transpilat += value.ToString() + "\n"
+	default:
+		return NewNullVal(), fmt.Errorf("nativeSleep: Arg kind '%s' not supported", args[0].GetKind())
+	}
 	result := NewNullVal()
 	result.SetTranspilat(transpilat)
 	return result, nil

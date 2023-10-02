@@ -5,7 +5,21 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 )
+
+func defineNativeFunctions(env *Environment) {
+	var nativeFunctions = map[string]FunctionCall{
+		"input":   nativeInput,
+		"print":   nativePrint,
+		"printLn": nativePrintLn,
+		"sleep":   nativeSleep,
+	}
+
+	for name, function := range nativeFunctions {
+		env.declareFunc(name, NewNativeFunc(function))
+	}
+}
 
 func nativePrintLn(args []IRuntimeVal, env *Environment) (IRuntimeVal, error) {
 	nativePrint(args, env)
@@ -40,4 +54,19 @@ func nativeInput(args []IRuntimeVal, env *Environment) (IRuntimeVal, error) {
 	}
 
 	return NewStrVal(input), nil
+}
+
+func nativeSleep(args []IRuntimeVal, env *Environment) (IRuntimeVal, error) {
+	if len(args) != 1 {
+		return NewNullVal(), fmt.Errorf("Expected syntax: sleep(int seconds)")
+	}
+	switch args[0].GetType() {
+	case IntValueType:
+		var i interface{} = args[0]
+		intVal, _ := i.(IIntVal)
+		time.Sleep(time.Duration(intVal.GetValue()) * time.Second)
+	default:
+		return NewNullVal(), fmt.Errorf("nativeSleep: Arg type '%s' not supported", args[0].GetType())
+	}
+	return NewNullVal(), nil
 }

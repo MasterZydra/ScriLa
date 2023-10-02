@@ -52,6 +52,12 @@ printLn("i =", i);
 str userInput = input("Pleas enter your name:");
 ```
 
+**Sleep**
+```
+# Sleep for 10 seconds
+sleep(10);
+```
+
 ## User defined functions
 **Without parameters**
 ```

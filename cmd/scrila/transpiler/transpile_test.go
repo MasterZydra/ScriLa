@@ -316,3 +316,29 @@ func ExampleInput() {
 	// s="${tmpStr}"
 	// read -p "$s " tmpStr
 }
+
+func TestSleepWithoutSeconds(t *testing.T) {
+	err := transpileTest(`
+		sleep();
+	`)
+	expected := fmt.Errorf("Expected syntax: sleep(int seconds)")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func ExampleSleep() {
+	setTestMode()
+	transpileTest(`
+		sleep(10);
+		int i = 10;
+		sleep(i);
+	`)
+
+	// Output:
+	// #!/bin/bash
+	// # Created by Scrila Transpiler v0.0.1
+	// sleep 10
+	// i=10
+	// sleep $i
+}
