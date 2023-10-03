@@ -82,10 +82,8 @@ func evalIntBinaryExpr(lhs IIntVal, rhs IIntVal, operator string) (IIntVal, erro
 func evalStrBinaryExpr(lhs IStrVal, rhs IStrVal, operator string) (IStrVal, error) {
 	switch operator {
 	case "+":
-		transpilat := lhs.GetTranspilat() + rhs.GetTranspilat()
-		result := lhs.GetValue() + rhs.GetValue()
-		strVal := NewStrVal(result)
-		strVal.SetTranspilat(transpilat)
+		strVal := NewStrVal(lhs.GetValue() + rhs.GetValue())
+		strVal.SetTranspilat(lhs.GetTranspilat() + rhs.GetTranspilat())
 		return strVal, nil
 	default:
 		return NewStrVal(""), fmt.Errorf("evalStrBinaryExpr: Unsupported binary operator: %s", operator)
