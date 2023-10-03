@@ -344,7 +344,7 @@ func evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {
 	case NativeFnType:
 		result, err := runtimeToNativeFunc(caller).GetCall()(call.GetArgs(), env)
 		if err != nil {
-			return NewNullVal(), err
+			return NewNullVal(), fmt.Errorf("%s:%d:%d: %s", fileName, call.GetLn(), call.GetCol(), err)
 		}
 		writeToFile(result.GetTranspilat())
 		return result, nil

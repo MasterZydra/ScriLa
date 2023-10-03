@@ -407,8 +407,8 @@ func TestObjectWithMissingValue(t *testing.T) {
 	err := transpileTest(`
 		int o = { p1: , };
 	`)
-	expected := fmt.Errorf("parsePrimaryExpr: Unexpected token 'Comma'")
-	if !strings.HasPrefix(err.Error(), expected.Error()) {
+	expected := fmt.Errorf("test.scri:2:17: Unexpected token 'Comma' (',') found during parsing")
+	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
 }
@@ -417,7 +417,7 @@ func TestInputWithoutPrompt(t *testing.T) {
 	err := transpileTest(`
 		input();
 	`)
-	expected := fmt.Errorf("Expected syntax: input(str prompt)")
+	expected := fmt.Errorf("test.scri:2:3: Expected syntax: input(str prompt)")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
@@ -442,7 +442,7 @@ func TestSleepWithoutSeconds(t *testing.T) {
 	err := transpileTest(`
 		sleep();
 	`)
-	expected := fmt.Errorf("Expected syntax: sleep(int seconds)")
+	expected := fmt.Errorf("test.scri:2:3: Expected syntax: sleep(int seconds)")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
