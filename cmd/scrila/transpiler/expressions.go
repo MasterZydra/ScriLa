@@ -44,11 +44,11 @@ func evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) (IRuntimeVal, error
 	}
 
 	if lhs.GetType() == IntValueType && rhs.GetType() == IntValueType {
-		return evalIntBinaryExpr(runtimetoIntVal(lhs), runtimetoIntVal(rhs), binOp.GetOperator())
+		return evalIntBinaryExpr(runtimeToIntVal(lhs), runtimeToIntVal(rhs), binOp.GetOperator())
 	}
 
 	if lhs.GetType() == StrValueType && rhs.GetType() == StrValueType {
-		return evalStrBinaryExpr(runtimetoStrVal(lhs), runtimetoStrVal(rhs), binOp.GetOperator())
+		return evalStrBinaryExpr(runtimeToStrVal(lhs), runtimeToStrVal(rhs), binOp.GetOperator())
 	}
 
 	return NewNullVal(), fmt.Errorf("evalBinaryExpr: Give types not supported (lhs: %s, rhs: %s)", lhs, rhs)
@@ -232,7 +232,7 @@ func evalAssignmentObjMember(assignment ast.IAssignmentExpr, env *Environment) (
 		return NewNullVal(), fmt.Errorf("evalAssignmentObjMember: value kind '%s' not supported", assignment.GetValue().GetKind())
 	}
 
-	runtimetoObjVal(obj).GetProperties()[propName] = value
+	runtimeToObjVal(obj).GetProperties()[propName] = value
 	return value, nil
 }
 
@@ -278,7 +278,7 @@ func evalMemberExpr(memberExpr ast.IMemberExpr, env *Environment) (IRuntimeVal, 
 		return NewNullVal(), fmt.Errorf("evalMemberExpr: property kind '%s' not supported", memberExpr.GetProperty().GetKind())
 	}
 
-	result := runtimetoObjVal(obj).GetProperties()[propName]
+	result := runtimeToObjVal(obj).GetProperties()[propName]
 	result.SetTranspilat("${" + objName + "[" + propTranspilat + "]}")
 	return result, nil
 }
@@ -333,7 +333,7 @@ func evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {
 
 	switch caller.GetType() {
 	case NativeFnType:
-		result, err := runtimetoNativeFunc(caller).GetCall()(call.GetArgs(), env)
+		result, err := runtimeToNativeFunc(caller).GetCall()(call.GetArgs(), env)
 		if err != nil {
 			return NewNullVal(), err
 		}
@@ -341,7 +341,7 @@ func evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {
 		return result, nil
 
 	case FunctionValueType:
-		fn := runtimetoFuncVal(caller)
+		fn := runtimeToFuncVal(caller)
 
 		if len(fn.GetParams()) != len(args) {
 			return NewNullVal(), fmt.Errorf("%s:%d:%d: %s(): The amount of passed parameters does not match with the function declaration. Expected: %d, Got: %d", fileName, call.GetLn(), call.GetCol(), fn.GetName(), len(fn.GetParams()), len(args))

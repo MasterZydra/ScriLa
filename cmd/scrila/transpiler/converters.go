@@ -1,26 +1,26 @@
 package transpiler
 
-func runtimetoIntVal(runtimeVal IRuntimeVal) IIntVal {
+func runtimeToIntVal(runtimeVal IRuntimeVal) IIntVal {
 	var i interface{} = runtimeVal
 	return i.(IIntVal)
 }
 
-func runtimetoStrVal(runtimeVal IRuntimeVal) IStrVal {
+func runtimeToStrVal(runtimeVal IRuntimeVal) IStrVal {
 	var i interface{} = runtimeVal
 	return i.(IStrVal)
 }
 
-func runtimetoObjVal(runtimeVal IRuntimeVal) IObjVal {
+func runtimeToObjVal(runtimeVal IRuntimeVal) IObjVal {
 	var i interface{} = runtimeVal
 	return i.(IObjVal)
 }
 
-func runtimetoNativeFunc(runtimeVal IRuntimeVal) INativeFunc {
+func runtimeToNativeFunc(runtimeVal IRuntimeVal) INativeFunc {
 	var i interface{} = runtimeVal
 	return i.(INativeFunc)
 }
 
-func runtimetoFuncVal(runtimeVal IRuntimeVal) IFunctionVal {
+func runtimeToFuncVal(runtimeVal IRuntimeVal) IFunctionVal {
 	var i interface{} = runtimeVal
 	return i.(IFunctionVal)
 }
