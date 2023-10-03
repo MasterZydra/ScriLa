@@ -45,7 +45,7 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 		}
 		switch varDeclaration.GetVarType() {
 		case lexer.StrType:
-			writeLnToFile("\"" + varName + "\"")
+			writeLnToFile(strToBashStr(varName))
 			value = NewStrVal("")
 		case lexer.IntType:
 			writeLnToFile(varName)
@@ -57,7 +57,7 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 	case ast.IdentifierNode:
 		symbol := identNodeGetSymbol(varDeclaration.GetValue())
 		if symbol == "null" {
-			writeLnToFile("\"" + symbol + "\"")
+			writeLnToFile(strToBashStr(symbol))
 		} else if slices.Contains(reservedIdentifiers, symbol) {
 			writeLnToFile(symbol)
 		} else {
@@ -70,7 +70,7 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 			}
 			switch varDeclaration.GetVarType() {
 			case lexer.StrType:
-				writeLnToFile("\"" + identNodeToBashVar(varDeclaration.GetValue()) + "\"")
+				writeLnToFile(strToBashStr(identNodeToBashVar(varDeclaration.GetValue())))
 			case lexer.IntType:
 				writeLnToFile(identNodeToBashVar(varDeclaration.GetValue()))
 			default:
@@ -80,7 +80,7 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 	case ast.BinaryExprNode:
 		switch varDeclaration.GetVarType() {
 		case lexer.StrType:
-			writeLnToFile("\"" + value.GetTranspilat() + "\"")
+			writeLnToFile(strToBashStr(value.GetTranspilat()))
 		case lexer.IntType:
 			writeLnToFile(value.GetTranspilat())
 		default:
@@ -90,7 +90,7 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 		if varDeclaration.GetVarType() != lexer.StrType {
 			return NewNullVal(), fmt.Errorf("%s:%d:%d: Cannot assign a value of type '%s' to a var of type '%s'", fileName, varDeclaration.GetValue().GetLn(), varDeclaration.GetValue().GetCol(), lexer.StrType, varDeclaration.GetVarType())
 		}
-		writeLnToFile("\"" + value.ToString() + "\"")
+		writeLnToFile(strToBashStr(value.ToString()))
 	case ast.IntLiteralNode:
 		if varDeclaration.GetVarType() != lexer.IntType {
 			return NewNullVal(), fmt.Errorf("%s:%d:%d: Cannot assign a value of type '%s' to a var of type '%s'", fileName, varDeclaration.GetValue().GetLn(), varDeclaration.GetValue().GetCol(), lexer.IntType, varDeclaration.GetVarType())
@@ -98,7 +98,7 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 		writeLnToFile(value.ToString())
 	case ast.ObjectLiteralNode:
 		for _, prop := range ast.ExprToObjLit(varDeclaration.GetValue()).GetProperties() {
-			writeToFile(varDeclaration.GetIdentifier() + "[\"" + prop.GetKey() + "\"]=")
+			writeToFile(varDeclaration.GetIdentifier() + "[" + strToBashStr(prop.GetKey()) + "]=")
 			value, err := transpile(prop.GetValue(), env)
 			if err != nil {
 				return NewNullVal(), err
@@ -107,11 +107,11 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 			case ast.IntLiteralNode:
 				writeLnToFile(value.ToString())
 			case ast.StrLiteralNode:
-				writeLnToFile("\"" + value.ToString() + "\"")
+				writeLnToFile(strToBashStr(value.ToString()))
 			case ast.IdentifierNode:
 				symbol := identNodeGetSymbol(prop.GetValue())
 				if symbol == "null" {
-					writeLnToFile("\"" + symbol + "\"")
+					writeLnToFile(strToBashStr(symbol))
 				} else if slices.Contains(reservedIdentifiers, symbol) {
 					writeLnToFile(symbol)
 				} else {

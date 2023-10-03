@@ -5,6 +5,10 @@ import (
 	"fmt"
 )
 
+func strToBashStr(str string) string {
+	return fmt.Sprintf("\"%s\"", str)
+}
+
 func identNodeGetSymbol(expr ast.IExpr) string {
 	return ast.ExprToIdent(expr).GetSymbol()
 }

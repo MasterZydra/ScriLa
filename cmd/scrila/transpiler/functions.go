@@ -23,28 +23,29 @@ func declareNativeFunctions(env *Environment) {
 }
 
 func nativePrintLn(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
-	writeToFile("echo \"")
-	if err := printArgs(args, env); err != nil {
+	argStr, err := printArgs(args, env)
+	if err != nil {
 		return NewNullVal(), err
 	}
-	writeLnToFile("\"")
+	writeLnToFile("echo " + strToBashStr(argStr))
 	return NewNullVal(), nil
 }
 
 func nativePrint(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
-	writeToFile("echo -n \"")
-	if err := printArgs(args, env); err != nil {
+	argStr, err := printArgs(args, env)
+	if err != nil {
 		return NewNullVal(), err
 	}
-	writeLnToFile("\"")
+	writeLnToFile("echo -n " + strToBashStr(argStr))
 	return NewNullVal(), nil
 }
 
-func printArgs(args []ast.IExpr, env *Environment) error {
+func printArgs(args []ast.IExpr, env *Environment) (string, error) {
+	argStr := ""
 	var isFirst bool = true
 	for _, arg := range args {
 		if !isFirst {
-			writeToFile(" ")
+			argStr += " "
 		}
 		if isFirst {
 			isFirst = false
@@ -53,36 +54,36 @@ func printArgs(args []ast.IExpr, env *Environment) error {
 		case ast.CallExprNode:
 			varName, err := getCallerResultVarName(ast.ExprToCallExpr(arg), env)
 			if err != nil {
-				return err
+				return "", err
 			}
-			writeToFile(varName)
+			argStr += varName
 		case ast.IdentifierNode:
 			if symbol := identNodeGetSymbol(arg); slices.Contains(reservedIdentifiers, symbol) {
-				writeToFile(symbol)
+				argStr += symbol
 			} else {
-				writeToFile(identNodeToBashVar(arg))
+				argStr += identNodeToBashVar(arg)
 			}
 		case ast.IntLiteralNode:
-			writeToFile(strconv.Itoa(int(ast.ExprToIntLit(arg).GetValue())))
+			argStr += strconv.Itoa(int(ast.ExprToIntLit(arg).GetValue()))
 		case ast.StrLiteralNode:
-			writeToFile(ast.ExprToStrLit(arg).GetValue())
+			argStr += ast.ExprToStrLit(arg).GetValue()
 		case ast.BinaryExprNode:
 			value, err := transpile(arg, env)
 			if err != nil {
-				return err
+				return "", err
 			}
-			writeToFile(value.GetTranspilat())
+			argStr += value.GetTranspilat()
 		case ast.MemberExprNode:
 			memberVal, err := evalMemberExpr(ast.ExprToMemberExpr(arg), env)
 			if err != nil {
-				return err
+				return "", err
 			}
-			writeToFile(memberVal.GetTranspilat())
+			argStr += memberVal.GetTranspilat()
 		default:
-			return fmt.Errorf("nativePrint: Arg kind '%s' not supported", arg.GetKind())
+			return "", fmt.Errorf("nativePrint: Arg kind '%s' not supported", arg.GetKind())
 		}
 	}
-	return nil
+	return argStr, nil
 }
 
 func nativeInput(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
@@ -106,9 +107,9 @@ func nativeInput(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
 			return NewNullVal(), fmt.Errorf("input: parameter prompt has to be a string or a variable of type string. Got '%s'", varType)
 		}
 
-		transpilat += "\"" + identNodeToBashVar(args[0]) + " \""
+		transpilat += strToBashStr(identNodeToBashVar(args[0]) + " ")
 	case ast.StrLiteralNode:
-		transpilat += "\"" + value.ToString() + " \""
+		transpilat += strToBashStr(value.ToString() + " ")
 	default:
 		return NewNullVal(), fmt.Errorf("nativeInput: Arg kind '%s' not supported", args[0].GetKind())
 	}

@@ -127,7 +127,7 @@ func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeV
 		}
 		switch varType {
 		case lexer.StrType:
-			writeLnToFile("\"" + varName + "\"")
+			writeLnToFile(strToBashStr(varName))
 			value = NewStrVal("")
 		case lexer.IntType:
 			writeLnToFile(varName)
@@ -142,7 +142,7 @@ func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeV
 		}
 		switch varType {
 		case lexer.StrType:
-			writeLnToFile("\"" + value.GetTranspilat() + "\"")
+			writeLnToFile(strToBashStr(value.GetTranspilat()))
 		case lexer.IntType:
 			writeLnToFile(value.GetTranspilat())
 		default:
@@ -157,11 +157,11 @@ func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeV
 		if varType != lexer.StrType {
 			return NewNullVal(), fmt.Errorf("%s:%d:%d: Cannot assign a value of type '%s' to a var of type '%s'", fileName, assignment.GetValue().GetLn(), assignment.GetValue().GetCol(), lexer.StrType, varType)
 		}
-		writeLnToFile("\"" + value.ToString() + "\"")
+		writeLnToFile(strToBashStr(value.ToString()))
 	case ast.IdentifierNode:
 		symbol := identNodeGetSymbol(assignment.GetValue())
 		if symbol == "null" {
-			writeLnToFile("\"" + symbol + "\"")
+			writeLnToFile(strToBashStr(symbol))
 		} else if slices.Contains(reservedIdentifiers, symbol) {
 			writeLnToFile(symbol)
 		} else {
@@ -174,7 +174,7 @@ func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeV
 			}
 			switch varType {
 			case lexer.StrType:
-				writeLnToFile("\"" + identNodeToBashVar(assignment.GetValue()) + "\"")
+				writeLnToFile(strToBashStr(identNodeToBashVar(assignment.GetValue())))
 			case lexer.IntType:
 				writeLnToFile(identNodeToBashVar(assignment.GetValue()))
 			default:
@@ -223,7 +223,7 @@ func evalAssignmentObjMember(assignment ast.IAssignmentExpr, env *Environment) (
 		return NewNullVal(), err
 	}
 
-	writeToFile(objName + "[\"" + propName + "\"]=")
+	writeToFile(objName + "[" + strToBashStr(propName) + "]=")
 
 	switch assignment.GetValue().GetKind() {
 	case ast.IntLiteralNode:
@@ -273,7 +273,7 @@ func evalMemberExpr(memberExpr ast.IMemberExpr, env *Environment) (IRuntimeVal, 
 	propTranspilat := ""
 	switch memberExpr.GetProperty().GetKind() {
 	case ast.IdentifierNode:
-		propTranspilat = "\"" + propName + "\""
+		propTranspilat = strToBashStr(propName)
 	default:
 		return NewNullVal(), fmt.Errorf("evalMemberExpr: property kind '%s' not supported", memberExpr.GetProperty().GetKind())
 	}
@@ -355,13 +355,13 @@ func evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {
 			case ast.IntLiteralNode:
 				writeToFile(" " + args[i].ToString())
 			case ast.StrLiteralNode:
-				writeToFile(" \"" + args[i].ToString() + "\"")
+				writeToFile(" " + strToBashStr(args[i].ToString()))
 			case ast.IdentifierNode:
 				switch param.GetParamType() {
 				case lexer.IntType:
 					writeToFile(" " + identNodeToBashVar(call.GetArgs()[i]))
 				case lexer.StrType:
-					writeToFile(" \"" + identNodeToBashVar(call.GetArgs()[i]) + "\"")
+					writeToFile(" " + strToBashStr(identNodeToBashVar(call.GetArgs()[i])))
 				default:
 					return NewNullVal(), fmt.Errorf("evalCallExpr - Identifier: Param type '%s' not supported", param.GetParamType())
 				}
@@ -393,7 +393,7 @@ func evalReturnExpr(returnExpr ast.IReturnExpr, env *Environment) (IRuntimeVal, 
 	case ast.BinaryExprNode:
 		switch value.GetType() {
 		case StrValueType:
-			writeLnToFile("\"" + value.GetTranspilat() + "\"")
+			writeLnToFile(strToBashStr(value.GetTranspilat()))
 		case IntValueType:
 			writeLnToFile(value.GetTranspilat())
 		default:
