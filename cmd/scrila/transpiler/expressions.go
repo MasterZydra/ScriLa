@@ -107,6 +107,10 @@ func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeV
 	}
 
 	varName := identNodeGetSymbol(assignment.GetAssigne())
+	varType, err := env.lookupVarType(varName)
+	if err != nil {
+		return NewNullVal(), err
+	}
 
 	writeToFile(varName + "=")
 
@@ -145,19 +149,29 @@ func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeV
 			return NewNullVal(), fmt.Errorf("evalAssignment - BinaryExpr: Unsupported varType '%s'", varType)
 		}
 	case ast.IntLiteralNode:
-		writeLnToFile(value.ToString())
-	case ast.IdentifierNode:
-		varType, err := env.lookupVarType(varName)
-		if err != nil {
-			return NewNullVal(), err
+		if varType != lexer.IntType {
+			return NewNullVal(), fmt.Errorf("Cannot assign a value of type '%s' to a var of type '%s'", lexer.IntType, varType)
 		}
-
+		writeLnToFile(value.ToString())
+	case ast.StrLiteralNode:
+		if varType != lexer.StrType {
+			return NewNullVal(), fmt.Errorf("Cannot assign a value of type '%s' to a var of type '%s'", lexer.StrType, varType)
+		}
+		writeLnToFile("\"" + value.ToString() + "\"")
+	case ast.IdentifierNode:
 		symbol := identNodeGetSymbol(assignment.GetValue())
 		if symbol == "null" {
 			writeLnToFile("\"" + symbol + "\"")
 		} else if slices.Contains(reservedIdentifiers, symbol) {
 			writeLnToFile(symbol)
 		} else {
+			valueVarType, err := env.lookupVarType(identNodeGetSymbol(assignment.GetValue()))
+			if err != nil {
+				return NewNullVal(), err
+			}
+			if valueVarType != varType {
+				return NewNullVal(), fmt.Errorf("Cannot assign a value of type '%s' to a var of type '%s'", valueVarType, varType)
+			}
 			switch varType {
 			case lexer.StrType:
 				writeLnToFile("\"" + identNodeToBashVar(assignment.GetValue()) + "\"")

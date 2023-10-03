@@ -184,6 +184,50 @@ func ExampleVarDeclarationAndAssignmentWithVariable() {
 	// t="${s}"
 }
 
+func TestAssignDifferentVarTypes(t *testing.T) {
+	err := transpileTest(`
+		int i = 123;
+		str s = "str";
+		s = i;
+	`)
+	expected := fmt.Errorf("Cannot assign a value of type 'IntType' to a var of type 'StrType'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestDeclareDifferentVarTypes(t *testing.T) {
+	err := transpileTest(`
+		int i = 123;
+		str s = i;
+	`)
+	expected := fmt.Errorf("Cannot assign a value of type 'IntType' to a var of type 'StrType'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestDeclareDifferentType(t *testing.T) {
+	err := transpileTest(`
+		int i = "123";
+	`)
+	expected := fmt.Errorf("Cannot assign a value of type 'StrType' to a var of type 'IntType'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestAssignDifferentType(t *testing.T) {
+	err := transpileTest(`
+		int i = 123;
+		i = "456";
+	`)
+	expected := fmt.Errorf("Cannot assign a value of type 'StrType' to a var of type 'IntType'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
 func ExampleComment() {
 	setTestMode()
 	transpileTest(`

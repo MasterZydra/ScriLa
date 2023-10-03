@@ -61,6 +61,13 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 		} else if slices.Contains(reservedIdentifiers, symbol) {
 			writeLnToFile(symbol)
 		} else {
+			valueVarType, err := env.lookupVarType(identNodeGetSymbol(varDeclaration.GetValue()))
+			if err != nil {
+				return NewNullVal(), err
+			}
+			if valueVarType != varDeclaration.GetVarType() {
+				return NewNullVal(), fmt.Errorf("Cannot assign a value of type '%s' to a var of type '%s'", valueVarType, varDeclaration.GetVarType())
+			}
 			switch varDeclaration.GetVarType() {
 			case lexer.StrType:
 				writeLnToFile("\"" + identNodeToBashVar(varDeclaration.GetValue()) + "\"")
@@ -80,8 +87,14 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 			return NewNullVal(), fmt.Errorf("evalVarDeclaration - BinaryExpr: Unsupported varType '%s'", varDeclaration.GetVarType())
 		}
 	case ast.StrLiteralNode:
+		if varDeclaration.GetVarType() != lexer.StrType {
+			return NewNullVal(), fmt.Errorf("Cannot assign a value of type '%s' to a var of type '%s'", lexer.StrType, varDeclaration.GetVarType())
+		}
 		writeLnToFile("\"" + value.ToString() + "\"")
 	case ast.IntLiteralNode:
+		if varDeclaration.GetVarType() != lexer.IntType {
+			return NewNullVal(), fmt.Errorf("Cannot assign a value of type '%s' to a var of type '%s'", lexer.IntType, varDeclaration.GetVarType())
+		}
 		writeLnToFile(value.ToString())
 	case ast.ObjectLiteralNode:
 		for _, prop := range ast.ExprToObjLit(varDeclaration.GetValue()).GetProperties() {
