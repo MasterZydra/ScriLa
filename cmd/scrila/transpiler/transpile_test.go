@@ -310,6 +310,32 @@ func ExampleFuncDeclarationWithCall() {
 	// echo "$?"
 }
 
+func TestFuncCallWithWrongTypes(t *testing.T) {
+	err := transpileTest(`
+		func fn(int a) {
+			printLn(a);
+		}
+		fn("hello");
+	`)
+	expected := fmt.Errorf("fn(): Parameter 'a' type does not match. Expected: IntType, Got: str")
+	if !strings.HasPrefix(err.Error(), expected.Error()) {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestFuncCallWithWrongAmountOfArgs(t *testing.T) {
+	err := transpileTest(`
+		func fn(int a) {
+			printLn(a);
+		}
+		fn(1, 2);
+	`)
+	expected := fmt.Errorf("fn(): The amount of passed parameters does not match with the function declaration. Expected: 1, Got: 2")
+	if !strings.HasPrefix(err.Error(), expected.Error()) {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
 func ExampleObject() {
 	setTestMode()
 	transpileTest(`

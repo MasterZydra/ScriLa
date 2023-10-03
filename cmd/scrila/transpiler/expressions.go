@@ -342,10 +342,15 @@ func evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {
 
 	case FunctionValueType:
 		fn := runtimetoFuncVal(caller)
+
+		if len(fn.GetParams()) != len(args) {
+			return NewNullVal(), fmt.Errorf("%s(): The amount of passed parameters does not match with the function declaration. Expected: %d, Got: %d", fn.GetName(), len(fn.GetParams()), len(args))
+		}
 		writeToFile(fn.GetName())
 		for i, param := range fn.GetParams() {
-			// TODO var type - Get from function declaration and validate type against given type
-			// args[i] param.GetParamType()
+			if !doTypesMatch(param.GetParamType(), args[i].GetType()) {
+				return NewNullVal(), fmt.Errorf("%s(): Parameter '%s' type does not match. Expected: %s, Got: %s", fn.GetName(), param.GetName(), param.GetParamType(), args[i].GetType())
+			}
 			switch call.GetArgs()[i].GetKind() {
 			case ast.IntLiteralNode:
 				writeToFile(" " + args[i].ToString())

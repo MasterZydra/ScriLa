@@ -140,9 +140,6 @@ func evalFunctionDeclaration(funcDeclaration ast.IFunctionDeclaration, env *Envi
 
 	writeLnToFile(funcDeclaration.GetName() + " () {")
 	for i, param := range funcDeclaration.GetParameters() {
-		// TODO Check the bounds here. Verify arity of function.
-		// Which means: len(fn.GetParams()) == len(args)
-		// TODO var type - Get from function declaration and validate type against given type
 		var value IRuntimeVal
 		switch fn.GetParams()[i].GetParamType() {
 		case lexer.IntType:

@@ -2,6 +2,7 @@ package transpiler
 
 import (
 	"ScriLa/cmd/scrila/ast"
+	"ScriLa/cmd/scrila/lexer"
 	"fmt"
 )
 
@@ -16,6 +17,21 @@ const (
 	ObjValueType      ValueType = "obj"
 	StrValueType      ValueType = "str"
 )
+
+var valueTypeLexerTypeMapping = map[ValueType]lexer.TokenType{
+	BoolValueType: lexer.BoolType,
+	IntValueType:  lexer.IntType,
+	ObjValueType:  lexer.ObjType,
+	StrValueType:  lexer.StrType,
+}
+
+func doTypesMatch(type1 lexer.TokenType, type2 ValueType) bool {
+	value, ok := valueTypeLexerTypeMapping[type2]
+	if !ok {
+		return false
+	}
+	return value == type1
+}
 
 // RuntimeVal
 
