@@ -55,10 +55,20 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 		}
 
 	case ast.IdentifierNode:
-		if symbol := identNodeGetSymbol(varDeclaration.GetValue()); slices.Contains(reservedIdentifiers, symbol) {
+		symbol := identNodeGetSymbol(varDeclaration.GetValue())
+		if symbol == "null" {
+			writeLnToFile("\"" + symbol + "\"")
+		} else if slices.Contains(reservedIdentifiers, symbol) {
 			writeLnToFile(symbol)
 		} else {
-			writeLnToFile(identNodeToBashVar(varDeclaration.GetValue()))
+			switch varDeclaration.GetVarType() {
+			case lexer.StrType:
+				writeLnToFile("\"" + identNodeToBashVar(varDeclaration.GetValue()) + "\"")
+			case lexer.IntType:
+				writeLnToFile(identNodeToBashVar(varDeclaration.GetValue()))
+			default:
+				return NewNullVal(), fmt.Errorf("evalVarDeclaration - Identifier: Unsupported varType '%s'", varDeclaration.GetVarType())
+			}
 		}
 	case ast.BinaryExprNode:
 		switch varDeclaration.GetVarType() {

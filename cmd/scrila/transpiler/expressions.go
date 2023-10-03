@@ -4,6 +4,8 @@ import (
 	"ScriLa/cmd/scrila/ast"
 	"ScriLa/cmd/scrila/lexer"
 	"fmt"
+
+	"golang.org/x/exp/slices"
 )
 
 func evalIdentifier(identifier ast.IIdentifier, env *Environment) (IRuntimeVal, error) {
@@ -145,7 +147,26 @@ func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeV
 	case ast.IntLiteralNode:
 		writeLnToFile(value.ToString())
 	case ast.IdentifierNode:
-		writeLnToFile(identNodeGetSymbol(assignment.GetValue()))
+		varType, err := env.lookupVarType(varName)
+		if err != nil {
+			return NewNullVal(), err
+		}
+
+		symbol := identNodeGetSymbol(assignment.GetValue())
+		if symbol == "null" {
+			writeLnToFile("\"" + symbol + "\"")
+		} else if slices.Contains(reservedIdentifiers, symbol) {
+			writeLnToFile(symbol)
+		} else {
+			switch varType {
+			case lexer.StrType:
+				writeLnToFile("\"" + identNodeToBashVar(assignment.GetValue()) + "\"")
+			case lexer.IntType:
+				writeLnToFile(identNodeToBashVar(assignment.GetValue()))
+			default:
+				return NewNullVal(), fmt.Errorf("evalAssignment - Identifier: Unsupported varType '%s'", varType)
+			}
+		}
 	default:
 		return NewNullVal(), fmt.Errorf("evalAssignment: value kind '%s' not supported", assignment.GetValue().GetKind())
 	}

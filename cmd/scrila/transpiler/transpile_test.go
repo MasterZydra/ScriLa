@@ -161,6 +161,29 @@ func ExampleStrAssignmentBinaryExprWithVar() {
 	// d="${a} World"
 }
 
+func ExampleVarDeclarationAndAssignmentWithVariable() {
+	setTestMode()
+	transpileTest(`
+		int i = 123;
+		int j = i;
+		j = i;
+
+		str s = "str";
+		str t = s;
+		t = s;
+	`)
+
+	// Output:
+	// #!/bin/bash
+	// # Created by Scrila Transpiler v0.0.1
+	// i=123
+	// j=${i}
+	// j=${i}
+	// s="str"
+	// t="${s}"
+	// t="${s}"
+}
+
 func ExampleComment() {
 	setTestMode()
 	transpileTest(`
@@ -221,7 +244,7 @@ func ExampleFuncDeclarationWithCall() {
 	// 	local a=$1
 	// 	local s=$2
 	// 	local b=${a}
-	// 	local t=${s}
+	// 	local t="${s}"
 	// 	echo "${a} ${b} ${s} ${t}"
 	// }
 	//
