@@ -1,6 +1,9 @@
 package ast
 
-import "fmt"
+import (
+	"ScriLa/cmd/scrila/lexer"
+	"fmt"
+)
 
 // Expr
 
@@ -11,14 +14,24 @@ type Expr struct {
 	statement *Statement
 }
 
-func NewExpr() *Expr {
-	return &Expr{
-		statement: &Statement{kind: ExprNode},
-	}
+func NewExpr(kind NodeType, ln int, col int) *Expr {
+	return &Expr{statement: NewStatement(kind, ln, col)}
+}
+
+func NewEmptyExpr() *Expr {
+	return NewExpr(ExprNode, 0, 0)
 }
 
 func (self *Expr) GetKind() NodeType {
-	return self.statement.kind
+	return self.statement.GetKind()
+}
+
+func (self *Expr) GetLn() int {
+	return self.statement.GetLn()
+}
+
+func (self *Expr) GetCol() int {
+	return self.statement.GetCol()
 }
 
 // AssignmentExpr
@@ -41,14 +54,14 @@ func (self *AssignmentExpr) String() string {
 
 func NewAssignmentExpr(assigne IExpr, value IExpr) *AssignmentExpr {
 	return &AssignmentExpr{
-		expr:    &Expr{statement: &Statement{kind: AssignmentExprNode}},
+		expr:    NewExpr(AssignmentExprNode, assigne.GetLn(), assigne.GetCol()),
 		assigne: assigne,
 		value:   value,
 	}
 }
 
 func (self *AssignmentExpr) GetKind() NodeType {
-	return self.expr.statement.kind
+	return self.expr.GetKind()
 }
 
 func (self *AssignmentExpr) GetAssigne() IExpr {
@@ -57,6 +70,14 @@ func (self *AssignmentExpr) GetAssigne() IExpr {
 
 func (self *AssignmentExpr) GetValue() IExpr {
 	return self.value
+}
+
+func (self *AssignmentExpr) GetLn() int {
+	return self.expr.GetLn()
+}
+
+func (self *AssignmentExpr) GetCol() int {
+	return self.expr.GetCol()
 }
 
 // BinaryExpr
@@ -79,9 +100,9 @@ func (self *BinaryExpr) String() string {
 	return fmt.Sprintf("&{%s %s %s %s}", self.GetKind(), self.GetLeft(), self.GetOperator(), self.GetRight())
 }
 
-func NewBinaryExpr(left IExpr, right IExpr, operator string) *BinaryExpr {
+func NewBinaryExpr(left IExpr, right IExpr, operator string, ln int, col int) *BinaryExpr {
 	return &BinaryExpr{
-		expr:     &Expr{statement: &Statement{kind: BinaryExprNode}},
+		expr:     NewExpr(BinaryExprNode, ln, col),
 		left:     left,
 		right:    right,
 		operator: operator,
@@ -89,7 +110,7 @@ func NewBinaryExpr(left IExpr, right IExpr, operator string) *BinaryExpr {
 }
 
 func (self *BinaryExpr) GetKind() NodeType {
-	return self.expr.statement.kind
+	return self.expr.GetKind()
 }
 
 func (self *BinaryExpr) GetLeft() IExpr {
@@ -102,6 +123,14 @@ func (self *BinaryExpr) GetRight() IExpr {
 
 func (self *BinaryExpr) GetOperator() string {
 	return self.operator
+}
+
+func (self *BinaryExpr) GetLn() int {
+	return self.expr.GetLn()
+}
+
+func (self *BinaryExpr) GetCol() int {
+	return self.expr.GetCol()
 }
 
 // CallExpr
@@ -124,14 +153,14 @@ func (self *CallExpr) String() string {
 
 func NewCallExpr(caller IExpr, args []IExpr) *CallExpr {
 	return &CallExpr{
-		expr:   &Expr{statement: &Statement{kind: CallExprNode}},
+		expr:   NewExpr(CallExprNode, caller.GetLn(), caller.GetCol()),
 		args:   args,
 		caller: caller,
 	}
 }
 
 func (self *CallExpr) GetKind() NodeType {
-	return self.expr.statement.kind
+	return self.expr.GetKind()
 }
 
 func (self *CallExpr) GetCaller() IExpr {
@@ -140,6 +169,14 @@ func (self *CallExpr) GetCaller() IExpr {
 
 func (self *CallExpr) GetArgs() []IExpr {
 	return self.args
+}
+
+func (self *CallExpr) GetLn() int {
+	return self.expr.GetLn()
+}
+
+func (self *CallExpr) GetCol() int {
+	return self.expr.GetCol()
 }
 
 // MemberExpr
@@ -168,7 +205,7 @@ func (self *MemberExpr) String() string {
 
 func NewMemberExpr(object IExpr, property IExpr, isComputed bool) *MemberExpr {
 	return &MemberExpr{
-		expr:       &Expr{statement: &Statement{kind: MemberExprNode}},
+		expr:       NewExpr(MemberExprNode, 0, 0),
 		object:     object,
 		property:   property,
 		isComputed: isComputed,
@@ -176,7 +213,7 @@ func NewMemberExpr(object IExpr, property IExpr, isComputed bool) *MemberExpr {
 }
 
 func (self *MemberExpr) GetKind() NodeType {
-	return self.expr.statement.kind
+	return self.expr.GetKind()
 }
 
 func (self *MemberExpr) GetObject() IExpr {
@@ -191,6 +228,14 @@ func (self *MemberExpr) IsComputed() bool {
 	return self.isComputed
 }
 
+func (self *MemberExpr) GetLn() int {
+	return self.expr.GetLn()
+}
+
+func (self *MemberExpr) GetCol() int {
+	return self.expr.GetCol()
+}
+
 // Identifier
 
 type IIdentifier interface {
@@ -203,19 +248,27 @@ type Identifier struct {
 	symbol string
 }
 
-func NewIdentifier(symbol string) *Identifier {
+func NewIdentifier(token *lexer.Token) *Identifier {
 	return &Identifier{
-		expr:   &Expr{statement: &Statement{kind: IdentifierNode}},
-		symbol: symbol,
+		expr:   NewExpr(IdentifierNode, token.Ln, token.Col),
+		symbol: token.Value,
 	}
 }
 
 func (self *Identifier) GetKind() NodeType {
-	return self.expr.statement.kind
+	return self.expr.GetKind()
 }
 
 func (self *Identifier) GetSymbol() string {
 	return self.symbol
+}
+
+func (self *Identifier) GetLn() int {
+	return self.expr.GetLn()
+}
+
+func (self *Identifier) GetCol() int {
+	return self.expr.GetCol()
 }
 
 // ReturnExpr
@@ -236,15 +289,23 @@ func (self *ReturnExpr) String() string {
 
 func NewReturnExpr(value IExpr) *ReturnExpr {
 	return &ReturnExpr{
-		expr:  &Expr{statement: &Statement{kind: ReturnExprNode}},
+		expr:  NewExpr(ReturnExprNode, 0, 0),
 		value: value,
 	}
 }
 
 func (self *ReturnExpr) GetKind() NodeType {
-	return self.expr.statement.kind
+	return self.expr.GetKind()
 }
 
 func (self *ReturnExpr) GetValue() IExpr {
 	return self.value
+}
+
+func (self *ReturnExpr) GetLn() int {
+	return self.expr.GetLn()
+}
+
+func (self *ReturnExpr) GetCol() int {
+	return self.expr.GetCol()
 }

@@ -68,7 +68,7 @@ func transpile(filename string) {
 		}
 		fmt.Printf("Tokens:   %s\n", tokens)
 	}
-	program, err := parser.ProduceAST(string(fileContent))
+	program, err := parser.ProduceAST(string(fileContent), filename)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -102,7 +102,7 @@ func runFile(filename string) {
 		}
 		fmt.Printf("Tokens:   %s\n", tokens)
 	}
-	program, err := parser.ProduceAST(string(fileContent))
+	program, err := parser.ProduceAST(string(fileContent), filename)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -140,7 +140,7 @@ func repl() {
 			fmt.Printf("Tokens:   %s\n", tokens)
 		}
 
-		program, err := parser.ProduceAST(input)
+		program, err := parser.ProduceAST(input, "input")
 		if err != nil {
 			fmt.Println(err)
 			continue

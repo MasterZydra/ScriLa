@@ -109,7 +109,7 @@ func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeV
 	varName := identNodeGetSymbol(assignment.GetAssigne())
 	varType, err := env.lookupVarType(varName)
 	if err != nil {
-		return NewNullVal(), err
+		return NewNullVal(), fmt.Errorf("%s:%d:%d: %s", fileName, assignment.GetAssigne().GetLn(), assignment.GetAssigne().GetCol(), err)
 	}
 
 	writeToFile(varName + "=")
@@ -150,12 +150,12 @@ func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeV
 		}
 	case ast.IntLiteralNode:
 		if varType != lexer.IntType {
-			return NewNullVal(), fmt.Errorf("Cannot assign a value of type '%s' to a var of type '%s'", lexer.IntType, varType)
+			return NewNullVal(), fmt.Errorf("%s:%d:%d: Cannot assign a value of type '%s' to a var of type '%s'", fileName, assignment.GetValue().GetLn(), assignment.GetValue().GetCol(), lexer.IntType, varType)
 		}
 		writeLnToFile(value.ToString())
 	case ast.StrLiteralNode:
 		if varType != lexer.StrType {
-			return NewNullVal(), fmt.Errorf("Cannot assign a value of type '%s' to a var of type '%s'", lexer.StrType, varType)
+			return NewNullVal(), fmt.Errorf("%s:%d:%d: Cannot assign a value of type '%s' to a var of type '%s'", fileName, assignment.GetValue().GetLn(), assignment.GetValue().GetCol(), lexer.StrType, varType)
 		}
 		writeLnToFile("\"" + value.ToString() + "\"")
 	case ast.IdentifierNode:
@@ -170,7 +170,7 @@ func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeV
 				return NewNullVal(), err
 			}
 			if valueVarType != varType {
-				return NewNullVal(), fmt.Errorf("Cannot assign a value of type '%s' to a var of type '%s'", valueVarType, varType)
+				return NewNullVal(), fmt.Errorf("%s:%d:%d: Cannot assign a value of type '%s' to a var of type '%s'", fileName, assignment.GetValue().GetLn(), assignment.GetValue().GetCol(), valueVarType, varType)
 			}
 			switch varType {
 			case lexer.StrType:
@@ -344,12 +344,12 @@ func evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {
 		fn := runtimetoFuncVal(caller)
 
 		if len(fn.GetParams()) != len(args) {
-			return NewNullVal(), fmt.Errorf("%s(): The amount of passed parameters does not match with the function declaration. Expected: %d, Got: %d", fn.GetName(), len(fn.GetParams()), len(args))
+			return NewNullVal(), fmt.Errorf("%s:%d:%d: %s(): The amount of passed parameters does not match with the function declaration. Expected: %d, Got: %d", fileName, call.GetLn(), call.GetCol(), fn.GetName(), len(fn.GetParams()), len(args))
 		}
 		writeToFile(fn.GetName())
 		for i, param := range fn.GetParams() {
 			if !doTypesMatch(param.GetParamType(), args[i].GetType()) {
-				return NewNullVal(), fmt.Errorf("%s(): Parameter '%s' type does not match. Expected: %s, Got: %s", fn.GetName(), param.GetName(), param.GetParamType(), args[i].GetType())
+				return NewNullVal(), fmt.Errorf("%s:%d:%d: %s(): Parameter '%s' type does not match. Expected: %s, Got: %s", fileName, call.GetLn(), call.GetCol(), fn.GetName(), param.GetName(), param.GetParamType(), args[i].GetType())
 			}
 			switch call.GetArgs()[i].GetKind() {
 			case ast.IntLiteralNode:

@@ -66,7 +66,7 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 				return NewNullVal(), err
 			}
 			if valueVarType != varDeclaration.GetVarType() {
-				return NewNullVal(), fmt.Errorf("Cannot assign a value of type '%s' to a var of type '%s'", valueVarType, varDeclaration.GetVarType())
+				return NewNullVal(), fmt.Errorf("%s:%d:%d: Cannot assign a value of type '%s' to a var of type '%s'", fileName, varDeclaration.GetValue().GetLn(), varDeclaration.GetValue().GetCol(), valueVarType, varDeclaration.GetVarType())
 			}
 			switch varDeclaration.GetVarType() {
 			case lexer.StrType:
@@ -88,12 +88,12 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 		}
 	case ast.StrLiteralNode:
 		if varDeclaration.GetVarType() != lexer.StrType {
-			return NewNullVal(), fmt.Errorf("Cannot assign a value of type '%s' to a var of type '%s'", lexer.StrType, varDeclaration.GetVarType())
+			return NewNullVal(), fmt.Errorf("%s:%d:%d: Cannot assign a value of type '%s' to a var of type '%s'", fileName, varDeclaration.GetValue().GetLn(), varDeclaration.GetValue().GetCol(), lexer.StrType, varDeclaration.GetVarType())
 		}
 		writeLnToFile("\"" + value.ToString() + "\"")
 	case ast.IntLiteralNode:
 		if varDeclaration.GetVarType() != lexer.IntType {
-			return NewNullVal(), fmt.Errorf("Cannot assign a value of type '%s' to a var of type '%s'", lexer.IntType, varDeclaration.GetVarType())
+			return NewNullVal(), fmt.Errorf("%s:%d:%d: Cannot assign a value of type '%s' to a var of type '%s'", fileName, varDeclaration.GetValue().GetLn(), varDeclaration.GetValue().GetCol(), lexer.IntType, varDeclaration.GetVarType())
 		}
 		writeLnToFile(value.ToString())
 	case ast.ObjectLiteralNode:

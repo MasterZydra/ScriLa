@@ -7,15 +7,17 @@ import (
 	"testing"
 )
 
-func setTestMode() {
-	testMode = true
+func setTestPrintMode() {
+	testPrintMode = true
 }
 
 func transpileTest(code string) error {
+	testMode = true
+	fileName = "test.scri"
 	parser := parser.NewParser()
 	env := NewEnvironment(nil)
 
-	program, err := parser.ProduceAST(code)
+	program, err := parser.ProduceAST(code, fileName)
 	if err != nil {
 		return err
 	}
@@ -23,7 +25,7 @@ func transpileTest(code string) error {
 }
 
 func ExmaplePrint() {
-	setTestMode()
+	setTestPrintMode()
 	transpileTest(`
 		print("Hello ");
 		printLn("World");
@@ -38,10 +40,8 @@ func ExmaplePrint() {
 }
 
 func ExamplePrintBaseTypes() {
-	setTestMode()
-	transpileTest(`
-		printLn(42, "str", true, false, null);
-	`)
+	setTestPrintMode()
+	transpileTest(`printLn(42, "str", true, false, null);`)
 
 	// Output:
 	// #!/bin/bash
@@ -50,7 +50,7 @@ func ExamplePrintBaseTypes() {
 }
 
 func ExamplePrintVariables() {
-	setTestMode()
+	setTestPrintMode()
 	transpileTest(`
 		int i = 42;
 		str s = "hello world";
@@ -68,10 +68,8 @@ func ExamplePrintVariables() {
 }
 
 func ExampleIntDeclaration() {
-	setTestMode()
-	transpileTest(`
-		int i = 42;
-	`)
+	setTestPrintMode()
+	transpileTest(`int i = 42;`)
 
 	// Output:
 	// #!/bin/bash
@@ -80,7 +78,7 @@ func ExampleIntDeclaration() {
 }
 
 func ExampleIntAssignment() {
-	setTestMode()
+	setTestPrintMode()
 	transpileTest(`
 		int i = 42;
 		i = 101;
@@ -94,30 +92,24 @@ func ExampleIntAssignment() {
 }
 
 func TestIntDeclarationWithMissingSemicolon(t *testing.T) {
-	err := transpileTest(`
-		int i = 42
-	`)
-	expected := fmt.Errorf("Parser Error: Expressions must end with a semicolon.")
+	err := transpileTest(`int i = 42`)
+	expected := fmt.Errorf("test.scri:1:11: Expression must end with a semicolon")
 	if !strings.HasPrefix(err.Error(), expected.Error()) {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
 }
 
 func TestIntAssignmentWithMissingDeclaration(t *testing.T) {
-	err := transpileTest(`
-		i = 42;
-	`)
-	expected := fmt.Errorf("Cannot resolve variable 'i' as it does not exist.")
+	err := transpileTest(`i = 42;`)
+	expected := fmt.Errorf("test.scri:1:1: Cannot resolve variable 'i' as it does not exist.")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
 }
 
 func ExampleIntAssignmentBinaryExpr() {
-	setTestMode()
-	transpileTest(`
-		int i = 42 * 2;
-	`)
+	setTestPrintMode()
+	transpileTest(`int i = 42 * 2;`)
 
 	// Output:
 	// #!/bin/bash
@@ -126,7 +118,7 @@ func ExampleIntAssignmentBinaryExpr() {
 }
 
 func ExampleIntAssignmentBinaryExprWithVar() {
-	setTestMode()
+	setTestPrintMode()
 	transpileTest(`
 		int i = 42;
 		int j = i * 2;
@@ -142,7 +134,7 @@ func ExampleIntAssignmentBinaryExprWithVar() {
 }
 
 func ExampleStrAssignmentBinaryExprWithVar() {
-	setTestMode()
+	setTestPrintMode()
 	transpileTest(`
 		str a = "Hello";
 		str b = "World";
@@ -162,7 +154,7 @@ func ExampleStrAssignmentBinaryExprWithVar() {
 }
 
 func ExampleVarDeclarationAndAssignmentWithVariable() {
-	setTestMode()
+	setTestPrintMode()
 	transpileTest(`
 		int i = 123;
 		int j = i;
@@ -190,7 +182,7 @@ func TestAssignDifferentVarTypes(t *testing.T) {
 		str s = "str";
 		s = i;
 	`)
-	expected := fmt.Errorf("Cannot assign a value of type 'IntType' to a var of type 'StrType'")
+	expected := fmt.Errorf("test.scri:4:7: Cannot assign a value of type 'IntType' to a var of type 'StrType'")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
@@ -201,17 +193,15 @@ func TestDeclareDifferentVarTypes(t *testing.T) {
 		int i = 123;
 		str s = i;
 	`)
-	expected := fmt.Errorf("Cannot assign a value of type 'IntType' to a var of type 'StrType'")
+	expected := fmt.Errorf("test.scri:3:11: Cannot assign a value of type 'IntType' to a var of type 'StrType'")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
 }
 
 func TestDeclareDifferentType(t *testing.T) {
-	err := transpileTest(`
-		int i = "123";
-	`)
-	expected := fmt.Errorf("Cannot assign a value of type 'StrType' to a var of type 'IntType'")
+	err := transpileTest(`int i = "123";`)
+	expected := fmt.Errorf("test.scri:1:11: Cannot assign a value of type 'StrType' to a var of type 'IntType'")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
@@ -222,14 +212,14 @@ func TestAssignDifferentType(t *testing.T) {
 		int i = 123;
 		i = "456";
 	`)
-	expected := fmt.Errorf("Cannot assign a value of type 'StrType' to a var of type 'IntType'")
+	expected := fmt.Errorf("test.scri:3:9: Cannot assign a value of type 'StrType' to a var of type 'IntType'")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
 }
 
 func ExampleComment() {
-	setTestMode()
+	setTestPrintMode()
 	transpileTest(`
 		# Comment 1
 		int i = 42;
@@ -245,7 +235,7 @@ func ExampleComment() {
 }
 
 func ExampleFuncDeclarationWithCall() {
-	setTestMode()
+	setTestPrintMode()
 	transpileTest(`
 		# Function without params
 		func funcWithoutParams() {
@@ -317,7 +307,7 @@ func TestFuncCallWithWrongTypes(t *testing.T) {
 		}
 		fn("hello");
 	`)
-	expected := fmt.Errorf("fn(): Parameter 'a' type does not match. Expected: IntType, Got: str")
+	expected := fmt.Errorf("test.scri:5:3: fn(): Parameter 'a' type does not match. Expected: IntType, Got: str")
 	if !strings.HasPrefix(err.Error(), expected.Error()) {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
@@ -330,14 +320,14 @@ func TestFuncCallWithWrongAmountOfArgs(t *testing.T) {
 		}
 		fn(1, 2);
 	`)
-	expected := fmt.Errorf("fn(): The amount of passed parameters does not match with the function declaration. Expected: 1, Got: 2")
+	expected := fmt.Errorf("test.scri:5:3: fn(): The amount of passed parameters does not match with the function declaration. Expected: 1, Got: 2")
 	if !strings.HasPrefix(err.Error(), expected.Error()) {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
 }
 
 func ExampleObject() {
-	setTestMode()
+	setTestPrintMode()
 	transpileTest(`
 		obj o = { p1: 123, p2: "str", p3: false, };
 		o.p1 = 321;
@@ -359,7 +349,7 @@ func TestObjectWithMissingComma(t *testing.T) {
 	err := transpileTest(`
 		int o = { p1: 123 };
 	`)
-	expected := fmt.Errorf("Parser Error: Expected comma following Property.")
+	expected := fmt.Errorf("test.scri:2:21: Expected comma following Property.")
 	if !strings.HasPrefix(err.Error(), expected.Error()) {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
@@ -369,7 +359,7 @@ func TestObjectWithMissingColon(t *testing.T) {
 	err := transpileTest(`
 		int o = { p1 };
 	`)
-	expected := fmt.Errorf("Parser Error: Missing colon following identifier in ObjectExpr.")
+	expected := fmt.Errorf("test.scri:2:16: Missing colon following identifier in ObjectExpr.")
 	if !strings.HasPrefix(err.Error(), expected.Error()) {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
@@ -396,7 +386,7 @@ func TestInputWithoutPrompt(t *testing.T) {
 }
 
 func ExampleInput() {
-	setTestMode()
+	setTestPrintMode()
 	transpileTest(`
 		str s = input("Enter username:");
 		input(s);
@@ -421,7 +411,7 @@ func TestSleepWithoutSeconds(t *testing.T) {
 }
 
 func ExampleSleep() {
-	setTestMode()
+	setTestPrintMode()
 	transpileTest(`
 		sleep(10);
 		int i = 10;

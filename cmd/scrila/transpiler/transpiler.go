@@ -6,10 +6,12 @@ import (
 	"os"
 )
 
+var fileName string
 var outputFileName string
 var outputFile *os.File
 
 var testMode bool
+var testPrintMode bool
 var funcContext bool
 
 func writeLnToFile(content string) {
@@ -17,7 +19,7 @@ func writeLnToFile(content string) {
 }
 
 func writeToFile(content string) {
-	if testMode {
+	if testPrintMode {
 		fmt.Print(content)
 	} else {
 		if outputFile != nil {
@@ -26,9 +28,12 @@ func writeToFile(content string) {
 	}
 }
 
-func Transpile(astNode ast.IStatement, env *Environment, fileName string) error {
-	if fileName != "" {
-		outputFileName = fileName + ".sh"
+func Transpile(astNode ast.IStatement, env *Environment, filename string) error {
+	if !testMode {
+		fileName = filename
+	}
+	if filename != "" {
+		outputFileName = filename + ".sh"
 		f, err := os.Create(outputFileName)
 		if err != nil {
 			fmt.Println("Something went wrong creating the output file:", err)

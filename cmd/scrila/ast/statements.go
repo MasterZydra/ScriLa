@@ -9,20 +9,34 @@ import (
 
 type IStatement interface {
 	GetKind() NodeType
+	GetLn() int
+	GetCol() int
 }
 
 type Statement struct {
 	kind NodeType
+	ln   int
+	col  int
 }
 
-func NewStatement() *Statement {
-	return &Statement{
-		kind: StatementNode,
-	}
+func NewStatement(kind NodeType, ln int, col int) *Statement {
+	return &Statement{kind: kind, ln: ln, col: col}
+}
+
+func NewEmptyStatement() *Statement {
+	return NewStatement(StatementNode, 0, 0)
 }
 
 func (self *Statement) GetKind() NodeType {
 	return self.kind
+}
+
+func (self *Statement) GetLn() int {
+	return self.ln
+}
+
+func (self *Statement) GetCol() int {
+	return self.col
 }
 
 // Program
@@ -43,17 +57,25 @@ func (self *Program) String() string {
 
 func NewProgram() *Program {
 	return &Program{
-		statement: &Statement{kind: ProgramNode},
+		statement: NewStatement(ProgramNode, 0, 0),
 		Body:      make([]IStatement, 0),
 	}
 }
 
 func (self *Program) GetKind() NodeType {
-	return self.statement.kind
+	return self.statement.GetKind()
 }
 
 func (self *Program) GetBody() []IStatement {
 	return self.Body
+}
+
+func (self *Program) GetLn() int {
+	return self.statement.GetLn()
+}
+
+func (self *Program) GetCol() int {
+	return self.statement.GetCol()
 }
 
 // Comment
@@ -72,19 +94,27 @@ func (self *Comment) String() string {
 	return fmt.Sprintf("&{%s '%s'}", self.GetKind(), self.GetComment())
 }
 
-func NewComment(comment string) *Comment {
+func NewComment(token *lexer.Token) *Comment {
 	return &Comment{
-		statement: &Statement{kind: CommentNode},
-		comment:   comment,
+		statement: NewStatement(CommentNode, token.Ln, token.Col),
+		comment:   token.Value,
 	}
 }
 
 func (self *Comment) GetKind() NodeType {
-	return self.statement.kind
+	return self.statement.GetKind()
 }
 
 func (self *Comment) GetComment() string {
 	return self.comment
+}
+
+func (self *Comment) GetLn() int {
+	return self.statement.GetLn()
+}
+
+func (self *Comment) GetCol() int {
+	return self.statement.GetCol()
 }
 
 // VarDeclaration
@@ -111,8 +141,8 @@ func (self *VarDeclaration) String() string {
 
 func NewVarDeclaration(varType lexer.TokenType, constant bool, identifier string, value IExpr) *VarDeclaration {
 	return &VarDeclaration{
+		statement:  NewStatement(VarDeclarationNode, 0, 0),
 		varType:    varType,
-		statement:  &Statement{kind: VarDeclarationNode},
 		constant:   constant,
 		identifier: identifier,
 		value:      value,
@@ -120,7 +150,7 @@ func NewVarDeclaration(varType lexer.TokenType, constant bool, identifier string
 }
 
 func (self *VarDeclaration) GetKind() NodeType {
-	return self.statement.kind
+	return self.statement.GetKind()
 }
 
 func (self *VarDeclaration) GetVarType() lexer.TokenType {
@@ -137,6 +167,14 @@ func (self *VarDeclaration) GetIdentifier() string {
 
 func (self *VarDeclaration) GetValue() IExpr {
 	return self.value
+}
+
+func (self *VarDeclaration) GetLn() int {
+	return self.statement.GetLn()
+}
+
+func (self *VarDeclaration) GetCol() int {
+	return self.statement.GetCol()
 }
 
 // FunctionDeclaration
@@ -186,7 +224,7 @@ func (self *FunctionDeclaration) String() string {
 
 func NewFunctionDeclaration(name string, parameters []*Parameter, body []IStatement) *FunctionDeclaration {
 	return &FunctionDeclaration{
-		statement:  &Statement{kind: FunctionDeclarationNode},
+		statement:  NewStatement(FunctionDeclarationNode, 0, 0),
 		name:       name,
 		parameters: parameters,
 		body:       body,
@@ -194,7 +232,7 @@ func NewFunctionDeclaration(name string, parameters []*Parameter, body []IStatem
 }
 
 func (self *FunctionDeclaration) GetKind() NodeType {
-	return self.statement.kind
+	return self.statement.GetKind()
 }
 
 func (self *FunctionDeclaration) GetName() string {
@@ -207,4 +245,12 @@ func (self *FunctionDeclaration) GetParameters() []*Parameter {
 
 func (self *FunctionDeclaration) GetBody() []IStatement {
 	return self.body
+}
+
+func (self *FunctionDeclaration) GetLn() int {
+	return self.statement.GetLn()
+}
+
+func (self *FunctionDeclaration) GetCol() int {
+	return self.statement.GetCol()
 }
