@@ -61,7 +61,7 @@ sleep(10);
 ## User defined functions
 **Without parameters**
 ```
-func printHelloWorld() {
+func printHelloWorld() void {
     printLn("Hello World!");
 }
 
@@ -70,7 +70,7 @@ printHelloWorld();
 
 **With parameters**
 ```
-func printGivenString(str s) {
+func printGivenString(str s) void {
     printLn("Given string: '" + s + "'");
 }
 
@@ -79,7 +79,7 @@ printGivenString("Hello World");
 
 **With return value**
 ```
-func add(int a, int b) {
+func add(int a, int b) int {
     return a + b;
 }
 

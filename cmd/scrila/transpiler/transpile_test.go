@@ -238,13 +238,13 @@ func ExampleFuncDeclarationWithCall() {
 	setTestPrintMode()
 	transpileTest(`
 		# Function without params
-		func funcWithoutParams() {
+		func funcWithoutParams() void {
 			str str1 = "Test";
 			printLn(str1);
 		}
 
 		# Function with params
-		func funcWithParams(int a, str s) {
+		func funcWithParams(int a, str s) void {
 			int b = a;
 			str t = s;
 			printLn(a, b, s, t);
@@ -257,7 +257,7 @@ func ExampleFuncDeclarationWithCall() {
 		funcWithParams(i, s);
 
 		# Function with return value
-		func add(int a, int b) {
+		func add(int a, int b) int {
 			return a + b;
 		}
 		int sum = add(i, 321);
@@ -291,18 +291,19 @@ func ExampleFuncDeclarationWithCall() {
 	// add () {
 	// 	local a=$1
 	// 	local b=$2
-	// 	return $((${a} + ${b}))
+	// 	tmpInt=$((${a} + ${b}))
+	// 	return
 	// }
 	//
 	// add ${i} 321
-	// sum=$?
+	// sum=${tmpInt}
 	// add 123 321
-	// echo "$?"
+	// echo "${tmpInt}"
 }
 
 func TestFuncCallWithWrongTypes(t *testing.T) {
 	err := transpileTest(`
-		func fn(int a) {
+		func fn(int a) void {
 			printLn(a);
 		}
 		fn("hello");
@@ -315,12 +316,49 @@ func TestFuncCallWithWrongTypes(t *testing.T) {
 
 func TestFuncCallWithWrongAmountOfArgs(t *testing.T) {
 	err := transpileTest(`
-		func fn(int a) {
+		func fn(int a) void {
 			printLn(a);
 		}
 		fn(1, 2);
 	`)
 	expected := fmt.Errorf("test.scri:5:3: fn(): The amount of passed parameters does not match with the function declaration. Expected: 1, Got: 2")
+	if !strings.HasPrefix(err.Error(), expected.Error()) {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestFuncDeclWithMissingType(t *testing.T) {
+	err := transpileTest(`
+		func fn(int a) {
+			printLn(a);
+		}
+	`)
+	expected := fmt.Errorf("test.scri:2:18: Return type is missing")
+	if !strings.HasPrefix(err.Error(), expected.Error()) {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestFuncDeclWithUnsupportedType(t *testing.T) {
+	err := transpileTest(`
+		func fn(int a) const {
+			printLn(a);
+		}
+	`)
+	expected := fmt.Errorf("test.scri:2:18: Unsupported return type 'const'")
+	if !strings.HasPrefix(err.Error(), expected.Error()) {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestFuncVoidReturnValUsed(t *testing.T) {
+	err := transpileTest(`
+		func fn() void {
+			printLn(123);
+		}
+		int i = fn();
+	`)
+	expected := fmt.Errorf("test.scri:5:11: Func 'fn' does not have a return value")
 	if !strings.HasPrefix(err.Error(), expected.Error()) {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}

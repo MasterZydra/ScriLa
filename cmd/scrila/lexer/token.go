@@ -26,8 +26,9 @@ var keywords = map[string]TokenType{
 	"func":   Function,
 	"int":    IntType,
 	"obj":    ObjType,
-	"str":    StrType,
 	"return": Return,
+	"str":    StrType,
+	"void":   VoidType,
 }
 
 type TokenType string
@@ -60,6 +61,7 @@ const (
 	ObjType    TokenType = "ObjType"
 	Str        TokenType = "StrValue"
 	StrType    TokenType = "StrType"
+	VoidType   TokenType = "VoidType"
 )
 
 type Token struct {

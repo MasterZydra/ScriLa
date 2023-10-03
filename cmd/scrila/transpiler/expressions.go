@@ -294,7 +294,16 @@ func getCallerResultVarName(call ast.ICallExpr, env *Environment) (string, error
 		return "", err
 	}
 	if caller.GetType() == FunctionValueType {
-		return "$?", nil
+		switch returnType := runtimeToFuncVal(caller).GetReturnType(); returnType {
+		case lexer.IntType:
+			return "${tmpInt}", nil
+		case lexer.StrType:
+			return "${tmpStr}", nil
+		case lexer.VoidType:
+			return "", fmt.Errorf("%s:%d:%d: Func '%s' does not have a return value", fileName, call.GetCaller().GetLn(), call.GetCol(), funcName)
+		default:
+			return "", fmt.Errorf("getCallerResultVarName: Return type '%s' for func '%s' is unknown", returnType, funcName)
+		}
 	} else if caller.GetType() == NativeFnType {
 		// TODO Determine based on return type, if that is implemented
 		switch funcName {
@@ -303,7 +312,7 @@ func getCallerResultVarName(call ast.ICallExpr, env *Environment) (string, error
 		case "input":
 			return "${tmpStr}", nil
 		default:
-			return "", fmt.Errorf("getCallerResultVarName: Return type for func '%s' is unknown", funcName)
+			return "", fmt.Errorf("getCallerResultVarName: Return type for native func '%s' is unknown", funcName)
 		}
 	} else {
 		return "", fmt.Errorf("getCallerResultVarName: Function type '%s' not supported", caller.GetType())
@@ -379,7 +388,7 @@ func evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {
 }
 
 func evalReturnExpr(returnExpr ast.IReturnExpr, env *Environment) (IRuntimeVal, error) {
-	if !funcContext {
+	if !funcContext || currentFunc == nil {
 		return NewNullVal(), fmt.Errorf("Return is only allowed inside of a function")
 	}
 
@@ -388,7 +397,17 @@ func evalReturnExpr(returnExpr ast.IReturnExpr, env *Environment) (IRuntimeVal, 
 		return NewNullVal(), err
 	}
 
-	writeToFile("return ")
+	switch currentFunc.GetReturnType() {
+	case lexer.IntType:
+		writeToFile("tmpInt=")
+	case lexer.StrType:
+		writeToFile("tmpStr=")
+	case lexer.BoolType:
+		writeToFile("tmpBool=")
+	default:
+		return NewNullVal(), fmt.Errorf("evalReturnExpr: Return type '%s' not supported", currentFunc.GetReturnType())
+	}
+
 	switch returnExpr.GetValue().GetKind() {
 	case ast.BinaryExprNode:
 		switch value.GetType() {
@@ -401,10 +420,13 @@ func evalReturnExpr(returnExpr ast.IReturnExpr, env *Environment) (IRuntimeVal, 
 		}
 	case ast.IntLiteralNode:
 		writeLnToFile(value.ToString())
+	case ast.StrLiteralNode:
+		writeLnToFile(strToBashStr(value.ToString()))
 	case ast.IdentifierNode:
 		writeLnToFile(identNodeToBashVar(returnExpr.GetValue()))
 	default:
 		return NewNullVal(), fmt.Errorf("evalReturnExpr: Unsupported value kind '%s'", returnExpr.GetValue().GetKind())
 	}
+	writeLnToFile("\treturn")
 	return value, nil
 }

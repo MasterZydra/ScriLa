@@ -311,6 +311,7 @@ type IFunctionVal interface {
 	GetParams() []*ast.Parameter
 	GetDeclarationEnv() *Environment
 	GetBody() []ast.IStatement
+	GetReturnType() lexer.TokenType
 }
 
 type FunctionVal struct {
@@ -319,15 +320,17 @@ type FunctionVal struct {
 	params         []*ast.Parameter
 	declarationEnv *Environment
 	body           []ast.IStatement
+	returnType     lexer.TokenType
 }
 
-func NewFunctionVal(name string, params []*ast.Parameter, declarationEnv *Environment, body []ast.IStatement) *FunctionVal {
+func NewFunctionVal(funcDeclaration ast.IFunctionDeclaration, env *Environment) *FunctionVal {
 	return &FunctionVal{
 		runtimeVal:     NewRuntimeVal(FunctionValueType),
-		name:           name,
-		params:         params,
-		declarationEnv: declarationEnv,
-		body:           body,
+		name:           funcDeclaration.GetName(),
+		params:         funcDeclaration.GetParameters(),
+		declarationEnv: env,
+		body:           funcDeclaration.GetBody(),
+		returnType:     funcDeclaration.GetReturnType(),
 	}
 }
 
@@ -349,6 +352,10 @@ func (self *FunctionVal) GetDeclarationEnv() *Environment {
 
 func (self *FunctionVal) GetBody() []ast.IStatement {
 	return self.body
+}
+
+func (self *FunctionVal) GetReturnType() lexer.TokenType {
+	return self.returnType
 }
 
 func (self *FunctionVal) GetTranspilat() string {

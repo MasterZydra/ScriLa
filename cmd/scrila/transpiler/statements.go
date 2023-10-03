@@ -135,7 +135,7 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 }
 
 func evalFunctionDeclaration(funcDeclaration ast.IFunctionDeclaration, env *Environment) (IRuntimeVal, error) {
-	fn := NewFunctionVal(funcDeclaration.GetName(), funcDeclaration.GetParameters(), env, funcDeclaration.GetBody())
+	fn := NewFunctionVal(funcDeclaration, env)
 	scope := NewEnvironment(fn.GetDeclarationEnv())
 
 	writeLnToFile(funcDeclaration.GetName() + " () {")
@@ -155,6 +155,7 @@ func evalFunctionDeclaration(funcDeclaration ast.IFunctionDeclaration, env *Envi
 
 	// Transpile the function body line by line
 	funcContext = true
+	currentFunc = fn
 	var result IRuntimeVal
 	result = NewNullVal()
 	for _, stmt := range fn.GetBody() {
@@ -166,6 +167,7 @@ func evalFunctionDeclaration(funcDeclaration ast.IFunctionDeclaration, env *Envi
 		}
 	}
 	funcContext = false
+	currentFunc = nil
 
 	writeLnToFile("}\n")
 	_, err := env.declareFunc(funcDeclaration.GetName(), fn)

@@ -12,15 +12,15 @@ var additiveOps = []string{"+", "-"}
 
 var multiplicitaveOps = []string{"*", "/"} // TODO Modulo %
 
+var funcReturnTypes = []lexer.TokenType{lexer.BoolType, lexer.VoidType, lexer.IntType, lexer.StrType}
+
 type Parser struct {
 	lexer  *lexer.Lexer
 	tokens []*lexer.Token
 }
 
 func NewParser() *Parser {
-	return &Parser{
-		lexer: lexer.NewLexer(),
-	}
+	return &Parser{lexer: lexer.NewLexer()}
 }
 
 var fileName string
@@ -115,16 +115,31 @@ func (self *Parser) parseVarDeclaration() (ast.IStatement, error) {
 }
 
 func (self *Parser) parseFunctionDeclaration() (ast.IStatement, error) {
-	self.eat()
+	funcToken := self.eat()
+
+	// Function name
 	token, err := self.expect(lexer.Identifier, "Expected function name following func keyword.")
 	if err != nil {
 		return ast.NewEmptyStatement(), err
 	}
 	name := token.Value
+
+	// Parameters
 	params, err := self.parseParams()
 	if err != nil {
 		return ast.NewEmptyStatement(), err
 	}
+
+	// Return type
+	returnType := self.eat()
+	if returnType.TokenType == lexer.OpenBrace {
+		return ast.NewEmptyStatement(), fmt.Errorf("%s:%d:%d: Return type is missing", fileName, returnType.Ln, returnType.Col)
+	}
+	if !slices.Contains(funcReturnTypes, returnType.TokenType) {
+		return ast.NewEmptyStatement(), fmt.Errorf("%s:%d:%d: Unsupported return type '%s'", fileName, returnType.Ln, returnType.Col, returnType.Value)
+	}
+
+	// Body
 	_, err = self.expect(lexer.OpenBrace, "Expected function body following declaration.")
 	if err != nil {
 		return ast.NewEmptyStatement(), err
@@ -141,7 +156,7 @@ func (self *Parser) parseFunctionDeclaration() (ast.IStatement, error) {
 	}
 
 	_, err = self.expect(lexer.CloseBrace, "Closing brace expected inside function declaration.")
-	return ast.NewFunctionDeclaration(name, params, body), err
+	return ast.NewFunctionDeclaration(name, params, body, returnType.TokenType, funcToken.Ln, funcToken.Col), err
 }
 
 func (self *Parser) parseExpr() (ast.IExpr, error) {

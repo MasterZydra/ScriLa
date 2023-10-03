@@ -13,6 +13,7 @@ var outputFile *os.File
 var testMode bool
 var testPrintMode bool
 var funcContext bool
+var currentFunc IFunctionVal
 
 func writeLnToFile(content string) {
 	writeToFile(content + "\n")

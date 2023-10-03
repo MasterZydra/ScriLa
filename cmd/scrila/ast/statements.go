@@ -208,7 +208,7 @@ type IFunctionDeclaration interface {
 	GetParameters() []*Parameter
 	GetName() string
 	GetBody() []IStatement
-	// TODO Return type
+	GetReturnType() lexer.TokenType
 }
 
 type FunctionDeclaration struct {
@@ -216,18 +216,20 @@ type FunctionDeclaration struct {
 	parameters []*Parameter
 	name       string
 	body       []IStatement
+	returnType lexer.TokenType
 }
 
 func (self *FunctionDeclaration) String() string {
 	return fmt.Sprintf("&{%s %s %s %s}", self.GetKind(), self.GetName(), self.GetParameters(), self.GetBody())
 }
 
-func NewFunctionDeclaration(name string, parameters []*Parameter, body []IStatement) *FunctionDeclaration {
+func NewFunctionDeclaration(name string, parameters []*Parameter, body []IStatement, returnType lexer.TokenType, ln int, col int) *FunctionDeclaration {
 	return &FunctionDeclaration{
-		statement:  NewStatement(FunctionDeclarationNode, 0, 0),
+		statement:  NewStatement(FunctionDeclarationNode, ln, col),
 		name:       name,
 		parameters: parameters,
 		body:       body,
+		returnType: returnType,
 	}
 }
 
@@ -245,6 +247,10 @@ func (self *FunctionDeclaration) GetParameters() []*Parameter {
 
 func (self *FunctionDeclaration) GetBody() []IStatement {
 	return self.body
+}
+
+func (self *FunctionDeclaration) GetReturnType() lexer.TokenType {
+	return self.returnType
 }
 
 func (self *FunctionDeclaration) GetLn() int {
