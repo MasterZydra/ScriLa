@@ -39,7 +39,7 @@ o.d = "d";
 **Print**  
 ```
 print("Hello ");
-printLn("World);
+printLn("World");
 
 printLn("str", 42, false, null);
 
