@@ -21,5 +21,9 @@ ScriLa is a scripting language with a Go and C++ like syntax that transpiles int
 **Run all tests**  
 `go test -v ./...`
 
+**See test coverage**  
+`go test -coverprofile=coverage.out ./...`  
+`go tool cover -html=coverage.out`
+
 **Resources**  
 - Playlist [Build a Custom Scripting Language In Typescript](https://www.youtube.com/playlist?list=PL_2VhOvlMk4UHGqYCLWc6GO8FaPl8fQTh) by [tylerlaceby](https://www.youtube.com/@tylerlaceby)
