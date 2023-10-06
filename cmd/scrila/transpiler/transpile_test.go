@@ -24,6 +24,14 @@ func transpileTest(code string) error {
 	return Transpile(program, env, "")
 }
 
+func TestErrorLexerUnrecognizedChar(t *testing.T) {
+	err := transpileTest(`~`)
+	expected := fmt.Errorf("test.scri:1:1: Unrecognized character '~' found")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
 func ExmaplePrint() {
 	setTestPrintMode()
 	transpileTest(`
@@ -91,7 +99,31 @@ func ExampleIntAssignment() {
 	// i=101
 }
 
-func TestIntDeclarationWithMissingSemicolon(t *testing.T) {
+func TestErrorAssignWrongLeftSide(t *testing.T) {
+	err := transpileTest(`12 = 34;`)
+	expected := fmt.Errorf("test.scri:1:1: Left side of an assignment must be a variable. Got 'IntLiteral'")
+	if !strings.HasPrefix(err.Error(), expected.Error()) {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorUnsupportedStringOperation(t *testing.T) {
+	err := transpileTest(`str s = "str" - "str";`)
+	expected := fmt.Errorf("test.scri:1:15: Binary string expression with unsupported operator '-'")
+	if !strings.HasPrefix(err.Error(), expected.Error()) {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorBinaryExprWithUnsupportedCombination(t *testing.T) {
+	err := transpileTest(`int i = "str" - 123;`)
+	expected := fmt.Errorf("test.scri:1:15: No support for binary expressions of type 'str' and 'int'")
+	if !strings.HasPrefix(err.Error(), expected.Error()) {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorIntDeclarationWithMissingSemicolon(t *testing.T) {
 	err := transpileTest(`int i = 42`)
 	expected := fmt.Errorf("test.scri:1:11: Expression must end with a semicolon")
 	if !strings.HasPrefix(err.Error(), expected.Error()) {
@@ -99,9 +131,31 @@ func TestIntDeclarationWithMissingSemicolon(t *testing.T) {
 	}
 }
 
-func TestIntAssignmentWithMissingDeclaration(t *testing.T) {
+func TestErrorDoubleVariableDeclration(t *testing.T) {
+	err := transpileTest(`
+		int i = 42;
+		int i = 42;
+	`)
+	expected := fmt.Errorf("test.scri:3:7: Cannot declare variable 'i' as it already is defined")
+	if !strings.HasPrefix(err.Error(), expected.Error()) {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorAssignContVar(t *testing.T) {
+	err := transpileTest(`
+		const int i = 42;
+		i = 43;
+	`)
+	expected := fmt.Errorf("test.scri:3:3: Cannot reassign to variable 'i' as it was declared constant")
+	if !strings.HasPrefix(err.Error(), expected.Error()) {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorIntAssignmentWithMissingDeclaration(t *testing.T) {
 	err := transpileTest(`i = 42;`)
-	expected := fmt.Errorf("test.scri:1:1: Cannot resolve variable 'i' as it does not exist.")
+	expected := fmt.Errorf("test.scri:1:1: Cannot resolve variable 'i' as it does not exist")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
@@ -176,7 +230,7 @@ func ExampleVarDeclarationAndAssignmentWithVariable() {
 	// t="${s}"
 }
 
-func TestAssignDifferentVarTypes(t *testing.T) {
+func TestErrorAssignDifferentVarTypes(t *testing.T) {
 	err := transpileTest(`
 		int i = 123;
 		str s = "str";
@@ -188,7 +242,15 @@ func TestAssignDifferentVarTypes(t *testing.T) {
 	}
 }
 
-func TestDeclareDifferentVarTypes(t *testing.T) {
+func TestErrorUnsupportedVarType(t *testing.T) {
+	err := transpileTest(`const func i = 13;`)
+	expected := fmt.Errorf("test.scri:1:7: Variable type 'func' not given or supported")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorDeclareDifferentVarTypes(t *testing.T) {
 	err := transpileTest(`
 		int i = 123;
 		str s = i;
@@ -199,7 +261,7 @@ func TestDeclareDifferentVarTypes(t *testing.T) {
 	}
 }
 
-func TestDeclareDifferentType(t *testing.T) {
+func TestErrorDeclareDifferentType(t *testing.T) {
 	err := transpileTest(`int i = "123";`)
 	expected := fmt.Errorf("test.scri:1:11: Cannot assign a value of type 'StrType' to a var of type 'IntType'")
 	if err.Error() != expected.Error() {
@@ -207,7 +269,7 @@ func TestDeclareDifferentType(t *testing.T) {
 	}
 }
 
-func TestAssignDifferentType(t *testing.T) {
+func TestErrorAssignDifferentType(t *testing.T) {
 	err := transpileTest(`
 		int i = 123;
 		i = "456";
@@ -232,6 +294,96 @@ func ExampleComment() {
 	// # Comment 1
 	// i=42
 	// # Comment 2
+}
+
+func TestErrorReturnOutsideOfFunction(t *testing.T) {
+	err := transpileTest(`return true;`)
+	expected := fmt.Errorf("test.scri:1:1: Return is only allowed inside a function")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorInvalidFuncCallName(t *testing.T) {
+	err := transpileTest(`12();`)
+	expected := fmt.Errorf("test.scri:1:1: Function name must be an identifier. Got: 'IntLiteral'")
+	if !strings.HasPrefix(err.Error(), expected.Error()) {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorFuncParamsWithUnexpectedToken(t *testing.T) {
+	err := transpileTest(`func fn(int a const) void {}`)
+	expected := fmt.Errorf("test.scri:1:15: Unexpected token 'const' in parameter list")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorMissingFuncParamType(t *testing.T) {
+	err := transpileTest(`func fn(a) void {}`)
+	expected := fmt.Errorf("test.scri:1:9: Expected param type but got Identifier 'a'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorNonexistentFunc(t *testing.T) {
+	err := transpileTest(`fn();`)
+	expected := fmt.Errorf("test.scri:1:1: Cannot resolve function 'fn' as it does not exist")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorAlreadyDefinedFunction(t *testing.T) {
+	err := transpileTest(`
+		func print() int {
+			return 0;
+		}
+	`)
+	expected := fmt.Errorf("test.scri:2:3: Cannot declare function 'print' as it already is defined")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorSleepFuncCallWithWrongParamVarType(t *testing.T) {
+	err := transpileTest(`
+		str s = "123";
+		sleep(s);
+	`)
+	expected := fmt.Errorf("test.scri:3:3: sleep() - Parameter seconds must be an int or a variable of type int. Got 'StrType'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorSleepFuncCallWithWrongParamType(t *testing.T) {
+	err := transpileTest(`sleep("123");`)
+	expected := fmt.Errorf("test.scri:1:1: sleep() - Parameter seconds must be an int or a variable of type int. Got 'StrLiteral'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorInputFuncCallWithWrongParamVarType(t *testing.T) {
+	err := transpileTest(`
+		int i = 42;
+		input(i);
+	`)
+	expected := fmt.Errorf("test.scri:3:3: input() - Parameter prompt must be a string or a variable of type string. Got 'IntType'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorInputFuncCallWithWrongParamType(t *testing.T) {
+	err := transpileTest(`input(42);`)
+	expected := fmt.Errorf("test.scri:1:1: input() - Parameter prompt must be a string or a variable of type string. Got 'IntLiteral'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
 }
 
 func ExampleFuncDeclarationWithCall() {
@@ -301,7 +453,7 @@ func ExampleFuncDeclarationWithCall() {
 	// echo "${tmpInt}"
 }
 
-func TestFuncCallWithWrongTypes(t *testing.T) {
+func TestErrorFuncCallWithWrongTypes(t *testing.T) {
 	err := transpileTest(`
 		func fn(int a) void {
 			printLn(a);
@@ -314,7 +466,7 @@ func TestFuncCallWithWrongTypes(t *testing.T) {
 	}
 }
 
-func TestFuncCallWithWrongAmountOfArgs(t *testing.T) {
+func TestErrorFuncCallWithWrongAmountOfArgs(t *testing.T) {
 	err := transpileTest(`
 		func fn(int a) void {
 			printLn(a);
@@ -327,7 +479,7 @@ func TestFuncCallWithWrongAmountOfArgs(t *testing.T) {
 	}
 }
 
-func TestFuncDeclWithMissingType(t *testing.T) {
+func TestErrorFuncDeclWithMissingType(t *testing.T) {
 	err := transpileTest(`
 		func fn(int a) {
 			printLn(a);
@@ -339,7 +491,7 @@ func TestFuncDeclWithMissingType(t *testing.T) {
 	}
 }
 
-func TestFuncDeclWithUnsupportedType(t *testing.T) {
+func TestErrorFuncDeclWithUnsupportedType(t *testing.T) {
 	err := transpileTest(`
 		func fn(int a) const {
 			printLn(a);
@@ -351,7 +503,7 @@ func TestFuncDeclWithUnsupportedType(t *testing.T) {
 	}
 }
 
-func TestFuncVoidReturnValUsed(t *testing.T) {
+func TestErrorFuncVoidReturnValUsed(t *testing.T) {
 	err := transpileTest(`
 		func fn() void {
 			printLn(123);
@@ -359,6 +511,17 @@ func TestFuncVoidReturnValUsed(t *testing.T) {
 		int i = fn();
 	`)
 	expected := fmt.Errorf("test.scri:5:11: Func 'fn' does not have a return value")
+	if !strings.HasPrefix(err.Error(), expected.Error()) {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorInvalidPropertyName(t *testing.T) {
+	err := transpileTest(`
+		obj o = { a: 1, };
+		o.1 = 32;
+	`)
+	expected := fmt.Errorf("test.scri:3:5: Cannot use dot operator without right hand side being an identifier")
 	if !strings.HasPrefix(err.Error(), expected.Error()) {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
@@ -383,29 +546,29 @@ func ExampleObject() {
 	// echo "${o["p2"]}"
 }
 
-func TestObjectWithMissingComma(t *testing.T) {
+func TestErrorObjectWithMissingComma(t *testing.T) {
 	err := transpileTest(`
-		int o = { p1: 123 };
+		obj o = { p1: 123 };
 	`)
-	expected := fmt.Errorf("test.scri:2:21: Expected comma following Property.")
+	expected := fmt.Errorf("test.scri:2:21: Expected comma following Property")
 	if !strings.HasPrefix(err.Error(), expected.Error()) {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
 }
 
-func TestObjectWithMissingColon(t *testing.T) {
+func TestErrorObjectWithMissingColon(t *testing.T) {
 	err := transpileTest(`
-		int o = { p1 };
+		obj o = { p1 };
 	`)
-	expected := fmt.Errorf("test.scri:2:16: Missing colon following identifier in ObjectExpr.")
+	expected := fmt.Errorf("test.scri:2:16: Missing colon following identifier in ObjectExpr")
 	if !strings.HasPrefix(err.Error(), expected.Error()) {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
 }
 
-func TestObjectWithMissingValue(t *testing.T) {
+func TestErrorObjectWithMissingValue(t *testing.T) {
 	err := transpileTest(`
-		int o = { p1: , };
+		obj o = { p1: , };
 	`)
 	expected := fmt.Errorf("test.scri:2:17: Unexpected token 'Comma' (',') found during parsing")
 	if err.Error() != expected.Error() {
@@ -413,7 +576,29 @@ func TestObjectWithMissingValue(t *testing.T) {
 	}
 }
 
-func TestInputWithoutPrompt(t *testing.T) {
+func TestErrorMemberExprWithObjectOfWrongType(t *testing.T) {
+	err := transpileTest(`
+		int i = 42;
+		i.a = 1;
+	`)
+	expected := fmt.Errorf("test.scri:3:3: Variable 'i' is not of type 'object'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorMemberExprWithWrongObjectNameType(t *testing.T) {
+	err := transpileTest(`
+		int i = 42;
+		1.a = 1;
+	`)
+	expected := fmt.Errorf("test.scri:3:3: Object name is not the right type. Got 'IntLiteral'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorInputWithoutPrompt(t *testing.T) {
 	err := transpileTest(`
 		input();
 	`)
@@ -438,7 +623,7 @@ func ExampleInput() {
 	// read -p "${s} " tmpStr
 }
 
-func TestSleepWithoutSeconds(t *testing.T) {
+func TestErrorSleepWithoutSeconds(t *testing.T) {
 	err := transpileTest(`
 		sleep();
 	`)

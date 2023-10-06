@@ -94,6 +94,6 @@ func transpile(astNode ast.IStatement, env *Environment) (IRuntimeVal, error) {
 		return evalFunctionDeclaration(ast.ExprToFuncDecl(astNode), env)
 
 	default:
-		return NewNullVal(), fmt.Errorf("This AST Node has not been setup for interpretion: %s", astNode)
+		return NewNullVal(), fmt.Errorf("%s:%d:%d: This AST Node has not been setup for interpretion: %s", fileName, astNode.GetLn(), astNode.GetCol(), astNode)
 	}
 }

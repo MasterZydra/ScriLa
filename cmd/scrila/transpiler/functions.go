@@ -80,7 +80,7 @@ func printArgs(args []ast.IExpr, env *Environment) (string, error) {
 			}
 			argStr += memberVal.GetTranspilat()
 		default:
-			return "", fmt.Errorf("nativePrint: Arg kind '%s' not supported", arg.GetKind())
+			return "", fmt.Errorf("print() - Unexpected %s expression at %s:%d:%d", arg.GetKind(), fileName, arg.GetLn(), arg.GetCol())
 		}
 	}
 	return argStr, nil
@@ -104,14 +104,14 @@ func nativeInput(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
 			return NewNullVal(), err
 		}
 		if varType != lexer.StrType {
-			return NewNullVal(), fmt.Errorf("input: parameter prompt has to be a string or a variable of type string. Got '%s'", varType)
+			return NewNullVal(), fmt.Errorf("input() - Parameter prompt must be a string or a variable of type string. Got '%s'", varType)
 		}
 
 		transpilat += strToBashStr(identNodeToBashVar(args[0]) + " ")
 	case ast.StrLiteralNode:
 		transpilat += strToBashStr(value.ToString() + " ")
 	default:
-		return NewNullVal(), fmt.Errorf("nativeInput: Arg kind '%s' not supported", args[0].GetKind())
+		return NewNullVal(), fmt.Errorf("input() - Parameter prompt must be a string or a variable of type string. Got '%s'", args[0].GetKind())
 	}
 
 	transpilat += " tmpStr\n"
@@ -139,14 +139,14 @@ func nativeSleep(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
 			return NewNullVal(), err
 		}
 		if varType != lexer.IntType {
-			return NewNullVal(), fmt.Errorf("sleep: parameter has to be a int or a variable of type int. Got '%s'", varType)
+			return NewNullVal(), fmt.Errorf("sleep() - Parameter seconds must be an int or a variable of type int. Got '%s'", varType)
 		}
 
 		transpilat += identNodeToBashVar(args[0]) + "\n"
 	case ast.IntLiteralNode:
 		transpilat += value.ToString() + "\n"
 	default:
-		return NewNullVal(), fmt.Errorf("nativeSleep: Arg kind '%s' not supported", args[0].GetKind())
+		return NewNullVal(), fmt.Errorf("sleep() - Parameter seconds must be an int or a variable of type int. Got '%s'", args[0].GetKind())
 	}
 	result := NewNullVal()
 	result.SetTranspilat(transpilat)

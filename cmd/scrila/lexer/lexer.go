@@ -80,7 +80,7 @@ func (self *Lexer) Tokenize(sourceCode string, filename string) ([]*Token, error
 			continue
 		}
 
-		return self.tokens, fmt.Errorf("Unrecognized character '%s' found (Ln %d, Col %d)\n", self.at(), self.currLn, self.currCol)
+		return self.tokens, fmt.Errorf("%s:%d:%d: Unrecognized character '%s' found", filename, self.currLn, self.currCol, self.at())
 	}
 
 	self.pushToken("EOF", EndOfFile)

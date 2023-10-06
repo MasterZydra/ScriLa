@@ -160,7 +160,7 @@ func evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {
 	}
 
 	if call.GetCaller().GetKind() != ast.IdentifierNode {
-		return NewNullVal(), fmt.Errorf("Function caller has to be an identifier. Got: %s", call.GetCaller())
+		return NewNullVal(), fmt.Errorf("Function caller must be an identifier. Got: %s", call.GetCaller())
 	}
 	caller, err := env.lookupFunc(ast.ExprToIdent(call.GetCaller()).GetSymbol())
 	if err != nil {

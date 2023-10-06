@@ -51,7 +51,7 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 			writeLnToFile(varName)
 			value = NewIntVal(1)
 		default:
-			return NewNullVal(), fmt.Errorf("evalVarDeclaration - CallExprNode: Unsupported varType '%s'", varDeclaration.GetVarType())
+			return NewNullVal(), fmt.Errorf("%s:%d:%d: Assigning return values is not implemented for variables of type '%s'", fileName, varDeclaration.GetLn(), varDeclaration.GetCol(), varDeclaration.GetVarType())
 		}
 
 	case ast.IdentifierNode:
@@ -74,7 +74,7 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 			case lexer.IntType:
 				writeLnToFile(identNodeToBashVar(varDeclaration.GetValue()))
 			default:
-				return NewNullVal(), fmt.Errorf("evalVarDeclaration - Identifier: Unsupported varType '%s'", varDeclaration.GetVarType())
+				return NewNullVal(), fmt.Errorf("%s:%d:%d: Assigning variables is not implemented for variables of type '%s'", fileName, varDeclaration.GetLn(), varDeclaration.GetCol(), varDeclaration.GetVarType())
 			}
 		}
 	case ast.BinaryExprNode:
@@ -84,7 +84,7 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 		case lexer.IntType:
 			writeLnToFile(value.GetTranspilat())
 		default:
-			return NewNullVal(), fmt.Errorf("evalVarDeclaration - BinaryExpr: Unsupported varType '%s'", varDeclaration.GetVarType())
+			return NewNullVal(), fmt.Errorf("%s:%d:%d: Assigning binary expressions is not implemented for variables of type '%s'", fileName, varDeclaration.GetLn(), varDeclaration.GetCol(), varDeclaration.GetVarType())
 		}
 	case ast.StrLiteralNode:
 		if varDeclaration.GetVarType() != lexer.StrType {
@@ -118,7 +118,7 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 					writeLnToFile(identNodeToBashVar(prop.GetValue()))
 				}
 			default:
-				return NewNullVal(), fmt.Errorf("evalVarDeclaration - ObjectLiteralNode: property kind '%s' not supported", prop.GetValue().GetKind())
+				return NewNullVal(), fmt.Errorf("%s:%d:%d: Assigning object properties of type '%s' is not implemented", fileName, varDeclaration.GetLn(), varDeclaration.GetCol(), prop.GetValue().GetKind())
 			}
 		}
 	case ast.MemberExprNode:
@@ -128,10 +128,14 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 		}
 		writeLnToFile(memberVal.GetTranspilat())
 	default:
-		return NewNullVal(), fmt.Errorf("evalVarDeclaration: value kind '%s' not supported", varDeclaration.GetValue().GetKind())
+		return NewNullVal(), fmt.Errorf("%s:%d:%d: Assigning value of type '%s' is not implemented", fileName, varDeclaration.GetLn(), varDeclaration.GetCol(), varDeclaration.GetValue().GetKind())
 	}
 
-	return env.declareVar(varDeclaration.GetIdentifier(), value, varDeclaration.IsConstant(), varDeclaration.GetVarType())
+	result, err := env.declareVar(varDeclaration.GetIdentifier(), value, varDeclaration.IsConstant(), varDeclaration.GetVarType())
+	if err != nil {
+		return NewNullVal(), fmt.Errorf("%s:%d:%d: %s", fileName, varDeclaration.GetLn(), varDeclaration.GetCol(), err)
+	}
+	return result, nil
 }
 
 func evalFunctionDeclaration(funcDeclaration ast.IFunctionDeclaration, env *Environment) (IRuntimeVal, error) {
@@ -147,9 +151,12 @@ func evalFunctionDeclaration(funcDeclaration ast.IFunctionDeclaration, env *Envi
 		case lexer.StrType:
 			value = NewStrVal("str")
 		default:
-			return NewNullVal(), fmt.Errorf("evalFunctionDeclaration: Param type '%s' not supported. (%s)", fn.GetParams()[i].GetParamType(), fn.GetParams()[i])
+			return NewNullVal(), fmt.Errorf("%s:%d:%d: Unsupported type '%s' for parameter '%s'", fileName, funcDeclaration.GetLn(), funcDeclaration.GetCol(), fn.GetParams()[i].GetParamType(), fn.GetParams()[i].GetName())
 		}
-		scope.declareVar(fn.GetParams()[i].GetName(), value, false, fn.GetParams()[i].GetParamType())
+		_, err := scope.declareVar(fn.GetParams()[i].GetName(), value, false, fn.GetParams()[i].GetParamType())
+		if err != nil {
+			return NewNullVal(), fmt.Errorf("%s:%d:%d: %s", fileName, funcDeclaration.GetLn(), funcDeclaration.GetCol(), err)
+		}
 		writeLnToFile("\tlocal " + param.GetName() + "=$" + strconv.Itoa(i+1))
 	}
 
@@ -172,7 +179,7 @@ func evalFunctionDeclaration(funcDeclaration ast.IFunctionDeclaration, env *Envi
 	writeLnToFile("}\n")
 	_, err := env.declareFunc(funcDeclaration.GetName(), fn)
 	if err != nil {
-		return result, err
+		return result, fmt.Errorf("%s:%d:%d: %s", fileName, funcDeclaration.GetLn(), funcDeclaration.GetCol(), err)
 	}
 	return result, nil
 }

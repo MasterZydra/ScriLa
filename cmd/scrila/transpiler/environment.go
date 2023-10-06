@@ -50,7 +50,7 @@ func NewEnvironment(parentEnv *Environment) *Environment {
 
 func (self *Environment) declareFunc(funcName string, value IRuntimeVal) (IRuntimeVal, error) {
 	if self.isFuncDeclared(funcName) {
-		return NewNullVal(), fmt.Errorf("Cannot declare function '%s'. As it already is defined.", funcName)
+		return NewNullVal(), fmt.Errorf("Cannot declare function '%s' as it already is defined", funcName)
 	}
 
 	self.functions[funcName] = value
@@ -76,7 +76,7 @@ func (self *Environment) resolveFunc(funcName string) (*Environment, error) {
 	}
 
 	if self.parent == nil {
-		return nil, fmt.Errorf("Cannot resolve function '%s' as it does not exist.", funcName)
+		return nil, fmt.Errorf("Cannot resolve function '%s' as it does not exist", funcName)
 	}
 
 	return self.parent.resolveFunc(funcName)
@@ -92,7 +92,7 @@ func (self *Environment) lookupFunc(funcName string) (IRuntimeVal, error) {
 
 func (self *Environment) declareVar(varName string, value IRuntimeVal, isConstant bool, varType lexer.TokenType) (IRuntimeVal, error) {
 	if _, ok := self.variables[varName]; ok {
-		return NewNullVal(), fmt.Errorf("Cannot declare variable '%s'. As it already is defined.", varName)
+		return NewNullVal(), fmt.Errorf("Cannot declare variable '%s' as it already is defined", varName)
 	}
 
 	self.variables[varName] = value
@@ -112,7 +112,7 @@ func (self *Environment) assignVar(varName string, value IRuntimeVal) (IRuntimeV
 
 	// Cannot assign to constant
 	if slices.Contains(self.constants, varName) {
-		return NewNullVal(), fmt.Errorf("Cannot reassign to variable '" + varName + "' as it was declared constant.")
+		return NewNullVal(), fmt.Errorf("Cannot reassign to variable '%s' as it was declared constant", varName)
 	}
 
 	env.variables[varName] = value
@@ -125,7 +125,7 @@ func (self *Environment) resolve(varName string) (*Environment, error) {
 	}
 
 	if self.parent == nil {
-		return nil, fmt.Errorf("Cannot resolve variable '%s' as it does not exist.", varName)
+		return nil, fmt.Errorf("Cannot resolve variable '%s' as it does not exist", varName)
 	}
 
 	return self.parent.resolve(varName)

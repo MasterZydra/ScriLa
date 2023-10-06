@@ -139,9 +139,9 @@ func (self *VarDeclaration) String() string {
 	return fmt.Sprintf("&{%s %s %t %s %s}", self.GetKind(), self.GetVarType(), self.IsConstant(), self.GetIdentifier(), self.GetValue())
 }
 
-func NewVarDeclaration(varType lexer.TokenType, constant bool, identifier string, value IExpr) *VarDeclaration {
+func NewVarDeclaration(varType lexer.TokenType, constant bool, identifier string, value IExpr, ln int, col int) *VarDeclaration {
 	return &VarDeclaration{
-		statement:  NewStatement(VarDeclarationNode, 0, 0),
+		statement:  NewStatement(VarDeclarationNode, ln, col),
 		varType:    varType,
 		constant:   constant,
 		identifier: identifier,

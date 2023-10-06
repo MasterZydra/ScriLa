@@ -67,12 +67,12 @@ func (self *Parser) parseStatement() (ast.IStatement, error) {
 	case lexer.Function:
 		return self.parseFunctionDeclaration()
 	case lexer.Return:
-		self.eat()
+		returnToken := self.eat()
 		value, err := self.parseExpr()
 		if err != nil {
 			return ast.NewEmptyStatement(), err
 		}
-		statement = ast.NewReturnExpr(value)
+		statement = ast.NewReturnExpr(value, returnToken.Ln, returnToken.Col)
 	default:
 		statement, err = self.parseExpr()
 		if err != nil {
@@ -92,7 +92,7 @@ func (self *Parser) parseVarDeclaration() (ast.IStatement, error) {
 	}
 
 	if !slices.Contains([]lexer.TokenType{lexer.ObjType, lexer.StrType, lexer.IntType, lexer.BoolType}, self.at().TokenType) {
-		return ast.NewEmptyStatement(), fmt.Errorf("Variable type not given or supported. %s", self.at())
+		return ast.NewEmptyStatement(), fmt.Errorf("%s:%d:%d: Variable type '%s' not given or supported", fileName, self.at().Ln, self.at().Col, self.at().Value)
 	}
 	varType := self.eat().TokenType
 
@@ -110,7 +110,7 @@ func (self *Parser) parseVarDeclaration() (ast.IStatement, error) {
 	if err != nil {
 		return ast.NewEmptyStatement(), err
 	}
-	declaration := ast.NewVarDeclaration(varType, isConstant, identifier, expr)
+	declaration := ast.NewVarDeclaration(varType, isConstant, identifier, expr, token.Ln, token.Col)
 	return declaration, nil
 }
 
@@ -345,7 +345,7 @@ func (self *Parser) parseParametersList() ([]*ast.Parameter, error) {
 	params := make([]*ast.Parameter, 0)
 
 	if !slices.Contains([]lexer.TokenType{lexer.StrType, lexer.BoolType, lexer.IntType, lexer.ObjType}, self.at().TokenType) {
-		return params, fmt.Errorf("parseParametersList: Expected param type but got: %s", self.at())
+		return params, fmt.Errorf("%s:%d:%d: Expected param type but got %s '%s'", fileName, self.at().Ln, self.at().Col, self.at().TokenType, self.at().Value)
 	}
 
 	for self.notEOF() && slices.Contains([]lexer.TokenType{lexer.StrType, lexer.BoolType, lexer.IntType, lexer.ObjType}, self.at().TokenType) {
@@ -360,11 +360,9 @@ func (self *Parser) parseParametersList() ([]*ast.Parameter, error) {
 			self.eat()
 		} else if self.at().TokenType == lexer.CloseParen {
 			return params, nil
-		} else {
-			return params, fmt.Errorf("parseParametersList: Unexpected token: %s", self.at())
 		}
 	}
-	return params, fmt.Errorf("parseParametersList: Unexpected token: %s", self.at())
+	return params, fmt.Errorf("%s:%d:%d: Unexpected token '%s' in parameter list", fileName, self.at().Ln, self.at().Col, self.at().Value)
 }
 
 // func add(a, b) {} <- a & b are parameters
@@ -432,7 +430,7 @@ func (self *Parser) parseMemberExpr() (ast.IExpr, error) {
 			}
 
 			if property.GetKind() != ast.IdentifierNode {
-				return ast.NewEmptyExpr(), fmt.Errorf("Cannot use dot operator without right hand side being an identifier")
+				return ast.NewEmptyExpr(), fmt.Errorf("%s:%d:%d: Cannot use dot operator without right hand side being an identifier", fileName, property.GetLn(), property.GetCol())
 			}
 		} else {
 			isComputed = true

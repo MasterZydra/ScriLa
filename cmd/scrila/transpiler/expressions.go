@@ -25,7 +25,7 @@ func evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) (IRuntimeVal, error
 	case ast.IntLiteralNode, ast.StrLiteralNode:
 		lhs.SetTranspilat(lhs.ToString())
 	default:
-		return NewNullVal(), fmt.Errorf("evalBinaryExpr: left kind '%s' not supported", binOp.GetLeft())
+		return NewNullVal(), fmt.Errorf("%s:%d:%d: Left side of binary expression with unsupported type '%s'", fileName, binOp.GetLeft().GetLn(), binOp.GetLeft().GetCol(), binOp.GetLeft().GetKind())
 	}
 
 	rhs, rhsError := transpile(binOp.GetRight(), env)
@@ -40,7 +40,7 @@ func evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) (IRuntimeVal, error
 	case ast.IntLiteralNode, ast.StrLiteralNode:
 		rhs.SetTranspilat(rhs.ToString())
 	default:
-		return NewNullVal(), fmt.Errorf("evalBinaryExpr: right kind '%s' not supported", binOp.GetLeft())
+		return NewNullVal(), fmt.Errorf("%s:%d:%d: Right side of binary expression with unsupported type '%s'", fileName, binOp.GetRight().GetLn(), binOp.GetRight().GetCol(), binOp.GetRight().GetKind())
 	}
 
 	if lhs.GetType() == IntValueType && rhs.GetType() == IntValueType {
@@ -48,10 +48,14 @@ func evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) (IRuntimeVal, error
 	}
 
 	if lhs.GetType() == StrValueType && rhs.GetType() == StrValueType {
-		return evalStrBinaryExpr(runtimeToStrVal(lhs), runtimeToStrVal(rhs), binOp.GetOperator())
+		result, err := evalStrBinaryExpr(runtimeToStrVal(lhs), runtimeToStrVal(rhs), binOp.GetOperator())
+		if err != nil {
+			return NewNullVal(), fmt.Errorf("%s:%d:%d: %s", fileName, binOp.GetLn(), binOp.GetCol(), err)
+		}
+		return result, nil
 	}
 
-	return NewNullVal(), fmt.Errorf("evalBinaryExpr: Give types not supported (lhs: %s, rhs: %s)", lhs, rhs)
+	return NewNullVal(), fmt.Errorf("%s:%d:%d: No support for binary expressions of type '%s' and '%s'", fileName, binOp.GetLn(), binOp.GetCol(), lhs.GetType(), rhs.GetType())
 }
 
 func evalIntBinaryExpr(lhs IIntVal, rhs IIntVal, operator string) (IIntVal, error) {
@@ -72,7 +76,7 @@ func evalIntBinaryExpr(lhs IIntVal, rhs IIntVal, operator string) (IIntVal, erro
 		// TODO Division by zero
 		result = lhs.GetValue() / rhs.GetValue()
 	default:
-		return NewIntVal(0), fmt.Errorf("evalIntBinaryExpr: Unsupported binary operator: %s", operator)
+		return NewIntVal(0), fmt.Errorf("Binary int expression with unsupported operator '%s'", operator)
 	}
 	transpilat += "))"
 
@@ -88,7 +92,7 @@ func evalStrBinaryExpr(lhs IStrVal, rhs IStrVal, operator string) (IStrVal, erro
 		strVal.SetTranspilat(lhs.GetTranspilat() + rhs.GetTranspilat())
 		return strVal, nil
 	default:
-		return NewStrVal(""), fmt.Errorf("evalStrBinaryExpr: Unsupported binary operator: %s", operator)
+		return NewStrVal(""), fmt.Errorf("Binary string expression with unsupported operator '%s'", operator)
 	}
 }
 
@@ -98,7 +102,7 @@ func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeV
 	}
 
 	if assignment.GetAssigne().GetKind() != ast.IdentifierNode {
-		return NewNullVal(), fmt.Errorf("evalAssignment: Invalid LHS inside assignment expr %s", assignment.GetAssigne())
+		return NewNullVal(), fmt.Errorf("%s:%d:%d: Left side of an assignment must be a variable. Got '%s'", fileName, assignment.GetAssigne().GetLn(), assignment.GetAssigne().GetCol(), assignment.GetAssigne().GetKind())
 	}
 
 	value, err := transpile(assignment.GetValue(), env)
@@ -116,24 +120,19 @@ func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeV
 
 	switch assignment.GetValue().GetKind() {
 	case ast.CallExprNode:
-		varName, err := getCallerResultVarName(ast.ExprToCallExpr(assignment.GetValue()), env)
-		if err != nil {
-			return NewNullVal(), err
-		}
-
-		varType, err := env.lookupVarType(varName)
+		returnVarName, err := getCallerResultVarName(ast.ExprToCallExpr(assignment.GetValue()), env)
 		if err != nil {
 			return NewNullVal(), err
 		}
 		switch varType {
 		case lexer.StrType:
-			writeLnToFile(strToBashStr(varName))
+			writeLnToFile(strToBashStr(returnVarName))
 			value = NewStrVal("")
 		case lexer.IntType:
-			writeLnToFile(varName)
+			writeLnToFile(returnVarName)
 			value = NewIntVal(1)
 		default:
-			return NewNullVal(), fmt.Errorf("evalAssignment - CallExpr: Unsupported varType '%s'", varType)
+			return NewNullVal(), fmt.Errorf("%s:%d:%d: Assigning return values is not implemented for variables of type '%s'", fileName, assignment.GetLn(), assignment.GetCol(), varType)
 		}
 	case ast.BinaryExprNode:
 		varType, err := env.lookupVarType(varName)
@@ -146,7 +145,7 @@ func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeV
 		case lexer.IntType:
 			writeLnToFile(value.GetTranspilat())
 		default:
-			return NewNullVal(), fmt.Errorf("evalAssignment - BinaryExpr: Unsupported varType '%s'", varType)
+			return NewNullVal(), fmt.Errorf("%s:%d:%d: Assigning binary expressions is not implemented for variables of type '%s'", fileName, assignment.GetLn(), assignment.GetCol(), varType)
 		}
 	case ast.IntLiteralNode:
 		if varType != lexer.IntType {
@@ -178,33 +177,33 @@ func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeV
 			case lexer.IntType:
 				writeLnToFile(identNodeToBashVar(assignment.GetValue()))
 			default:
-				return NewNullVal(), fmt.Errorf("evalAssignment - Identifier: Unsupported varType '%s'", varType)
+				return NewNullVal(), fmt.Errorf("%s:%d:%d: Assigning variables is not implemented for variables of type '%s'", fileName, assignment.GetLn(), assignment.GetCol(), varType)
 			}
 		}
 	default:
-		return NewNullVal(), fmt.Errorf("evalAssignment: value kind '%s' not supported", assignment.GetValue().GetKind())
+		return NewNullVal(), fmt.Errorf("%s:%d:%d: Assigning variables is not implemented for variables of type '%s'", fileName, assignment.GetLn(), assignment.GetCol(), assignment.GetKind())
 	}
 
 	result, err := env.assignVar(varName, value)
 	if err != nil {
-		return NewNullVal(), err
+		return NewNullVal(), fmt.Errorf("%s:%d:%d: %s", fileName, assignment.GetLn(), assignment.GetCol(), err)
 	}
 	return result, nil
 }
 
 func evalAssignmentObjMember(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeVal, error) {
 	if assignment.GetAssigne().GetKind() != ast.MemberExprNode {
-		return NewNullVal(), fmt.Errorf("evalAssignmentObjMember: Invalid LHS inside assignment expr: %s", assignment.GetAssigne())
+		return NewNullVal(), fmt.Errorf("%s:%d:%d: Left side of object member assignment is invalid type '%s'", fileName, assignment.GetAssigne().GetLn(), assignment.GetAssigne().GetCol(), assignment.GetAssigne().GetKind())
 	}
 
 	memberExpr := ast.ExprToMemberExpr(assignment.GetAssigne())
 
 	if memberExpr.GetObject().GetKind() != ast.IdentifierNode {
-		return NewNullVal(), fmt.Errorf("evalAssignmentObjMember: Object - Node kind '%s' not supported", memberExpr.GetObject().GetKind())
+		return NewNullVal(), fmt.Errorf("%s:%d:%d: Object name is not the right type. Got '%s'", fileName, memberExpr.GetObject().GetLn(), memberExpr.GetObject().GetCol(), memberExpr.GetObject().GetKind())
 	}
 
 	if memberExpr.GetProperty().GetKind() != ast.IdentifierNode {
-		return NewNullVal(), fmt.Errorf("evalAssignmentObjMember: Property - Node kind '%s' not supported", memberExpr.GetProperty().GetKind())
+		return NewNullVal(), fmt.Errorf("%s:%d:%d: Object property name is not the right type. Got '%s'", fileName, memberExpr.GetProperty().GetLn(), memberExpr.GetProperty().GetCol(), memberExpr.GetProperty().GetKind())
 	}
 
 	objName := identNodeGetSymbol(memberExpr.GetObject())
@@ -213,7 +212,7 @@ func evalAssignmentObjMember(assignment ast.IAssignmentExpr, env *Environment) (
 		return NewNullVal(), err
 	}
 	if obj.GetType() != ObjValueType {
-		return NewNullVal(), fmt.Errorf("evalAssignmentObjMember: variable '%s' is not of type 'object'", objName)
+		return NewNullVal(), fmt.Errorf("%s:%d:%d: Variable '%s' is not of type 'object'", fileName, memberExpr.GetObject().GetLn(), memberExpr.GetObject().GetCol(), objName)
 	}
 
 	propName := identNodeGetSymbol(memberExpr.GetProperty())
@@ -229,7 +228,7 @@ func evalAssignmentObjMember(assignment ast.IAssignmentExpr, env *Environment) (
 	case ast.IntLiteralNode:
 		writeLnToFile(value.ToString())
 	default:
-		return NewNullVal(), fmt.Errorf("evalAssignmentObjMember: value kind '%s' not supported", assignment.GetValue().GetKind())
+		return NewNullVal(), fmt.Errorf("%s:%d:%d: Object member value '%s' is not supported", fileName, assignment.GetValue().GetLn(), assignment.GetValue().GetCol(), assignment.GetValue().GetKind())
 	}
 
 	runtimeToObjVal(obj).GetProperties()[propName] = value
@@ -252,11 +251,7 @@ func evalObjectExpr(object ast.IObjectLiteral, env *Environment) (IRuntimeVal, e
 
 func evalMemberExpr(memberExpr ast.IMemberExpr, env *Environment) (IRuntimeVal, error) {
 	if memberExpr.GetObject().GetKind() != ast.IdentifierNode {
-		return NewNullVal(), fmt.Errorf("evalMemberExpr: Object - Node kind '%s' not supported", memberExpr.GetObject().GetKind())
-	}
-
-	if memberExpr.GetProperty().GetKind() != ast.IdentifierNode {
-		return NewNullVal(), fmt.Errorf("evalMemberExpr: Property - Node kind '%s' not supported", memberExpr.GetProperty().GetKind())
+		return NewNullVal(), fmt.Errorf("%s:%d:%d: Object name is not the right type. Got '%s'", fileName, memberExpr.GetObject().GetLn(), memberExpr.GetObject().GetCol(), memberExpr.GetObject().GetKind())
 	}
 
 	objName := identNodeGetSymbol(memberExpr.GetObject())
@@ -265,18 +260,15 @@ func evalMemberExpr(memberExpr ast.IMemberExpr, env *Environment) (IRuntimeVal, 
 		return NewNullVal(), err
 	}
 	if obj.GetType() != ObjValueType {
-		return NewNullVal(), fmt.Errorf("evalMemberExpr: variable '%s' is not of type 'object'", objName)
+		return NewNullVal(), fmt.Errorf("%s:%d:%d: Variable '%s' is not of type 'object'", fileName, memberExpr.GetObject().GetLn(), memberExpr.GetObject().GetCol(), objName)
+	}
+
+	if memberExpr.GetProperty().GetKind() != ast.IdentifierNode {
+		return NewNullVal(), fmt.Errorf("%s:%d:%d: Object property name is not the right type. Got '%s'", fileName, memberExpr.GetProperty().GetLn(), memberExpr.GetProperty().GetCol(), memberExpr.GetProperty().GetKind())
 	}
 
 	propName := identNodeGetSymbol(memberExpr.GetProperty())
-
-	propTranspilat := ""
-	switch memberExpr.GetProperty().GetKind() {
-	case ast.IdentifierNode:
-		propTranspilat = strToBashStr(propName)
-	default:
-		return NewNullVal(), fmt.Errorf("evalMemberExpr: property kind '%s' not supported", memberExpr.GetProperty().GetKind())
-	}
+	propTranspilat := strToBashStr(propName)
 
 	result := runtimeToObjVal(obj).GetProperties()[propName]
 	result.SetTranspilat("${" + objName + "[" + propTranspilat + "]}")
@@ -285,7 +277,7 @@ func evalMemberExpr(memberExpr ast.IMemberExpr, env *Environment) (IRuntimeVal, 
 
 func getCallerResultVarName(call ast.ICallExpr, env *Environment) (string, error) {
 	if call.GetCaller().GetKind() != ast.IdentifierNode {
-		return "", fmt.Errorf("getCallerResultVarName: Function caller has to be an identifier. Got: %s", call.GetCaller())
+		return "", fmt.Errorf("%s:%d:%d: Function name must be an identifier. Got: '%s'", fileName, call.GetCaller().GetLn(), call.GetCaller().GetCol(), call.GetCaller().GetKind())
 	}
 
 	funcName := identNodeGetSymbol(call.GetCaller())
@@ -302,21 +294,20 @@ func getCallerResultVarName(call ast.ICallExpr, env *Environment) (string, error
 		case lexer.VoidType:
 			return "", fmt.Errorf("%s:%d:%d: Func '%s' does not have a return value", fileName, call.GetCaller().GetLn(), call.GetCol(), funcName)
 		default:
-			return "", fmt.Errorf("getCallerResultVarName: Return type '%s' for func '%s' is unknown", returnType, funcName)
+			return "", fmt.Errorf("%s:%d:%d: Function return type '%s' is not supported", fileName, call.GetCaller().GetLn(), call.GetCaller().GetCol(), returnType)
 		}
 	} else if caller.GetType() == NativeFnType {
 		// TODO Determine based on return type, if that is implemented
 		switch funcName {
-		case "print", "printLn":
-			return "", fmt.Errorf("'" + funcName + "' has no return value")
+		case "print", "printLn", "sleep":
+			return "", fmt.Errorf("%s:%d:%d: Function '%s' has no return value", fileName, call.GetCaller().GetLn(), call.GetCaller().GetCol(), funcName)
 		case "input":
 			return "${tmpStr}", nil
 		default:
-			return "", fmt.Errorf("getCallerResultVarName: Return type for native func '%s' is unknown", funcName)
+			return "", fmt.Errorf("%s:%d:%d: Return type for native func '%s' is unknown", fileName, call.GetLn(), call.GetCol(), funcName)
 		}
 	} else {
-		return "", fmt.Errorf("getCallerResultVarName: Function type '%s' not supported", caller.GetType())
-
+		return "", fmt.Errorf("%s:%d:%d: Cannot call value that is not a function: %s", fileName, call.GetLn(), call.GetCol(), caller.GetType())
 	}
 }
 
@@ -332,12 +323,12 @@ func evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {
 	}
 
 	if call.GetCaller().GetKind() != ast.IdentifierNode {
-		return NewNullVal(), fmt.Errorf("Function caller has to be an identifier. Got: %s", call.GetCaller())
+		return NewNullVal(), fmt.Errorf("%s:%d:%d: Function name must be an identifier. Got: '%s'", fileName, call.GetCaller().GetLn(), call.GetCaller().GetCol(), call.GetCaller().GetKind())
 	}
 
 	caller, err := env.lookupFunc(identNodeGetSymbol(call.GetCaller()))
 	if err != nil {
-		return NewNullVal(), err
+		return NewNullVal(), fmt.Errorf("%s:%d:%d: %s", fileName, call.GetLn(), call.GetCol(), err)
 	}
 
 	switch caller.GetType() {
@@ -372,10 +363,10 @@ func evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {
 				case lexer.StrType:
 					writeToFile(" " + strToBashStr(identNodeToBashVar(call.GetArgs()[i])))
 				default:
-					return NewNullVal(), fmt.Errorf("evalCallExpr - Identifier: Param type '%s' not supported", param.GetParamType())
+					return NewNullVal(), fmt.Errorf("%s:%d:%d: %s(): Parameter of variable type '%s' is not supported", fileName, call.GetLn(), call.GetCol(), fn.GetName(), param.GetParamType())
 				}
 			default:
-				return NewNullVal(), fmt.Errorf("evalCallExpr: Arg type '%s' not supported", call.GetArgs()[i].GetKind())
+				return NewNullVal(), fmt.Errorf("%s:%d:%d: %s(): Parameter type '%s' is not supported", fileName, call.GetLn(), call.GetCol(), fn.GetName(), call.GetArgs()[i].GetKind())
 			}
 		}
 
@@ -383,13 +374,13 @@ func evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {
 		return NewNullVal(), nil
 
 	default:
-		return NewNullVal(), fmt.Errorf("Cannot call value that is not a function: %s", caller)
+		return NewNullVal(), fmt.Errorf("%s:%d:%d: Cannot call value that is not a function: %s", fileName, call.GetLn(), call.GetCol(), caller)
 	}
 }
 
 func evalReturnExpr(returnExpr ast.IReturnExpr, env *Environment) (IRuntimeVal, error) {
 	if !funcContext || currentFunc == nil {
-		return NewNullVal(), fmt.Errorf("Return is only allowed inside of a function")
+		return NewNullVal(), fmt.Errorf("%s:%d:%d: Return is only allowed inside a function", fileName, returnExpr.GetLn(), returnExpr.GetCol())
 	}
 
 	value, err := transpile(returnExpr.GetValue(), env)
@@ -405,7 +396,7 @@ func evalReturnExpr(returnExpr ast.IReturnExpr, env *Environment) (IRuntimeVal, 
 	case lexer.BoolType:
 		writeToFile("tmpBool=")
 	default:
-		return NewNullVal(), fmt.Errorf("evalReturnExpr: Return type '%s' not supported", currentFunc.GetReturnType())
+		return NewNullVal(), fmt.Errorf("%s:%d:%d: Return type '%s' is not supported", fileName, returnExpr.GetLn(), returnExpr.GetCol(), currentFunc.GetReturnType())
 	}
 
 	switch returnExpr.GetValue().GetKind() {
@@ -416,7 +407,7 @@ func evalReturnExpr(returnExpr ast.IReturnExpr, env *Environment) (IRuntimeVal, 
 		case IntValueType:
 			writeLnToFile(value.GetTranspilat())
 		default:
-			return NewNullVal(), fmt.Errorf("evalReturnExpr - BinaryExpr: Unsupported varType '%s'", value.GetType())
+			return NewNullVal(), fmt.Errorf("%s:%d:%d: Returning binary expression of type '%s' is not supported", fileName, returnExpr.GetLn(), returnExpr.GetCol(), value.GetType())
 		}
 	case ast.IntLiteralNode:
 		writeLnToFile(value.ToString())
@@ -425,7 +416,7 @@ func evalReturnExpr(returnExpr ast.IReturnExpr, env *Environment) (IRuntimeVal, 
 	case ast.IdentifierNode:
 		writeLnToFile(identNodeToBashVar(returnExpr.GetValue()))
 	default:
-		return NewNullVal(), fmt.Errorf("evalReturnExpr: Unsupported value kind '%s'", returnExpr.GetValue().GetKind())
+		return NewNullVal(), fmt.Errorf("%s:%d:%d: Return type '%s' is not supported", fileName, returnExpr.GetLn(), returnExpr.GetCol(), returnExpr.GetValue().GetKind())
 	}
 	writeLnToFile("\treturn")
 	return value, nil

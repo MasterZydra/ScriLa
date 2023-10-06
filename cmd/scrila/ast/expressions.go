@@ -287,9 +287,9 @@ func (self *ReturnExpr) String() string {
 	return fmt.Sprintf("&{%s %s}", self.GetKind(), self.GetValue())
 }
 
-func NewReturnExpr(value IExpr) *ReturnExpr {
+func NewReturnExpr(value IExpr, ln int, col int) *ReturnExpr {
 	return &ReturnExpr{
-		expr:  NewExpr(ReturnExprNode, 0, 0),
+		expr:  NewExpr(ReturnExprNode, ln, col),
 		value: value,
 	}
 }
