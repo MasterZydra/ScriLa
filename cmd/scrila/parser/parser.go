@@ -30,7 +30,7 @@ func (self Parser) ProduceAST(sourceCode string, filename string) (ast.IProgram,
 	program := ast.NewProgram()
 
 	var err error
-	self.tokens, err = self.lexer.Tokenize(sourceCode)
+	self.tokens, err = self.lexer.Tokenize(sourceCode, filename)
 	if err != nil {
 		return program, err
 	}

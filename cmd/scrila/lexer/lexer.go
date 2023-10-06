@@ -25,7 +25,7 @@ func (self *Lexer) init() {
 	self.currCol = 1
 }
 
-func (self *Lexer) Tokenize(sourceCode string) ([]*Token, error) {
+func (self *Lexer) Tokenize(sourceCode string, filename string) ([]*Token, error) {
 	self.init()
 
 	// Split source code into an array of every character

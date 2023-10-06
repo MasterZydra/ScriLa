@@ -61,7 +61,7 @@ func transpile(filename string) {
 	}
 
 	if printTokens {
-		tokens, err := lexer.NewLexer().Tokenize(string(fileContent))
+		tokens, err := lexer.NewLexer().Tokenize(string(fileContent), filename)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
@@ -95,7 +95,7 @@ func runFile(filename string) {
 	}
 
 	if printTokens {
-		tokens, err := lexer.NewLexer().Tokenize(string(fileContent))
+		tokens, err := lexer.NewLexer().Tokenize(string(fileContent), filename)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
@@ -132,7 +132,7 @@ func repl() {
 		}
 
 		if printTokens {
-			tokens, err := lexer.Tokenize(input)
+			tokens, err := lexer.Tokenize(input, "input")
 			if err != nil {
 				fmt.Println(err)
 				os.Exit(1)
