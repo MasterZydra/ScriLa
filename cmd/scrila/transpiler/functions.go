@@ -9,12 +9,12 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-func declareNativeFunctions(env *Environment) {
+func (self *Transpiler) declareNativeFunctions(env *Environment) {
 	var nativeFunctions = map[string]FunctionCall{
-		"input":   nativeInput,
-		"print":   nativePrint,
-		"printLn": nativePrintLn,
-		"sleep":   nativeSleep,
+		"input":   self.nativeInput,
+		"print":   self.nativePrint,
+		"printLn": self.nativePrintLn,
+		"sleep":   self.nativeSleep,
 	}
 
 	for name, function := range nativeFunctions {
@@ -22,25 +22,25 @@ func declareNativeFunctions(env *Environment) {
 	}
 }
 
-func nativePrintLn(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
-	argStr, err := printArgs(args, env)
+func (self *Transpiler) nativePrintLn(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+	argStr, err := self.printArgs(args, env)
 	if err != nil {
 		return NewNullVal(), err
 	}
-	writeLnToFile("echo " + strToBashStr(argStr))
+	self.writeLnToFile("echo " + strToBashStr(argStr))
 	return NewNullVal(), nil
 }
 
-func nativePrint(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
-	argStr, err := printArgs(args, env)
+func (self *Transpiler) nativePrint(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+	argStr, err := self.printArgs(args, env)
 	if err != nil {
 		return NewNullVal(), err
 	}
-	writeLnToFile("echo -n " + strToBashStr(argStr))
+	self.writeLnToFile("echo -n " + strToBashStr(argStr))
 	return NewNullVal(), nil
 }
 
-func printArgs(args []ast.IExpr, env *Environment) (string, error) {
+func (self *Transpiler) printArgs(args []ast.IExpr, env *Environment) (string, error) {
 	argStr := ""
 	var isFirst bool = true
 	for _, arg := range args {
@@ -52,7 +52,7 @@ func printArgs(args []ast.IExpr, env *Environment) (string, error) {
 		}
 		switch arg.GetKind() {
 		case ast.CallExprNode:
-			varName, err := getCallerResultVarName(ast.ExprToCallExpr(arg), env)
+			varName, err := self.getCallerResultVarName(ast.ExprToCallExpr(arg), env)
 			if err != nil {
 				return "", err
 			}
@@ -68,29 +68,29 @@ func printArgs(args []ast.IExpr, env *Environment) (string, error) {
 		case ast.StrLiteralNode:
 			argStr += ast.ExprToStrLit(arg).GetValue()
 		case ast.BinaryExprNode:
-			value, err := transpile(arg, env)
+			value, err := self.transpile(arg, env)
 			if err != nil {
 				return "", err
 			}
 			argStr += value.GetTranspilat()
 		case ast.MemberExprNode:
-			memberVal, err := evalMemberExpr(ast.ExprToMemberExpr(arg), env)
+			memberVal, err := self.evalMemberExpr(ast.ExprToMemberExpr(arg), env)
 			if err != nil {
 				return "", err
 			}
 			argStr += memberVal.GetTranspilat()
 		default:
-			return "", fmt.Errorf("print() - Unexpected %s expression at %s:%d:%d", arg.GetKind(), fileName, arg.GetLn(), arg.GetCol())
+			return "", fmt.Errorf("print() - Unexpected %s expression at %s:%d:%d", arg.GetKind(), self.filename, arg.GetLn(), arg.GetCol())
 		}
 	}
 	return argStr, nil
 }
 
-func nativeInput(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+func (self *Transpiler) nativeInput(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
 	if len(args) != 1 {
 		return NewNullVal(), fmt.Errorf("Expected syntax: input(str prompt)")
 	}
-	value, err := transpile(args[0], env)
+	value, err := self.transpile(args[0], env)
 	if err != nil {
 		return NewNullVal(), err
 	}
@@ -121,11 +121,11 @@ func nativeInput(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
 	return result, nil
 }
 
-func nativeSleep(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+func (self *Transpiler) nativeSleep(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
 	if len(args) != 1 {
 		return NewNullVal(), fmt.Errorf("Expected syntax: sleep(int seconds)")
 	}
-	value, err := transpile(args[0], env)
+	value, err := self.transpile(args[0], env)
 	if err != nil {
 		return NewNullVal(), err
 	}

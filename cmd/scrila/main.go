@@ -10,23 +10,24 @@ import (
 )
 
 func main() {
-	fileName := flag.String("f", "", "Path of file")
+	filename := flag.String("f", "", "Path of file")
 	showTokens := flag.Bool("st", false, "Show tokens")
 	showAST := flag.Bool("sa", false, "Show AST")
 	flag.Parse()
 
-	if *fileName == "" {
+	if *filename == "" {
 		fmt.Println("Usage of scrila:")
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
 
-	transpile(*fileName, *showTokens, *showAST)
+	transpile(*filename, *showTokens, *showAST)
 }
 
 func transpile(filename string, showTokens bool, showAST bool) {
 	parser := parser.NewParser()
-	env := transpiler.NewEnvironment(nil)
+	transpilerObj := transpiler.NewTranspiler()
+	env := transpiler.NewEnvironment(nil, transpilerObj)
 
 	fileContent, err := os.ReadFile(filename)
 	if err != nil {
@@ -51,7 +52,7 @@ func transpile(filename string, showTokens bool, showAST bool) {
 	if showAST {
 		fmt.Printf("AST:       %s\n", program)
 	}
-	err = transpiler.Transpile(program, env, filename)
+	err = transpilerObj.Transpile(program, env, filename)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

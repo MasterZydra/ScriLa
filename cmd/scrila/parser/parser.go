@@ -17,18 +17,17 @@ var multiplicitaveOps = []string{"*", "/"} // TODO Modulo %
 var funcReturnTypes = []lexer.TokenType{lexer.BoolType, lexer.VoidType, lexer.IntType, lexer.StrType}
 
 type Parser struct {
-	lexer  *lexer.Lexer
-	tokens []*lexer.Token
+	lexer    *lexer.Lexer
+	tokens   []*lexer.Token
+	filename string
 }
 
 func NewParser() *Parser {
 	return &Parser{lexer: lexer.NewLexer()}
 }
 
-var fileName string
-
 func (self Parser) ProduceAST(sourceCode string, filename string) (ast.IProgram, error) {
-	fileName = filename
+	self.filename = filename
 	program := ast.NewProgram()
 
 	var err error
@@ -96,7 +95,7 @@ func (self *Parser) parseVarDeclaration() (ast.IStatement, error) {
 	}
 
 	if !slices.Contains([]lexer.TokenType{lexer.ObjType, lexer.StrType, lexer.IntType, lexer.BoolType}, self.at().TokenType) {
-		return ast.NewEmptyStatement(), fmt.Errorf("%s:%d:%d: Variable type '%s' not given or supported", fileName, self.at().Ln, self.at().Col, self.at().Value)
+		return ast.NewEmptyStatement(), fmt.Errorf("%s:%d:%d: Variable type '%s' not given or supported", self.filename, self.at().Ln, self.at().Col, self.at().Value)
 	}
 	varType := self.eat().TokenType
 
@@ -176,10 +175,10 @@ func (self *Parser) parseFunctionDeclaration() (ast.IStatement, error) {
 	// Return type
 	returnType := self.eat()
 	if returnType.TokenType == lexer.OpenBrace {
-		return ast.NewEmptyStatement(), fmt.Errorf("%s:%d:%d: Return type is missing", fileName, returnType.Ln, returnType.Col)
+		return ast.NewEmptyStatement(), fmt.Errorf("%s:%d:%d: Return type is missing", self.filename, returnType.Ln, returnType.Col)
 	}
 	if !slices.Contains(funcReturnTypes, returnType.TokenType) {
-		return ast.NewEmptyStatement(), fmt.Errorf("%s:%d:%d: Unsupported return type '%s'", fileName, returnType.Ln, returnType.Col, returnType.Value)
+		return ast.NewEmptyStatement(), fmt.Errorf("%s:%d:%d: Unsupported return type '%s'", self.filename, returnType.Ln, returnType.Col, returnType.Value)
 	}
 
 	// Body
@@ -408,7 +407,7 @@ func (self *Parser) parseParametersList() ([]*ast.Parameter, error) {
 	params := make([]*ast.Parameter, 0)
 
 	if !slices.Contains([]lexer.TokenType{lexer.StrType, lexer.BoolType, lexer.IntType, lexer.ObjType}, self.at().TokenType) {
-		return params, fmt.Errorf("%s:%d:%d: Expected param type but got %s '%s'", fileName, self.at().Ln, self.at().Col, self.at().TokenType, self.at().Value)
+		return params, fmt.Errorf("%s:%d:%d: Expected param type but got %s '%s'", self.filename, self.at().Ln, self.at().Col, self.at().TokenType, self.at().Value)
 	}
 
 	for self.notEOF() && slices.Contains([]lexer.TokenType{lexer.StrType, lexer.BoolType, lexer.IntType, lexer.ObjType}, self.at().TokenType) {
@@ -425,7 +424,7 @@ func (self *Parser) parseParametersList() ([]*ast.Parameter, error) {
 			return params, nil
 		}
 	}
-	return params, fmt.Errorf("%s:%d:%d: Unexpected token '%s' in parameter list", fileName, self.at().Ln, self.at().Col, self.at().Value)
+	return params, fmt.Errorf("%s:%d:%d: Unexpected token '%s' in parameter list", self.filename, self.at().Ln, self.at().Col, self.at().Value)
 }
 
 // func add(a, b) {} <- a & b are parameters
@@ -493,7 +492,7 @@ func (self *Parser) parseMemberExpr() (ast.IExpr, error) {
 			}
 
 			if property.GetKind() != ast.IdentifierNode {
-				return ast.NewEmptyExpr(), fmt.Errorf("%s:%d:%d: Cannot use dot operator without right hand side being an identifier", fileName, property.GetLn(), property.GetCol())
+				return ast.NewEmptyExpr(), fmt.Errorf("%s:%d:%d: Cannot use dot operator without right hand side being an identifier", self.filename, property.GetLn(), property.GetCol())
 			}
 		} else {
 			isComputed = true
@@ -534,7 +533,7 @@ func (self *Parser) parsePrimaryExpr() (ast.IExpr, error) {
 		_, err = self.expect(lexer.CloseParen, "Unexpexted token found inside parenthesised expression. Expected closing parenthesis")
 		return value, err
 	default:
-		return ast.NewEmptyExpr(), fmt.Errorf("%s:%d:%d: Unexpected token '%s' ('%s') found during parsing", fileName, self.at().Ln, self.at().Col, self.at().TokenType, self.at().Value)
+		return ast.NewEmptyExpr(), fmt.Errorf("%s:%d:%d: Unexpected token '%s' ('%s') found during parsing", self.filename, self.at().Ln, self.at().Col, self.at().TokenType, self.at().Value)
 	}
 }
 
@@ -545,7 +544,7 @@ func (self *Parser) at() *lexer.Token {
 func (self *Parser) expect(tokenType lexer.TokenType, errMsg string) (*lexer.Token, error) {
 	prev := self.eat()
 	if prev.TokenType != tokenType {
-		return &lexer.Token{}, fmt.Errorf("%s:%d:%d: %s\nExpected: %s\nGot: %s", fileName, prev.Ln, prev.Col, errMsg, tokenType, prev)
+		return &lexer.Token{}, fmt.Errorf("%s:%d:%d: %s\nExpected: %s\nGot: %s", self.filename, prev.Ln, prev.Col, errMsg, tokenType, prev)
 	}
 	return prev, nil
 }

@@ -7,24 +7,31 @@ import (
 	"testing"
 )
 
-func setTestPrintMode() {
-	testPrintMode = true
+var testTranspiler *Transpiler
+
+func initTest() {
+	testTranspiler = NewTranspiler()
+	testTranspiler.filename = "test.scri"
+	testTranspiler.testMode = true
+}
+
+func initTestForPrintMode() {
+	initTest()
+	testTranspiler.testPrintMode = true
 }
 
 func transpileTest(code string) error {
-	testMode = true
-	fileName = "test.scri"
 	parser := parser.NewParser()
-	env := NewEnvironment(nil)
-
-	program, err := parser.ProduceAST(code, fileName)
+	env := NewEnvironment(nil, testTranspiler)
+	program, err := parser.ProduceAST(code, testTranspiler.filename)
 	if err != nil {
 		return err
 	}
-	return Transpile(program, env, "")
+	return testTranspiler.Transpile(program, env, "")
 }
 
 func TestErrorLexerUnrecognizedChar(t *testing.T) {
+	initTest()
 	err := transpileTest(`~`)
 	expected := fmt.Errorf("test.scri:1:1: Unrecognized character '~' found")
 	if err.Error() != expected.Error() {
@@ -33,7 +40,7 @@ func TestErrorLexerUnrecognizedChar(t *testing.T) {
 }
 
 func ExamplePrint() {
-	setTestPrintMode()
+	initTestForPrintMode()
 	transpileTest(`
 		# Print with(out) linebreaks
 		print("Hello ");
@@ -66,7 +73,7 @@ func ExamplePrint() {
 }
 
 func ExampleIntVar() {
-	setTestPrintMode()
+	initTestForPrintMode()
 	transpileTest(`
 		# Declare and assign new value
 		int i = 42;
@@ -92,6 +99,7 @@ func ExampleIntVar() {
 }
 
 func TestErrorAssignWrongLeftSide(t *testing.T) {
+	initTest()
 	err := transpileTest(`12 = 34;`)
 	expected := fmt.Errorf("test.scri:1:1: Left side of an assignment must be a variable. Got 'IntLiteral'")
 	if !strings.HasPrefix(err.Error(), expected.Error()) {
@@ -100,6 +108,7 @@ func TestErrorAssignWrongLeftSide(t *testing.T) {
 }
 
 func TestErrorUnsupportedStringOperation(t *testing.T) {
+	initTest()
 	err := transpileTest(`str s = "str" - "str";`)
 	expected := fmt.Errorf("test.scri:1:15: Binary string expression with unsupported operator '-'")
 	if !strings.HasPrefix(err.Error(), expected.Error()) {
@@ -108,6 +117,7 @@ func TestErrorUnsupportedStringOperation(t *testing.T) {
 }
 
 func TestErrorBinaryExprWithUnsupportedCombination(t *testing.T) {
+	initTest()
 	err := transpileTest(`int i = "str" - 123;`)
 	expected := fmt.Errorf("test.scri:1:15: No support for binary expressions of type 'str' and 'int'")
 	if !strings.HasPrefix(err.Error(), expected.Error()) {
@@ -116,6 +126,7 @@ func TestErrorBinaryExprWithUnsupportedCombination(t *testing.T) {
 }
 
 func TestErrorIntDeclarationWithMissingSemicolon(t *testing.T) {
+	initTest()
 	err := transpileTest(`int i = 42`)
 	expected := fmt.Errorf("test.scri:1:11: Expression must end with a semicolon")
 	if !strings.HasPrefix(err.Error(), expected.Error()) {
@@ -124,6 +135,7 @@ func TestErrorIntDeclarationWithMissingSemicolon(t *testing.T) {
 }
 
 func TestErrorDoubleVariableDeclration(t *testing.T) {
+	initTest()
 	err := transpileTest(`
 		int i = 42;
 		int i = 42;
@@ -135,6 +147,7 @@ func TestErrorDoubleVariableDeclration(t *testing.T) {
 }
 
 func TestErrorAssignContVar(t *testing.T) {
+	initTest()
 	err := transpileTest(`
 		const int i = 42;
 		i = 43;
@@ -146,6 +159,7 @@ func TestErrorAssignContVar(t *testing.T) {
 }
 
 func TestErrorIntAssignmentWithMissingDeclaration(t *testing.T) {
+	initTest()
 	err := transpileTest(`i = 42;`)
 	expected := fmt.Errorf("test.scri:1:1: Cannot resolve variable 'i' as it does not exist")
 	if err.Error() != expected.Error() {
@@ -154,7 +168,7 @@ func TestErrorIntAssignmentWithMissingDeclaration(t *testing.T) {
 }
 
 func ExampleStrAssignmentBinaryExprWithVar() {
-	setTestPrintMode()
+	initTestForPrintMode()
 	transpileTest(`
 		str a = "Hello";
 		str b = "World";
@@ -174,7 +188,7 @@ func ExampleStrAssignmentBinaryExprWithVar() {
 }
 
 func ExampleVarDeclarationAndAssignmentWithVariable() {
-	setTestPrintMode()
+	initTestForPrintMode()
 	transpileTest(`
 		int i = 123;
 		int j = i;
@@ -197,6 +211,7 @@ func ExampleVarDeclarationAndAssignmentWithVariable() {
 }
 
 func TestErrorAssignDifferentVarTypes(t *testing.T) {
+	initTest()
 	err := transpileTest(`
 		int i = 123;
 		str s = "str";
@@ -209,6 +224,7 @@ func TestErrorAssignDifferentVarTypes(t *testing.T) {
 }
 
 func TestErrorUnsupportedVarType(t *testing.T) {
+	initTest()
 	err := transpileTest(`const func i = 13;`)
 	expected := fmt.Errorf("test.scri:1:7: Variable type 'func' not given or supported")
 	if err.Error() != expected.Error() {
@@ -217,6 +233,7 @@ func TestErrorUnsupportedVarType(t *testing.T) {
 }
 
 func TestErrorDeclareDifferentVarTypes(t *testing.T) {
+	initTest()
 	err := transpileTest(`
 		int i = 123;
 		str s = i;
@@ -228,6 +245,7 @@ func TestErrorDeclareDifferentVarTypes(t *testing.T) {
 }
 
 func TestErrorDeclareDifferentType(t *testing.T) {
+	initTest()
 	err := transpileTest(`int i = "123";`)
 	expected := fmt.Errorf("test.scri:1:11: Cannot assign a value of type 'StrType' to a var of type 'IntType'")
 	if err.Error() != expected.Error() {
@@ -236,6 +254,7 @@ func TestErrorDeclareDifferentType(t *testing.T) {
 }
 
 func TestErrorAssignDifferentType(t *testing.T) {
+	initTest()
 	err := transpileTest(`
 		int i = 123;
 		i = "456";
@@ -247,6 +266,7 @@ func TestErrorAssignDifferentType(t *testing.T) {
 }
 
 func TestErrorReturnOutsideOfFunction(t *testing.T) {
+	initTest()
 	err := transpileTest(`return true;`)
 	expected := fmt.Errorf("test.scri:1:1: Return is only allowed inside a function")
 	if err.Error() != expected.Error() {
@@ -255,6 +275,7 @@ func TestErrorReturnOutsideOfFunction(t *testing.T) {
 }
 
 func TestErrorInvalidFuncCallName(t *testing.T) {
+	initTest()
 	err := transpileTest(`12();`)
 	expected := fmt.Errorf("test.scri:1:1: Function name must be an identifier. Got: 'IntLiteral'")
 	if !strings.HasPrefix(err.Error(), expected.Error()) {
@@ -263,6 +284,7 @@ func TestErrorInvalidFuncCallName(t *testing.T) {
 }
 
 func TestErrorFuncParamsWithUnexpectedToken(t *testing.T) {
+	initTest()
 	err := transpileTest(`func fn(int a const) void {}`)
 	expected := fmt.Errorf("test.scri:1:15: Unexpected token 'const' in parameter list")
 	if err.Error() != expected.Error() {
@@ -271,6 +293,7 @@ func TestErrorFuncParamsWithUnexpectedToken(t *testing.T) {
 }
 
 func TestErrorMissingFuncParamType(t *testing.T) {
+	initTest()
 	err := transpileTest(`func fn(a) void {}`)
 	expected := fmt.Errorf("test.scri:1:9: Expected param type but got Identifier 'a'")
 	if err.Error() != expected.Error() {
@@ -279,6 +302,7 @@ func TestErrorMissingFuncParamType(t *testing.T) {
 }
 
 func TestErrorNonexistentFunc(t *testing.T) {
+	initTest()
 	err := transpileTest(`fn();`)
 	expected := fmt.Errorf("test.scri:1:1: Cannot resolve function 'fn' as it does not exist")
 	if err.Error() != expected.Error() {
@@ -287,6 +311,7 @@ func TestErrorNonexistentFunc(t *testing.T) {
 }
 
 func TestErrorAlreadyDefinedFunction(t *testing.T) {
+	initTest()
 	err := transpileTest(`
 		func print() int {
 			return 0;
@@ -299,6 +324,7 @@ func TestErrorAlreadyDefinedFunction(t *testing.T) {
 }
 
 func TestErrorSleepFuncCallWithWrongParamVarType(t *testing.T) {
+	initTest()
 	err := transpileTest(`
 		str s = "123";
 		sleep(s);
@@ -310,6 +336,7 @@ func TestErrorSleepFuncCallWithWrongParamVarType(t *testing.T) {
 }
 
 func TestErrorSleepFuncCallWithWrongParamType(t *testing.T) {
+	initTest()
 	err := transpileTest(`sleep("123");`)
 	expected := fmt.Errorf("test.scri:1:1: sleep() - Parameter seconds must be an int or a variable of type int. Got 'StrLiteral'")
 	if err.Error() != expected.Error() {
@@ -318,6 +345,7 @@ func TestErrorSleepFuncCallWithWrongParamType(t *testing.T) {
 }
 
 func TestErrorInputFuncCallWithWrongParamVarType(t *testing.T) {
+	initTest()
 	err := transpileTest(`
 		int i = 42;
 		input(i);
@@ -329,6 +357,7 @@ func TestErrorInputFuncCallWithWrongParamVarType(t *testing.T) {
 }
 
 func TestErrorInputFuncCallWithWrongParamType(t *testing.T) {
+	initTest()
 	err := transpileTest(`input(42);`)
 	expected := fmt.Errorf("test.scri:1:1: input() - Parameter prompt must be a string or a variable of type string. Got 'IntLiteral'")
 	if err.Error() != expected.Error() {
@@ -337,7 +366,7 @@ func TestErrorInputFuncCallWithWrongParamType(t *testing.T) {
 }
 
 func ExampleFuncDeclarationWithCall() {
-	setTestPrintMode()
+	initTestForPrintMode()
 	transpileTest(`
 		# Function without params
 		func funcWithoutParams() void {
@@ -404,6 +433,7 @@ func ExampleFuncDeclarationWithCall() {
 }
 
 func TestErrorFuncCallWithWrongTypes(t *testing.T) {
+	initTest()
 	err := transpileTest(`
 		func fn(int a) void {
 			printLn(a);
@@ -417,6 +447,7 @@ func TestErrorFuncCallWithWrongTypes(t *testing.T) {
 }
 
 func TestErrorFuncCallWithWrongAmountOfArgs(t *testing.T) {
+	initTest()
 	err := transpileTest(`
 		func fn(int a) void {
 			printLn(a);
@@ -430,6 +461,7 @@ func TestErrorFuncCallWithWrongAmountOfArgs(t *testing.T) {
 }
 
 func TestErrorFuncDeclWithMissingType(t *testing.T) {
+	initTest()
 	err := transpileTest(`
 		func fn(int a) {
 			printLn(a);
@@ -442,6 +474,7 @@ func TestErrorFuncDeclWithMissingType(t *testing.T) {
 }
 
 func TestErrorFuncDeclWithUnsupportedType(t *testing.T) {
+	initTest()
 	err := transpileTest(`
 		func fn(int a) const {
 			printLn(a);
@@ -454,6 +487,7 @@ func TestErrorFuncDeclWithUnsupportedType(t *testing.T) {
 }
 
 func TestErrorFuncVoidReturnValUsed(t *testing.T) {
+	initTest()
 	err := transpileTest(`
 		func fn() void {
 			printLn(123);
@@ -467,6 +501,7 @@ func TestErrorFuncVoidReturnValUsed(t *testing.T) {
 }
 
 func TestErrorInvalidPropertyName(t *testing.T) {
+	initTest()
 	err := transpileTest(`
 		obj o = { a: 1, };
 		o.1 = 32;
@@ -478,7 +513,7 @@ func TestErrorInvalidPropertyName(t *testing.T) {
 }
 
 func ExampleObject() {
-	setTestPrintMode()
+	initTestForPrintMode()
 	transpileTest(`
 		obj o = { p1: 123, p2: "str", p3: false, };
 		o.p1 = 321;
@@ -497,6 +532,7 @@ func ExampleObject() {
 }
 
 func TestErrorObjectWithMissingComma(t *testing.T) {
+	initTest()
 	err := transpileTest(`
 		obj o = { p1: 123 };
 	`)
@@ -507,6 +543,7 @@ func TestErrorObjectWithMissingComma(t *testing.T) {
 }
 
 func TestErrorObjectWithMissingColon(t *testing.T) {
+	initTest()
 	err := transpileTest(`
 		obj o = { p1 };
 	`)
@@ -517,6 +554,7 @@ func TestErrorObjectWithMissingColon(t *testing.T) {
 }
 
 func TestErrorObjectWithMissingValue(t *testing.T) {
+	initTest()
 	err := transpileTest(`
 		obj o = { p1: , };
 	`)
@@ -527,6 +565,7 @@ func TestErrorObjectWithMissingValue(t *testing.T) {
 }
 
 func TestErrorMemberExprWithObjectOfWrongType(t *testing.T) {
+	initTest()
 	err := transpileTest(`
 		int i = 42;
 		i.a = 1;
@@ -538,6 +577,7 @@ func TestErrorMemberExprWithObjectOfWrongType(t *testing.T) {
 }
 
 func TestErrorMemberExprWithWrongObjectNameType(t *testing.T) {
+	initTest()
 	err := transpileTest(`
 		int i = 42;
 		1.a = 1;
@@ -549,17 +589,16 @@ func TestErrorMemberExprWithWrongObjectNameType(t *testing.T) {
 }
 
 func TestErrorInputWithoutPrompt(t *testing.T) {
-	err := transpileTest(`
-		input();
-	`)
-	expected := fmt.Errorf("test.scri:2:3: Expected syntax: input(str prompt)")
+	initTest()
+	err := transpileTest(`input();`)
+	expected := fmt.Errorf("test.scri:1:1: Expected syntax: input(str prompt)")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
 }
 
 func ExampleInput() {
-	setTestPrintMode()
+	initTestForPrintMode()
 	transpileTest(`
 		str s = input("Enter username:");
 		input(s);
@@ -574,17 +613,16 @@ func ExampleInput() {
 }
 
 func TestErrorSleepWithoutSeconds(t *testing.T) {
-	err := transpileTest(`
-		sleep();
-	`)
-	expected := fmt.Errorf("test.scri:2:3: Expected syntax: sleep(int seconds)")
+	initTest()
+	err := transpileTest(`sleep();`)
+	expected := fmt.Errorf("test.scri:1:1: Expected syntax: sleep(int seconds)")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
 }
 
 func ExampleSleep() {
-	setTestPrintMode()
+	initTestForPrintMode()
 	transpileTest(`
 		sleep(10);
 		int i = 10;
@@ -600,6 +638,7 @@ func ExampleSleep() {
 }
 
 func TestErrorIfWithoutOpenParen(t *testing.T) {
+	initTest()
 	err := transpileTest(`
 		if true {}
 	`)
@@ -610,6 +649,7 @@ func TestErrorIfWithoutOpenParen(t *testing.T) {
 }
 
 func TestErrorIfWithoutOpenBrace(t *testing.T) {
+	initTest()
 	err := transpileTest(`
 		if (true)
 		printLn("str");
@@ -621,6 +661,7 @@ func TestErrorIfWithoutOpenBrace(t *testing.T) {
 }
 
 func TestErrorIfWithWrongBinaryExprType(t *testing.T) {
+	initTest()
 	err := transpileTest(`
 		if (1 + 1) {
 			printLn("str");
@@ -633,6 +674,7 @@ func TestErrorIfWithWrongBinaryExprType(t *testing.T) {
 }
 
 func TestErrorIfWithWrongVarType(t *testing.T) {
+	initTest()
 	err := transpileTest(`
 		int i = 42;
 		if (i) {
@@ -646,7 +688,7 @@ func TestErrorIfWithWrongVarType(t *testing.T) {
 }
 
 func ExampleIf() {
-	setTestPrintMode()
+	initTestForPrintMode()
 	transpileTest(`
 		if (true) {
 			printLn("true");

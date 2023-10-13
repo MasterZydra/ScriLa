@@ -9,7 +9,7 @@ import (
 
 var reservedIdentifiers = []string{"null", "true", "false"}
 
-func setupScope(env *Environment) {
+func (self *Transpiler) setupScope(env *Environment) {
 	// Create Default Global Environment
 	env.declareVar("null", NewNullVal(), true, lexer.Identifier)
 	env.declareVar("true", NewBoolVal(true), true, lexer.Bool)
@@ -21,7 +21,7 @@ func setupScope(env *Environment) {
 	env.declareVar("tmpBool", NewBoolVal(false), false, lexer.BoolType)
 
 	// Define native builtin methods
-	declareNativeFunctions(env)
+	self.declareNativeFunctions(env)
 }
 
 type Environment struct {
@@ -32,7 +32,7 @@ type Environment struct {
 	constants []string
 }
 
-func NewEnvironment(parentEnv *Environment) *Environment {
+func NewEnvironment(parentEnv *Environment, transpiler *Transpiler) *Environment {
 	isGlobal := parentEnv == nil
 	env := &Environment{
 		parent:    parentEnv,
@@ -43,7 +43,7 @@ func NewEnvironment(parentEnv *Environment) *Environment {
 	}
 
 	if isGlobal {
-		setupScope(env)
+		transpiler.setupScope(env)
 	}
 	return env
 }
