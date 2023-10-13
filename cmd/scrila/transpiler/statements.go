@@ -157,7 +157,15 @@ func evalIfStatement(ifStatement ast.IIfStatement, env *Environment) (IRuntimeVa
 		if ast.IdentIsBool(identifier) {
 			writeToFile(boolIdentToBashComparison(identifier))
 		} else {
-			return NewNullVal(), fmt.Errorf("%s:%d:%d: Unsupported type '%s' for condition", fileName, ifStatement.GetCondition().GetLn(), ifStatement.GetCondition().GetCol(), ifStatement.GetCondition().GetKind())
+			valueVarType, err := env.lookupVarType(identNodeGetSymbol(ifStatement.GetCondition()))
+			if err != nil {
+				return NewNullVal(), err
+			}
+
+			if valueVarType != lexer.BoolType {
+				return NewNullVal(), fmt.Errorf("%s:%d:%d: Condition is not of type bool. Got %s", fileName, ifStatement.GetCondition().GetLn(), ifStatement.GetCondition().GetCol(), valueVarType)
+			}
+			writeToFile(varIdentToBashComparison(identifier))
 		}
 	default:
 		return NewNullVal(), fmt.Errorf("%s:%d:%d: Unsupported type '%s' for condition", fileName, ifStatement.GetCondition().GetLn(), ifStatement.GetCondition().GetCol(), ifStatement.GetCondition().GetKind())

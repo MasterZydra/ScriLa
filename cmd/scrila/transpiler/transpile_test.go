@@ -683,10 +683,33 @@ func TestErrorIfWithWrongBinaryExprType(t *testing.T) {
 	}
 }
 
+func TestErrorIfWithWrongVarType(t *testing.T) {
+	err := transpileTest(`
+		int i = 42;
+		if (i) {
+			printLn("str");
+		}
+	`)
+	expected := fmt.Errorf("test.scri:3:7: Condition is not of type bool. Got IntType")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
 func ExampleIf() {
 	setTestPrintMode()
 	transpileTest(`
 		if (true) {
+			printLn("true");
+		}
+		if (true && false) {
+			printLn("true");
+		}
+		if (true || false) {
+			printLn("true");
+		}
+		bool b = true;
+		if (b) {
 			printLn("true");
 		}
 	`)
@@ -697,36 +720,14 @@ func ExampleIf() {
 	// if [[ "true" == "true" ]]; then
 	// 	echo "true"
 	// fi
-}
-
-func ExampleIfBoolAndBool() {
-	setTestPrintMode()
-	transpileTest(`
-		if (true && false) {
-			printLn("true");
-		}
-	`)
-
-	// Output:
-	// #!/bin/bash
-	// # Created by Scrila Transpiler v0.0.1
 	// if [[ "true" == "true" ]] && [[ "false" == "true" ]]; then
 	// 	echo "true"
 	// fi
-}
-
-func ExampleIfBoolOrBool() {
-	setTestPrintMode()
-	transpileTest(`
-		if (true || false) {
-			printLn("true");
-		}
-	`)
-
-	// Output:
-	// #!/bin/bash
-	// # Created by Scrila Transpiler v0.0.1
 	// if [[ "true" == "true" ]] || [[ "false" == "true" ]]; then
+	// 	echo "true"
+	// fi
+	// b="true"
+	// if [[ "${b}" == "true" ]]; then
 	// 	echo "true"
 	// fi
 }
