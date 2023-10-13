@@ -21,7 +21,11 @@ func evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) (IRuntimeVal, error
 	case ast.BinaryExprNode:
 		// Do nothing
 	case ast.IdentifierNode:
-		lhs.SetTranspilat(identNodeToBashVar(binOp.GetLeft()))
+		if ast.IdentIsBool(ast.ExprToIdent(binOp.GetLeft())) {
+			lhs.SetTranspilat(boolIdentToBashComparison(ast.ExprToIdent(binOp.GetLeft())))
+		} else {
+			lhs.SetTranspilat(identNodeToBashVar(binOp.GetLeft()))
+		}
 	case ast.IntLiteralNode, ast.StrLiteralNode:
 		lhs.SetTranspilat(lhs.ToString())
 	default:
@@ -36,7 +40,11 @@ func evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) (IRuntimeVal, error
 	case ast.BinaryExprNode:
 		// Do nothing
 	case ast.IdentifierNode:
-		rhs.SetTranspilat(identNodeToBashVar(binOp.GetRight()))
+		if ast.IdentIsBool(ast.ExprToIdent(binOp.GetRight())) {
+			rhs.SetTranspilat(boolIdentToBashComparison(ast.ExprToIdent(binOp.GetRight())))
+		} else {
+			rhs.SetTranspilat(identNodeToBashVar(binOp.GetRight()))
+		}
 	case ast.IntLiteralNode, ast.StrLiteralNode:
 		rhs.SetTranspilat(rhs.ToString())
 	default:
@@ -44,7 +52,11 @@ func evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) (IRuntimeVal, error
 	}
 
 	if lhs.GetType() == IntValueType && rhs.GetType() == IntValueType {
-		return evalIntBinaryExpr(runtimeToIntVal(lhs), runtimeToIntVal(rhs), binOp.GetOperator())
+		result, err := evalIntBinaryExpr(runtimeToIntVal(lhs), runtimeToIntVal(rhs), binOp.GetOperator())
+		if err != nil {
+			return NewNullVal(), fmt.Errorf("%s:%d:%d: %s", fileName, binOp.GetLn(), binOp.GetCol(), err)
+		}
+		return result, nil
 	}
 
 	if lhs.GetType() == StrValueType && rhs.GetType() == StrValueType {
@@ -55,7 +67,34 @@ func evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) (IRuntimeVal, error
 		return result, nil
 	}
 
+	if lhs.GetType() == BoolValueType && rhs.GetType() == BoolValueType {
+		result, err := evalBoolBinaryExpr(runtimeToBoolVal(lhs), runtimeToBoolVal(rhs), binOp.GetOperator())
+		if err != nil {
+			return NewNullVal(), fmt.Errorf("%s:%d:%d: %s", fileName, binOp.GetLn(), binOp.GetCol(), err)
+		}
+		return result, nil
+	}
+
 	return NewNullVal(), fmt.Errorf("%s:%d:%d: No support for binary expressions of type '%s' and '%s'", fileName, binOp.GetLn(), binOp.GetCol(), lhs.GetType(), rhs.GetType())
+}
+
+func evalBoolBinaryExpr(lhs IBoolVal, rhs IBoolVal, operator string) (IBoolVal, error) {
+	var result bool
+	transpilat := ""
+	switch operator {
+	case "&&":
+		transpilat += lhs.GetTranspilat() + " && " + rhs.GetTranspilat()
+		result = lhs.GetValue() && rhs.GetValue()
+	case "||":
+		transpilat += lhs.GetTranspilat() + " || " + rhs.GetTranspilat()
+		result = lhs.GetValue() || rhs.GetValue()
+	default:
+		return NewBoolVal(false), fmt.Errorf("Binary bool expression with unsupported operator '%s'", operator)
+	}
+
+	boolVal := NewBoolVal(result)
+	boolVal.SetTranspilat(transpilat)
+	return boolVal, nil
 }
 
 func evalIntBinaryExpr(lhs IIntVal, rhs IIntVal, operator string) (IIntVal, error) {
@@ -159,7 +198,7 @@ func evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeV
 		writeLnToFile(strToBashStr(value.ToString()))
 	case ast.IdentifierNode:
 		symbol := identNodeGetSymbol(assignment.GetValue())
-		if symbol == "null" {
+		if symbol == "null" || ast.IdentIsBool(ast.ExprToIdent(assignment.GetValue())) {
 			writeLnToFile(strToBashStr(symbol))
 		} else if slices.Contains(reservedIdentifiers, symbol) {
 			writeLnToFile(symbol)

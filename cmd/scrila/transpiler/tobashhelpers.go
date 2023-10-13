@@ -19,3 +19,7 @@ func identNodeGetSymbol(expr ast.IExpr) string {
 func identNodeToBashVar(expr ast.IExpr) string {
 	return fmt.Sprintf("${%s}", identNodeGetSymbol(expr))
 }
+
+func boolIdentToBashComparison(ident ast.IIdentifier) string {
+	return fmt.Sprintf("[[ %s == \"true\" ]]", strToBashStr(ident.GetSymbol()))
+}

@@ -1,7 +1,6 @@
 package ast
 
 import (
-	"ScriLa/cmd/scrila/lexer"
 	"fmt"
 )
 
@@ -233,41 +232,6 @@ func (self *MemberExpr) GetLn() int {
 }
 
 func (self *MemberExpr) GetCol() int {
-	return self.expr.GetCol()
-}
-
-// Identifier
-
-type IIdentifier interface {
-	IExpr
-	GetSymbol() string
-}
-
-type Identifier struct {
-	expr   *Expr
-	symbol string
-}
-
-func NewIdentifier(token *lexer.Token) *Identifier {
-	return &Identifier{
-		expr:   NewExpr(IdentifierNode, token.Ln, token.Col),
-		symbol: token.Value,
-	}
-}
-
-func (self *Identifier) GetKind() NodeType {
-	return self.expr.GetKind()
-}
-
-func (self *Identifier) GetSymbol() string {
-	return self.symbol
-}
-
-func (self *Identifier) GetLn() int {
-	return self.expr.GetLn()
-}
-
-func (self *Identifier) GetCol() int {
 	return self.expr.GetCol()
 }
 

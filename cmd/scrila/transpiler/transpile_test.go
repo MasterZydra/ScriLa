@@ -71,7 +71,7 @@ func ExamplePrintVariables() {
 	// # Created by Scrila Transpiler v0.0.1
 	// i=42
 	// s="hello world"
-	// b=false
+	// b="false"
 	// echo "${i} ${s} ${b}"
 }
 

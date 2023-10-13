@@ -14,7 +14,8 @@ classDiagram
   parseExpr o-- parseAssignmentExpr
   parseAssignmentExpr o-- parseAssignmentExpr : Value
   parseAssignmentExpr o-- parseObjectExpr : Left
-  parseObjectExpr o-- parseAdditiveExpr
+  parseObjectExpr o-- parseBooleanExpr
+  parseBooleanExpr o-- parseAdditiveExpr : Left & Right
   parseAdditiveExpr o-- parseMultiplicitaveExpr : Left & Right
   parseMultiplicitaveExpr o-- parseCallMemberExpr : Left & Right
 

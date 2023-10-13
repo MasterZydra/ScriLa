@@ -1,5 +1,10 @@
 package transpiler
 
+func runtimeToBoolVal(runtimeVal IRuntimeVal) IBoolVal {
+	var i interface{} = runtimeVal
+	return i.(IBoolVal)
+}
+
 func runtimeToIntVal(runtimeVal IRuntimeVal) IIntVal {
 	var i interface{} = runtimeVal
 	return i.(IIntVal)

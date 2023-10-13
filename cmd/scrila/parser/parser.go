@@ -8,6 +8,8 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+var booleanOps = []string{"==", "&&", "||"}
+
 var additiveOps = []string{"+", "-"}
 
 var multiplicitaveOps = []string{"*", "/"} // TODO Modulo %
@@ -168,6 +170,7 @@ func (self *Parser) parseExpr() (ast.IExpr, error) {
 // Priority from bottom to top
 // - AssignmentExpr
 // - ObjectExpr
+// - BooleanExpr
 // - AdditiveExpr
 // - MultiplicitiveExpr
 // - CallExpr
@@ -201,7 +204,7 @@ func (self *Parser) parseObjectExpr() (ast.IExpr, error) {
 	// { Prop[] }
 
 	if self.at().TokenType != lexer.OpenBrace {
-		return self.parseAdditiveExpr()
+		return self.parseBooleanExpr()
 	}
 	self.eat() // Advance past open brace
 
@@ -231,6 +234,25 @@ func (self *Parser) parseObjectExpr() (ast.IExpr, error) {
 
 	_, err := self.expect(lexer.CloseBrace, "Object literal missing closing brace.")
 	return ast.NewObjectLiteral(properties), err
+}
+
+func (self *Parser) parseBooleanExpr() (ast.IExpr, error) {
+	left, err := self.parseAdditiveExpr()
+	if err != nil {
+		return ast.NewEmptyExpr(), err
+	}
+
+	// Current token is an boolean operator
+	for slices.Contains(booleanOps, self.at().Value) {
+		token := self.eat()
+		right, err := self.parseAdditiveExpr()
+		if err != nil {
+			return ast.NewEmptyExpr(), err
+		}
+		left = ast.NewBinaryExpr(left, right, token.Value, token.Ln, token.Col)
+	}
+
+	return left, nil
 }
 
 func (self *Parser) parseAdditiveExpr() (ast.IExpr, error) {

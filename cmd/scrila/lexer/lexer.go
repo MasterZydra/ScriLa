@@ -42,6 +42,12 @@ func (self *Lexer) Tokenize(sourceCode string, filename string) ([]*Token, error
 			continue
 		}
 
+		// Handle comparisons
+		if slices.Contains(comparisons, self.at()) && self.at() == self.next(0) {
+			operation := self.eat() + self.eat()
+			self.pushToken(operation, BinaryOperator)
+		}
+
 		// Handle single-character tokens
 		if reserved, ok := singleCharTokens[self.at()]; ok {
 			currChar := self.eat()
@@ -135,6 +141,13 @@ func (self *Lexer) isNotEof() bool {
 
 func (self *Lexer) at() string {
 	return self.sourceChars[0]
+}
+
+func (self *Lexer) next(offset int) string {
+	if len(self.sourceChars) < offset+1 {
+		return ""
+	}
+	return self.sourceChars[offset+1]
 }
 
 func (self *Lexer) eat() string {

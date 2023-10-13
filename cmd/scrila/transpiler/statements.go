@@ -56,7 +56,7 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 
 	case ast.IdentifierNode:
 		symbol := identNodeGetSymbol(varDeclaration.GetValue())
-		if symbol == "null" {
+		if symbol == "null" || ast.IdentIsBool(ast.ExprToIdent(varDeclaration.GetValue())) {
 			writeLnToFile(strToBashStr(symbol))
 		} else if slices.Contains(reservedIdentifiers, symbol) {
 			writeLnToFile(symbol)
@@ -81,7 +81,7 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 		switch varDeclaration.GetVarType() {
 		case lexer.StrType:
 			writeLnToFile(strToBashStr(value.GetTranspilat()))
-		case lexer.IntType:
+		case lexer.IntType, lexer.BoolType:
 			writeLnToFile(value.GetTranspilat())
 		default:
 			return NewNullVal(), fmt.Errorf("%s:%d:%d: Assigning binary expressions is not implemented for variables of type '%s'", fileName, varDeclaration.GetLn(), varDeclaration.GetCol(), varDeclaration.GetVarType())

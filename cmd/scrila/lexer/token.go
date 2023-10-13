@@ -2,6 +2,8 @@ package lexer
 
 import "fmt"
 
+var comparisons = []string{"|", "&", "="}
+
 var singleCharTokens = map[string]TokenType{
 	"-": BinaryOperator,
 	":": Colon,
