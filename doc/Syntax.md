@@ -47,6 +47,10 @@ if (true && true) {
 if (true || false) {
     printLn("true");
 }
+bool b = true;
+if (b) {
+    printLn("true");
+}
 ```
 
 ## Native functions
