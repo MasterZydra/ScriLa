@@ -35,32 +35,13 @@ func TestErrorLexerUnrecognizedChar(t *testing.T) {
 func ExamplePrint() {
 	setTestPrintMode()
 	transpileTest(`
+		# Print with(out) linebreaks
 		print("Hello ");
 		printLn("World");
 		printLn("!");
-	`)
-
-	// Output:
-	// #!/bin/bash
-	// # Created by Scrila Transpiler v0.0.1
-	// echo -n "Hello "
-	// echo "World"
-	// echo "!"
-}
-
-func ExamplePrintBaseTypes() {
-	setTestPrintMode()
-	transpileTest(`printLn(42, "str", true, false, null);`)
-
-	// Output:
-	// #!/bin/bash
-	// # Created by Scrila Transpiler v0.0.1
-	// echo "42 str true false null"
-}
-
-func ExamplePrintVariables() {
-	setTestPrintMode()
-	transpileTest(`
+		# Print base types
+		printLn(42, "str", true, false, null);
+		# Print variables
 		int i = 42;
 		str s = "hello world";
 		bool b = false;
@@ -70,34 +51,44 @@ func ExamplePrintVariables() {
 	// Output:
 	// #!/bin/bash
 	// # Created by Scrila Transpiler v0.0.1
+	// # Print with(out) linebreaks
+	// echo -n "Hello "
+	// echo "World"
+	// echo "!"
+	// # Print base types
+	// echo "42 str true false null"
+	// # Print variables
 	// i=42
 	// s="hello world"
 	// b="false"
 	// echo "${i} ${s} ${b}"
+
 }
 
-func ExampleIntDeclaration() {
-	setTestPrintMode()
-	transpileTest(`int i = 42;`)
-
-	// Output:
-	// #!/bin/bash
-	// # Created by Scrila Transpiler v0.0.1
-	// i=42
-}
-
-func ExampleIntAssignment() {
+func ExampleIntVar() {
 	setTestPrintMode()
 	transpileTest(`
+		# Declare and assign new value
 		int i = 42;
 		i = 101;
+		# Declare with binary expr
+		int j = 42 * 2;
+		# Declare with binary expr with var
+		int k = i * 2;
+		k = (i + 2) * i;
 	`)
 
 	// Output:
 	// #!/bin/bash
 	// # Created by Scrila Transpiler v0.0.1
+	// # Declare and assign new value
 	// i=42
 	// i=101
+	// # Declare with binary expr
+	// j=$((42 * 2))
+	// # Declare with binary expr with var
+	// k=$((${i} * 2))
+	// k=$(($((${i} + 2)) * ${i}))
 }
 
 func TestErrorAssignWrongLeftSide(t *testing.T) {
@@ -160,32 +151,6 @@ func TestErrorIntAssignmentWithMissingDeclaration(t *testing.T) {
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
-}
-
-func ExampleIntAssignmentBinaryExpr() {
-	setTestPrintMode()
-	transpileTest(`int i = 42 * 2;`)
-
-	// Output:
-	// #!/bin/bash
-	// # Created by Scrila Transpiler v0.0.1
-	// i=$((42 * 2))
-}
-
-func ExampleIntAssignmentBinaryExprWithVar() {
-	setTestPrintMode()
-	transpileTest(`
-		int i = 42;
-		int j = i * 2;
-		j = (i + 2) * i;
-	`)
-
-	// Output:
-	// #!/bin/bash
-	// # Created by Scrila Transpiler v0.0.1
-	// i=42
-	// j=$((${i} * 2))
-	// j=$(($((${i} + 2)) * ${i}))
 }
 
 func ExampleStrAssignmentBinaryExprWithVar() {
@@ -279,22 +244,6 @@ func TestErrorAssignDifferentType(t *testing.T) {
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
-}
-
-func ExampleComment() {
-	setTestPrintMode()
-	transpileTest(`
-		# Comment 1
-		int i = 42;
-		#  Comment 2
-	`)
-
-	// Output:
-	// #!/bin/bash
-	// # Created by Scrila Transpiler v0.0.1
-	// # Comment 1
-	// i=42
-	// # Comment 2
 }
 
 func TestErrorReturnOutsideOfFunction(t *testing.T) {
