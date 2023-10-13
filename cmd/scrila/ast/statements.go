@@ -260,3 +260,49 @@ func (self *FunctionDeclaration) GetLn() int {
 func (self *FunctionDeclaration) GetCol() int {
 	return self.statement.GetCol()
 }
+
+// IfStatement
+
+type IIfStatement interface {
+	IStatement
+	GetCondition() IExpr
+	GetBody() []IStatement
+}
+
+type IfStatement struct {
+	statement *Statement
+	condition IExpr
+	body      []IStatement
+}
+
+func (self *IfStatement) String() string {
+	return fmt.Sprintf("&{%s %s %s}", self.GetKind(), self.GetCondition(), self.GetBody())
+}
+
+func NewIfStatement(condition IExpr, body []IStatement, ln int, col int) *IfStatement {
+	return &IfStatement{
+		statement: NewStatement(IfStatementNode, ln, col),
+		condition: condition,
+		body:      body,
+	}
+}
+
+func (self *IfStatement) GetKind() NodeType {
+	return self.statement.GetKind()
+}
+
+func (self *IfStatement) GetCondition() IExpr {
+	return self.condition
+}
+
+func (self *IfStatement) GetBody() []IStatement {
+	return self.body
+}
+
+func (self *IfStatement) GetLn() int {
+	return self.statement.GetLn()
+}
+
+func (self *IfStatement) GetCol() int {
+	return self.statement.GetCol()
+}

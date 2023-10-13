@@ -138,6 +138,46 @@ func evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (I
 	return result, nil
 }
 
+func evalIfStatement(ifStatement ast.IIfStatement, env *Environment) (IRuntimeVal, error) {
+	writeToFile("if ")
+
+	// Transpile condition
+	switch ifStatement.GetCondition().GetKind() {
+	case ast.BinaryExprNode:
+		value, err := transpile(ifStatement.GetCondition(), env)
+		if err != nil {
+			return NewNullVal(), err
+		}
+		if value.GetType() != BoolValueType {
+			return NewNullVal(), fmt.Errorf("%s:%d:%d: Condition is no boolean expression. Got %s", fileName, ifStatement.GetCondition().GetLn(), ifStatement.GetCondition().GetCol(), value.GetType())
+		}
+		writeToFile(value.GetTranspilat())
+	case ast.IdentifierNode:
+		identifier := ast.ExprToIdent(ifStatement.GetCondition())
+		if ast.IdentIsBool(identifier) {
+			writeToFile(boolIdentToBashComparison(identifier))
+		} else {
+			return NewNullVal(), fmt.Errorf("%s:%d:%d: Unsupported type '%s' for condition", fileName, ifStatement.GetCondition().GetLn(), ifStatement.GetCondition().GetCol(), ifStatement.GetCondition().GetKind())
+		}
+	default:
+		return NewNullVal(), fmt.Errorf("%s:%d:%d: Unsupported type '%s' for condition", fileName, ifStatement.GetCondition().GetLn(), ifStatement.GetCondition().GetCol(), ifStatement.GetCondition().GetKind())
+	}
+	writeLnToFile("; then")
+
+	// Transpile the block line by line
+	scope := NewEnvironment(NewEnvironment(env))
+	for _, stmt := range ifStatement.GetBody() {
+		writeToFile("\t")
+		_, err := transpile(stmt, scope)
+		if err != nil {
+			return NewNullVal(), err
+		}
+	}
+
+	writeLnToFile("fi")
+	return NewNullVal(), nil
+}
+
 func evalFunctionDeclaration(funcDeclaration ast.IFunctionDeclaration, env *Environment) (IRuntimeVal, error) {
 	fn := NewFunctionVal(funcDeclaration, env)
 	scope := NewEnvironment(fn.GetDeclarationEnv())

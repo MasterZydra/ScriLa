@@ -2,6 +2,7 @@
 
 **Content**
 - [Variables](#variables)
+- [If](#if)
 - [Native functions](#native-functions)
 - [User defined functions](#user-defined-functions)
 
@@ -33,6 +34,19 @@ obj o = {
 };
 o.a = 2;
 o.d = "d";
+```
+
+## If
+```
+if (true) {
+    printLn("true");
+}
+if (true && true) {
+    printLn("true");
+}
+if (true || false) {
+    printLn("true");
+}
 ```
 
 ## Native functions

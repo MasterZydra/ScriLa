@@ -9,6 +9,7 @@ const (
 	ProgramNode             NodeType = "Program"
 	VarDeclarationNode      NodeType = "VarDeclaration"
 	FunctionDeclarationNode NodeType = "FunctionDeclaration"
+	IfStatementNode         NodeType = "IfExpr"
 
 	// Expressions
 	ExprNode           NodeType = "Expr"

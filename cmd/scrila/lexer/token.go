@@ -26,6 +26,7 @@ var keywords = map[string]TokenType{
 	"bool":   BoolType,
 	"const":  Const,
 	"func":   Function,
+	"if":     If,
 	"int":    IntType,
 	"obj":    ObjType,
 	"return": Return,
@@ -36,6 +37,7 @@ var keywords = map[string]TokenType{
 type TokenType string
 
 const (
+	If             TokenType = "If"
 	Function       TokenType = "Function"
 	Comment        TokenType = "Comment"
 	BinaryOperator TokenType = "BinaryOperator"

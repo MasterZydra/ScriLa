@@ -32,7 +32,7 @@ func TestErrorLexerUnrecognizedChar(t *testing.T) {
 	}
 }
 
-func ExmaplePrint() {
+func ExamplePrint() {
 	setTestPrintMode()
 	transpileTest(`
 		print("Hello ");
@@ -42,6 +42,7 @@ func ExmaplePrint() {
 
 	// Output:
 	// #!/bin/bash
+	// # Created by Scrila Transpiler v0.0.1
 	// echo -n "Hello "
 	// echo "World"
 	// echo "!"
@@ -647,4 +648,85 @@ func ExampleSleep() {
 	// sleep 10
 	// i=10
 	// sleep ${i}
+}
+
+func TestErrorIfWithoutOpenParen(t *testing.T) {
+	err := transpileTest(`
+		if true {}
+	`)
+	expected := fmt.Errorf("test.scri:2:6: Expected condition wrapped in parentheses")
+	if !strings.HasPrefix(err.Error(), expected.Error()) {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorIfWithoutOpenBrace(t *testing.T) {
+	err := transpileTest(`
+		if (true)
+		printLn("str");
+	`)
+	expected := fmt.Errorf("test.scri:3:3: Expected block following condition")
+	if !strings.HasPrefix(err.Error(), expected.Error()) {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorIfWithWrongBinaryExprType(t *testing.T) {
+	err := transpileTest(`
+		if (1 + 1) {
+			printLn("str");
+		}
+	`)
+	expected := fmt.Errorf("test.scri:2:9: Condition is no boolean expression. Got int")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func ExampleIf() {
+	setTestPrintMode()
+	transpileTest(`
+		if (true) {
+			printLn("true");
+		}
+	`)
+
+	// Output:
+	// #!/bin/bash
+	// # Created by Scrila Transpiler v0.0.1
+	// if [[ "true" == "true" ]]; then
+	// 	echo "true"
+	// fi
+}
+
+func ExampleIfBoolAndBool() {
+	setTestPrintMode()
+	transpileTest(`
+		if (true && false) {
+			printLn("true");
+		}
+	`)
+
+	// Output:
+	// #!/bin/bash
+	// # Created by Scrila Transpiler v0.0.1
+	// if [[ "true" == "true" ]] && [[ "false" == "true" ]]; then
+	// 	echo "true"
+	// fi
+}
+
+func ExampleIfBoolOrBool() {
+	setTestPrintMode()
+	transpileTest(`
+		if (true || false) {
+			printLn("true");
+		}
+	`)
+
+	// Output:
+	// #!/bin/bash
+	// # Created by Scrila Transpiler v0.0.1
+	// if [[ "true" == "true" ]] || [[ "false" == "true" ]]; then
+	// 	echo "true"
+	// fi
 }

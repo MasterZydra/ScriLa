@@ -66,6 +66,8 @@ func (self *Parser) parseStatement() (ast.IStatement, error) {
 		if err != nil {
 			return ast.NewEmptyStatement(), err
 		}
+	case lexer.If:
+		return self.parseIfStatement()
 	case lexer.Function:
 		return self.parseFunctionDeclaration()
 	case lexer.Return:
@@ -99,12 +101,12 @@ func (self *Parser) parseVarDeclaration() (ast.IStatement, error) {
 	varType := self.eat().TokenType
 
 	// TODO Check if type matches with result of parseExpr()
-	token, err := self.expect(lexer.Identifier, "Expected identifier name following [const] [int] keywords.")
+	token, err := self.expect(lexer.Identifier, "Expected identifier name following [const] [int] keywords")
 	if err != nil {
 		return ast.NewEmptyStatement(), err
 	}
 	identifier := token.Value
-	_, err = self.expect(lexer.Equals, "Expected equals token following identifier in var declaration.")
+	_, err = self.expect(lexer.Equals, "Expected equals token following identifier in var declaration")
 	if err != nil {
 		return ast.NewEmptyStatement(), err
 	}
@@ -116,11 +118,50 @@ func (self *Parser) parseVarDeclaration() (ast.IStatement, error) {
 	return declaration, nil
 }
 
+func (self *Parser) parseIfStatement() (ast.IStatement, error) {
+	ifToken := self.eat()
+
+	// Condition wrapped in braces
+	_, err := self.expect(lexer.OpenParen, "Expected condition wrapped in parentheses")
+	if err != nil {
+		return ast.NewEmptyStatement(), err
+	}
+
+	condition, err := self.parseBooleanExpr()
+	if err != nil {
+		return ast.NewEmptyStatement(), err
+	}
+
+	_, err = self.expect(lexer.CloseParen, "Expected closing parenthesis after condition")
+	if err != nil {
+		return ast.NewEmptyStatement(), err
+	}
+
+	// Body
+	_, err = self.expect(lexer.OpenBrace, "Expected block following condition")
+	if err != nil {
+		return ast.NewEmptyStatement(), err
+	}
+
+	body := make([]ast.IStatement, 0)
+
+	for self.notEOF() && self.at().TokenType != lexer.CloseBracket {
+		statement, err := self.parseStatement()
+		if err != nil {
+			return ast.NewEmptyStatement(), err
+		}
+		body = append(body, statement)
+	}
+
+	_, err = self.expect(lexer.CloseBrace, "Closing brace expected after if block")
+	return ast.NewIfStatement(condition, body, ifToken.Ln, ifToken.Col), nil
+}
+
 func (self *Parser) parseFunctionDeclaration() (ast.IStatement, error) {
 	funcToken := self.eat()
 
 	// Function name
-	token, err := self.expect(lexer.Identifier, "Expected function name following func keyword.")
+	token, err := self.expect(lexer.Identifier, "Expected function name following func keyword")
 	if err != nil {
 		return ast.NewEmptyStatement(), err
 	}
@@ -142,7 +183,7 @@ func (self *Parser) parseFunctionDeclaration() (ast.IStatement, error) {
 	}
 
 	// Body
-	_, err = self.expect(lexer.OpenBrace, "Expected function body following declaration.")
+	_, err = self.expect(lexer.OpenBrace, "Expected function body following declaration")
 	if err != nil {
 		return ast.NewEmptyStatement(), err
 	}
@@ -157,7 +198,7 @@ func (self *Parser) parseFunctionDeclaration() (ast.IStatement, error) {
 		body = append(body, statement)
 	}
 
-	_, err = self.expect(lexer.CloseBrace, "Closing brace expected inside function declaration.")
+	_, err = self.expect(lexer.CloseBrace, "Closing brace expected inside function declaration")
 	return ast.NewFunctionDeclaration(name, params, body, returnType.TokenType, funcToken.Ln, funcToken.Col), err
 }
 
@@ -212,11 +253,11 @@ func (self *Parser) parseObjectExpr() (ast.IExpr, error) {
 	for self.notEOF() && self.at().TokenType != lexer.CloseBrace {
 		// { key: val, }
 
-		token, err := self.expect(lexer.Identifier, "Object literal key expected.")
+		token, err := self.expect(lexer.Identifier, "Object literal key expected")
 		if err != nil {
 			return ast.NewEmptyExpr(), err
 		}
-		_, err = self.expect(lexer.Colon, "Missing colon following identifier in ObjectExpr.")
+		_, err = self.expect(lexer.Colon, "Missing colon following identifier in ObjectExpr")
 		if err != nil {
 			return ast.NewEmptyExpr(), err
 		}
@@ -224,7 +265,7 @@ func (self *Parser) parseObjectExpr() (ast.IExpr, error) {
 		if err != nil {
 			return ast.NewEmptyExpr(), err
 		}
-		_, err = self.expect(lexer.Comma, "Expected comma following Property.")
+		_, err = self.expect(lexer.Comma, "Expected comma following Property")
 		if err != nil {
 			return ast.NewEmptyExpr(), err
 		}
@@ -232,7 +273,7 @@ func (self *Parser) parseObjectExpr() (ast.IExpr, error) {
 		properties = append(properties, ast.NewProperty(token.Value, value, token.Ln, token.Col))
 	}
 
-	_, err := self.expect(lexer.CloseBrace, "Object literal missing closing brace.")
+	_, err := self.expect(lexer.CloseBrace, "Object literal missing closing brace")
 	return ast.NewObjectLiteral(properties), err
 }
 
@@ -372,7 +413,7 @@ func (self *Parser) parseParametersList() ([]*ast.Parameter, error) {
 
 	for self.notEOF() && slices.Contains([]lexer.TokenType{lexer.StrType, lexer.BoolType, lexer.IntType, lexer.ObjType}, self.at().TokenType) {
 		paramType := self.eat().TokenType
-		ident, err := self.expect(lexer.Identifier, "parseParametersList: Expected identifier following param type.")
+		ident, err := self.expect(lexer.Identifier, "parseParametersList: Expected identifier following param type")
 		if err != nil {
 			return params, err
 		}
@@ -462,7 +503,7 @@ func (self *Parser) parseMemberExpr() (ast.IExpr, error) {
 				return ast.NewEmptyExpr(), err
 			}
 
-			_, err = self.expect(lexer.CloseBracket, "Missing closing bracket in computed value.")
+			_, err = self.expect(lexer.CloseBracket, "Missing closing bracket in computed value")
 			if err != nil {
 				return ast.NewEmptyExpr(), err
 			}
@@ -490,7 +531,7 @@ func (self *Parser) parsePrimaryExpr() (ast.IExpr, error) {
 			return ast.NewEmptyExpr(), nil
 		}
 		// Eat closing paren
-		_, err = self.expect(lexer.CloseParen, "Unexpexted token found inside parenthesised expression. Expected closing parenthesis.")
+		_, err = self.expect(lexer.CloseParen, "Unexpexted token found inside parenthesised expression. Expected closing parenthesis")
 		return value, err
 	default:
 		return ast.NewEmptyExpr(), fmt.Errorf("%s:%d:%d: Unexpected token '%s' ('%s') found during parsing", fileName, self.at().Ln, self.at().Col, self.at().TokenType, self.at().Value)

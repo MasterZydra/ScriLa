@@ -90,6 +90,9 @@ func transpile(astNode ast.IStatement, env *Environment) (IRuntimeVal, error) {
 	case ast.VarDeclarationNode:
 		return evalVarDeclaration(ast.ExprToVarDecl(astNode), env)
 
+	case ast.IfStatementNode:
+		return evalIfStatement(ast.ExprToIfStmt(astNode), env)
+
 	case ast.FunctionDeclarationNode:
 		return evalFunctionDeclaration(ast.ExprToFuncDecl(astNode), env)
 
