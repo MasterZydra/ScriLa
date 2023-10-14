@@ -27,7 +27,7 @@ func (self *Transpiler) nativePrintLn(args []ast.IExpr, env *Environment) (IRunt
 	if err != nil {
 		return NewNullVal(), err
 	}
-	self.writeLnToFile("echo " + strToBashStr(argStr))
+	self.writeLnTranspilat("echo " + strToBashStr(argStr))
 	return NewNullVal(), nil
 }
 
@@ -36,7 +36,7 @@ func (self *Transpiler) nativePrint(args []ast.IExpr, env *Environment) (IRuntim
 	if err != nil {
 		return NewNullVal(), err
 	}
-	self.writeLnToFile("echo -n " + strToBashStr(argStr))
+	self.writeLnTranspilat("echo -n " + strToBashStr(argStr))
 	return NewNullVal(), nil
 }
 

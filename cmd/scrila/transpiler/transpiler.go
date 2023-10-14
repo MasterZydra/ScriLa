@@ -27,6 +27,14 @@ func NewTranspiler() *Transpiler {
 	}
 }
 
+func (self *Transpiler) writeLnTranspilat(content string) {
+	self.writeTranspilat(content + "\n")
+}
+
+func (self *Transpiler) writeTranspilat(content string) {
+	self.userScriptTranspilat += content
+}
+
 func (self *Transpiler) writeLnToFile(content string) {
 	self.writeToFile(content + "\n")
 }
@@ -59,9 +67,19 @@ func (self *Transpiler) Transpile(astNode ast.IStatement, env *Environment, file
 		self.outputFile = f
 	}
 
-	self.writeLnToFile("#!/bin/bash")
-	self.writeLnToFile("# Created by Scrila Transpiler v0.0.1")
 	_, err := self.transpile(astNode, env)
+
+	self.writeLnToFile("#!/bin/bash")
+	self.writeLnToFile("# Created by Scrila Transpiler v0.0.1\n")
+
+	if self.nativeFuncTranspilat != "" {
+		self.writeLnToFile("# Native function implementations")
+		self.writeLnToFile(self.nativeFuncTranspilat)
+	}
+
+	self.writeLnToFile("# User script")
+	self.writeLnToFile(self.userScriptTranspilat)
+
 	return err
 }
 
@@ -97,7 +115,7 @@ func (self *Transpiler) transpile(astNode ast.IStatement, env *Environment) (IRu
 
 	// Handle Statements
 	case ast.CommentNode:
-		self.writeLnToFile("# " + ast.ExprToComment(astNode).GetComment())
+		self.writeLnTranspilat("# " + ast.ExprToComment(astNode).GetComment())
 		return NewNullVal(), nil
 
 	case ast.ProgramNode:

@@ -58,6 +58,8 @@ func ExamplePrint() {
 	// Output:
 	// #!/bin/bash
 	// # Created by Scrila Transpiler v0.0.1
+	//
+	// # User script
 	// # Print with(out) linebreaks
 	// echo -n "Hello "
 	// echo "World"
@@ -88,6 +90,8 @@ func ExampleIntVar() {
 	// Output:
 	// #!/bin/bash
 	// # Created by Scrila Transpiler v0.0.1
+	//
+	// # User script
 	// # Declare and assign new value
 	// i=42
 	// i=101
@@ -180,6 +184,8 @@ func ExampleStrAssignmentBinaryExprWithVar() {
 	// Output:
 	// #!/bin/bash
 	// # Created by Scrila Transpiler v0.0.1
+	//
+	// # User script
 	// a="Hello"
 	// b="World"
 	// c="${a} ${b}"
@@ -202,6 +208,8 @@ func ExampleVarDeclarationAndAssignmentWithVariable() {
 	// Output:
 	// #!/bin/bash
 	// # Created by Scrila Transpiler v0.0.1
+	//
+	// # User script
 	// i=123
 	// j=${i}
 	// j=${i}
@@ -398,6 +406,8 @@ func ExampleFuncDeclarationWithCall() {
 	// Output:
 	// #!/bin/bash
 	// # Created by Scrila Transpiler v0.0.1
+	//
+	// # User script
 	// # Function without params
 	// funcWithoutParams () {
 	// 	local str1="Test"
@@ -523,6 +533,8 @@ func ExampleObject() {
 	// Output:
 	// #!/bin/bash
 	// # Created by Scrila Transpiler v0.0.1
+	//
+	// # User script
 	// declare -A o
 	// o["p1"]=123
 	// o["p2"]="str"
@@ -607,6 +619,8 @@ func ExampleInput() {
 	// Output:
 	// #!/bin/bash
 	// # Created by Scrila Transpiler v0.0.1
+	//
+	// # User script
 	// read -p "Enter username: " tmpStr
 	// s="${tmpStr}"
 	// read -p "${s} " tmpStr
@@ -632,6 +646,8 @@ func ExampleSleep() {
 	// Output:
 	// #!/bin/bash
 	// # Created by Scrila Transpiler v0.0.1
+	//
+	// # User script
 	// sleep 10
 	// i=10
 	// sleep ${i}
@@ -708,6 +724,8 @@ func ExampleIf() {
 	// Output:
 	// #!/bin/bash
 	// # Created by Scrila Transpiler v0.0.1
+	//
+	// # User script
 	// if [[ "true" == "true" ]]; then
 	// 	echo "true"
 	// fi

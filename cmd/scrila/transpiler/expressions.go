@@ -155,7 +155,7 @@ func (self *Transpiler) evalAssignment(assignment ast.IAssignmentExpr, env *Envi
 		return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(assignment.GetAssigne()), err)
 	}
 
-	self.writeToFile(varName + "=")
+	self.writeTranspilat(varName + "=")
 
 	switch assignment.GetValue().GetKind() {
 	case ast.CallExprNode:
@@ -165,11 +165,14 @@ func (self *Transpiler) evalAssignment(assignment ast.IAssignmentExpr, env *Envi
 		}
 		switch varType {
 		case lexer.StrType:
-			self.writeLnToFile(strToBashStr(returnVarName))
+			self.writeLnTranspilat(strToBashStr(returnVarName))
 			value = NewStrVal("")
 		case lexer.IntType:
-			self.writeLnToFile(returnVarName)
+			self.writeLnTranspilat(returnVarName)
 			value = NewIntVal(1)
+		case lexer.BoolType:
+			self.writeLnTranspilat(strToBashStr(returnVarName))
+			value = NewBoolVal(true)
 		default:
 			return NewNullVal(), fmt.Errorf("%s: Assigning return values is not implemented for variables of type '%s'", self.getPos(assignment), varType)
 		}
@@ -180,9 +183,9 @@ func (self *Transpiler) evalAssignment(assignment ast.IAssignmentExpr, env *Envi
 		}
 		switch varType {
 		case lexer.StrType:
-			self.writeLnToFile(strToBashStr(value.GetTranspilat()))
+			self.writeLnTranspilat(strToBashStr(value.GetTranspilat()))
 		case lexer.IntType:
-			self.writeLnToFile(value.GetTranspilat())
+			self.writeLnTranspilat(value.GetTranspilat())
 		default:
 			return NewNullVal(), fmt.Errorf("%s: Assigning binary expressions is not implemented for variables of type '%s'", self.getPos(assignment), varType)
 		}
@@ -190,18 +193,18 @@ func (self *Transpiler) evalAssignment(assignment ast.IAssignmentExpr, env *Envi
 		if varType != lexer.IntType {
 			return NewNullVal(), fmt.Errorf("%s: Cannot assign a value of type '%s' to a var of type '%s'", self.getPos(assignment.GetValue()), lexer.IntType, varType)
 		}
-		self.writeLnToFile(value.ToString())
+		self.writeLnTranspilat(value.ToString())
 	case ast.StrLiteralNode:
 		if varType != lexer.StrType {
 			return NewNullVal(), fmt.Errorf("%s: Cannot assign a value of type '%s' to a var of type '%s'", self.getPos(assignment.GetValue()), lexer.StrType, varType)
 		}
-		self.writeLnToFile(strToBashStr(value.ToString()))
+		self.writeLnTranspilat(strToBashStr(value.ToString()))
 	case ast.IdentifierNode:
 		symbol := identNodeGetSymbol(assignment.GetValue())
 		if symbol == "null" || ast.IdentIsBool(ast.ExprToIdent(assignment.GetValue())) {
-			self.writeLnToFile(strToBashStr(symbol))
+			self.writeLnTranspilat(strToBashStr(symbol))
 		} else if slices.Contains(reservedIdentifiers, symbol) {
-			self.writeLnToFile(symbol)
+			self.writeLnTranspilat(symbol)
 		} else {
 			valueVarType, err := env.lookupVarType(identNodeGetSymbol(assignment.GetValue()))
 			if err != nil {
@@ -212,9 +215,9 @@ func (self *Transpiler) evalAssignment(assignment ast.IAssignmentExpr, env *Envi
 			}
 			switch varType {
 			case lexer.StrType:
-				self.writeLnToFile(strToBashStr(identNodeToBashVar(assignment.GetValue())))
+				self.writeLnTranspilat(strToBashStr(identNodeToBashVar(assignment.GetValue())))
 			case lexer.IntType:
-				self.writeLnToFile(identNodeToBashVar(assignment.GetValue()))
+				self.writeLnTranspilat(identNodeToBashVar(assignment.GetValue()))
 			default:
 				return NewNullVal(), fmt.Errorf("%s: Assigning variables is not implemented for variables of type '%s'", self.getPos(assignment), varType)
 			}
@@ -261,11 +264,11 @@ func (self *Transpiler) evalAssignmentObjMember(assignment ast.IAssignmentExpr, 
 		return NewNullVal(), err
 	}
 
-	self.writeToFile(objName + "[" + strToBashStr(propName) + "]=")
+	self.writeTranspilat(objName + "[" + strToBashStr(propName) + "]=")
 
 	switch assignment.GetValue().GetKind() {
 	case ast.IntLiteralNode:
-		self.writeLnToFile(value.ToString())
+		self.writeLnTranspilat(value.ToString())
 	default:
 		return NewNullVal(), fmt.Errorf("%s: Object member value '%s' is not supported", self.getPos(assignment.GetValue()), assignment.GetValue().GetKind())
 	}
@@ -330,6 +333,8 @@ func (self *Transpiler) getCallerResultVarName(call ast.ICallExpr, env *Environm
 			return "${tmpInt}", nil
 		case lexer.StrType:
 			return "${tmpStr}", nil
+		case lexer.BoolType:
+			return "${tmpBool}", nil
 		case lexer.VoidType:
 			return "", fmt.Errorf("%s: Func '%s' does not have a return value", self.getPos(call.GetCaller()), funcName)
 		default:
@@ -342,6 +347,8 @@ func (self *Transpiler) getCallerResultVarName(call ast.ICallExpr, env *Environm
 			return "", fmt.Errorf("%s: Function '%s' has no return value", self.getPos(call.GetCaller()), funcName)
 		case "input":
 			return "${tmpStr}", nil
+		case "isInt":
+			return "${tmpBool}", nil
 		default:
 			return "", fmt.Errorf("%s: Return type for native func '%s' is unknown", self.getPos(call), funcName)
 		}
@@ -376,7 +383,7 @@ func (self *Transpiler) evalCallExpr(call ast.ICallExpr, env *Environment) (IRun
 		if err != nil {
 			return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(call), err)
 		}
-		self.writeToFile(result.GetTranspilat())
+		self.writeTranspilat(result.GetTranspilat())
 		return result, nil
 
 	case FunctionValueType:
@@ -385,22 +392,22 @@ func (self *Transpiler) evalCallExpr(call ast.ICallExpr, env *Environment) (IRun
 		if len(fn.GetParams()) != len(args) {
 			return NewNullVal(), fmt.Errorf("%s: %s(): The amount of passed parameters does not match with the function declaration. Expected: %d, Got: %d", self.getPos(call), fn.GetName(), len(fn.GetParams()), len(args))
 		}
-		self.writeToFile(fn.GetName())
+		self.writeTranspilat(fn.GetName())
 		for i, param := range fn.GetParams() {
 			if !doTypesMatch(param.GetParamType(), args[i].GetType()) {
 				return NewNullVal(), fmt.Errorf("%s: %s(): Parameter '%s' type does not match. Expected: %s, Got: %s", self.getPos(call), fn.GetName(), param.GetName(), param.GetParamType(), args[i].GetType())
 			}
 			switch call.GetArgs()[i].GetKind() {
 			case ast.IntLiteralNode:
-				self.writeToFile(" " + args[i].ToString())
+				self.writeTranspilat(" " + args[i].ToString())
 			case ast.StrLiteralNode:
-				self.writeToFile(" " + strToBashStr(args[i].ToString()))
+				self.writeTranspilat(" " + strToBashStr(args[i].ToString()))
 			case ast.IdentifierNode:
 				switch param.GetParamType() {
 				case lexer.IntType:
-					self.writeToFile(" " + identNodeToBashVar(call.GetArgs()[i]))
+					self.writeTranspilat(" " + identNodeToBashVar(call.GetArgs()[i]))
 				case lexer.StrType:
-					self.writeToFile(" " + strToBashStr(identNodeToBashVar(call.GetArgs()[i])))
+					self.writeTranspilat(" " + strToBashStr(identNodeToBashVar(call.GetArgs()[i])))
 				default:
 					return NewNullVal(), fmt.Errorf("%s: %s(): Parameter of variable type '%s' is not supported", self.getPos(call), fn.GetName(), param.GetParamType())
 				}
@@ -409,7 +416,7 @@ func (self *Transpiler) evalCallExpr(call ast.ICallExpr, env *Environment) (IRun
 			}
 		}
 
-		self.writeLnToFile("")
+		self.writeLnTranspilat("")
 		return NewNullVal(), nil
 
 	default:
@@ -429,11 +436,11 @@ func (self *Transpiler) evalReturnExpr(returnExpr ast.IReturnExpr, env *Environm
 
 	switch self.currentFunc.GetReturnType() {
 	case lexer.IntType:
-		self.writeToFile("tmpInt=")
+		self.writeTranspilat("tmpInt=")
 	case lexer.StrType:
-		self.writeToFile("tmpStr=")
+		self.writeTranspilat("tmpStr=")
 	case lexer.BoolType:
-		self.writeToFile("tmpBool=")
+		self.writeTranspilat("tmpBool=")
 	default:
 		return NewNullVal(), fmt.Errorf("%s: Return type '%s' is not supported", self.getPos(returnExpr), self.currentFunc.GetReturnType())
 	}
@@ -442,21 +449,21 @@ func (self *Transpiler) evalReturnExpr(returnExpr ast.IReturnExpr, env *Environm
 	case ast.BinaryExprNode:
 		switch value.GetType() {
 		case StrValueType:
-			self.writeLnToFile(strToBashStr(value.GetTranspilat()))
+			self.writeLnTranspilat(strToBashStr(value.GetTranspilat()))
 		case IntValueType:
-			self.writeLnToFile(value.GetTranspilat())
+			self.writeLnTranspilat(value.GetTranspilat())
 		default:
 			return NewNullVal(), fmt.Errorf("%s: Returning binary expression of type '%s' is not supported", self.getPos(returnExpr), value.GetType())
 		}
 	case ast.IntLiteralNode:
-		self.writeLnToFile(value.ToString())
+		self.writeLnTranspilat(value.ToString())
 	case ast.StrLiteralNode:
-		self.writeLnToFile(strToBashStr(value.ToString()))
+		self.writeLnTranspilat(strToBashStr(value.ToString()))
 	case ast.IdentifierNode:
-		self.writeLnToFile(identNodeToBashVar(returnExpr.GetValue()))
+		self.writeLnTranspilat(identNodeToBashVar(returnExpr.GetValue()))
 	default:
 		return NewNullVal(), fmt.Errorf("%s: Return type '%s' is not supported", self.getPos(returnExpr), returnExpr.GetValue().GetKind())
 	}
-	self.writeLnToFile("\treturn")
+	self.writeLnTranspilat("\treturn")
 	return value, nil
 }
