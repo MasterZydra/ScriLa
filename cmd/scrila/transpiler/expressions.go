@@ -349,6 +349,8 @@ func (self *Transpiler) getCallerResultVarName(call ast.ICallExpr, env *Environm
 			return "${tmpStr}", nil
 		case "isInt":
 			return "${tmpBool}", nil
+		case "strToInt":
+			return "${tmpInt}", nil
 		default:
 			return "", fmt.Errorf("%s: Return type for native func '%s' is unknown", self.getPos(call), funcName)
 		}

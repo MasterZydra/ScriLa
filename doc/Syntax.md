@@ -76,12 +76,18 @@ str userInput = input("Pleas enter your name:");
 sleep(10);
 ```
 
-**IsInt**
+**IsInt**  
 ```
 # Check if the given input is an integer
 isInt(123); # true
 isInt("123"); # true
 isInt("str"); # false
+```
+
+**StrToInt**  
+```
+str s = "123";
+int i = strToInt(s);
 ```
 
 ## User defined functions

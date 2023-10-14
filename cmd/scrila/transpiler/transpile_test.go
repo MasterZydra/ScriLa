@@ -691,6 +691,37 @@ func ExampleIsInt() {
 	// b="${tmpBool}"
 }
 
+func TestErrorStrToIntWithoutValue(t *testing.T) {
+	initTest()
+	err := transpileTest(`strToInt();`)
+	expected := fmt.Errorf("test.scri:1:1: Expected syntax: strToInt(str value)")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorStrToIntWithWrongArgType(t *testing.T) {
+	initTest()
+	err := transpileTest(`strToInt(123);`)
+	expected := fmt.Errorf("test.scri:1:1: strToInt() - Parameter value must be a string or a variable of type string. Got 'IntLiteral'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func ExampleStrToInt() {
+	initTestForPrintMode()
+	transpileTest(`int i = strToInt("123");`)
+
+	// Output:
+	// #!/bin/bash
+	// # Created by Scrila Transpiler v0.0.1
+	//
+	// # User script
+	// tmpInt="123"
+	// i=${tmpInt}
+}
+
 func TestErrorIfWithoutOpenParen(t *testing.T) {
 	initTest()
 	err := transpileTest(`

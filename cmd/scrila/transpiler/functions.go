@@ -11,11 +11,12 @@ import (
 
 func (self *Transpiler) declareNativeFunctions(env *Environment) {
 	var nativeFunctions = map[string]FunctionCall{
-		"input":   self.nativeInput,
-		"print":   self.nativePrint,
-		"printLn": self.nativePrintLn,
-		"sleep":   self.nativeSleep,
-		"isInt":   self.nativeIsInt,
+		"input":    self.nativeInput,
+		"print":    self.nativePrint,
+		"printLn":  self.nativePrintLn,
+		"sleep":    self.nativeSleep,
+		"isInt":    self.nativeIsInt,
+		"strToInt": self.nativeStrToInt,
 	}
 
 	for name, function := range nativeFunctions {
@@ -194,6 +195,40 @@ func (self *Transpiler) nativeIsInt(args []ast.IExpr, env *Environment) (IRuntim
 	transpilat += "\n"
 
 	result := NewBoolVal(true)
+	result.SetTranspilat(transpilat)
+	return result, nil
+}
+
+func (self *Transpiler) nativeStrToInt(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+	// Validate args
+	if len(args) != 1 {
+		return NewNullVal(), fmt.Errorf("Expected syntax: strToInt(str value)")
+	}
+	value, err := self.transpile(args[0], env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+
+	transpilat := "tmpInt="
+	switch args[0].GetKind() {
+	case ast.IdentifierNode:
+		varType, err := env.lookupVarType(identNodeGetSymbol(args[0]))
+		if err != nil {
+			return NewNullVal(), err
+		}
+		if varType != lexer.StrType {
+			return NewNullVal(), fmt.Errorf("strToInt() - Parameter value must be a string or a variable of type string. Got '%s'", varType)
+		}
+
+		transpilat += strToBashStr(identNodeToBashVar(args[0]))
+	case ast.StrLiteralNode:
+		transpilat += strToBashStr(value.ToString())
+	default:
+		return NewNullVal(), fmt.Errorf("strToInt() - Parameter value must be a string or a variable of type string. Got '%s'", args[0].GetKind())
+	}
+	transpilat += "\n"
+
+	result := NewIntVal(1)
 	result.SetTranspilat(transpilat)
 	return result, nil
 }
