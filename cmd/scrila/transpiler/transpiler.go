@@ -41,6 +41,10 @@ func (self *Transpiler) writeToFile(content string) {
 	}
 }
 
+func (self *Transpiler) getPos(astNode ast.IStatement) string {
+	return fmt.Sprintf("%s:%d:%d", self.filename, astNode.GetLn(), astNode.GetCol())
+}
+
 func (self *Transpiler) Transpile(astNode ast.IStatement, env *Environment, filename string) error {
 	if !self.testMode {
 		self.filename = filename
@@ -109,6 +113,6 @@ func (self *Transpiler) transpile(astNode ast.IStatement, env *Environment) (IRu
 		return self.evalFunctionDeclaration(ast.ExprToFuncDecl(astNode), env)
 
 	default:
-		return NewNullVal(), fmt.Errorf("%s:%d:%d: This AST Node has not been setup for interpretion: %s", self.filename, astNode.GetLn(), astNode.GetCol(), astNode)
+		return NewNullVal(), fmt.Errorf("%s: This AST Node has not been setup for interpretion: %s", self.getPos(astNode), astNode)
 	}
 }

@@ -51,7 +51,7 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration ast.IVarDeclaration, e
 			self.writeLnToFile(varName)
 			value = NewIntVal(1)
 		default:
-			return NewNullVal(), fmt.Errorf("%s:%d:%d: Assigning return values is not implemented for variables of type '%s'", self.filename, varDeclaration.GetLn(), varDeclaration.GetCol(), varDeclaration.GetVarType())
+			return NewNullVal(), fmt.Errorf("%s: Assigning return values is not implemented for variables of type '%s'", self.getPos(varDeclaration), varDeclaration.GetVarType())
 		}
 
 	case ast.IdentifierNode:
@@ -66,7 +66,7 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration ast.IVarDeclaration, e
 				return NewNullVal(), err
 			}
 			if valueVarType != varDeclaration.GetVarType() {
-				return NewNullVal(), fmt.Errorf("%s:%d:%d: Cannot assign a value of type '%s' to a var of type '%s'", self.filename, varDeclaration.GetValue().GetLn(), varDeclaration.GetValue().GetCol(), valueVarType, varDeclaration.GetVarType())
+				return NewNullVal(), fmt.Errorf("%s: Cannot assign a value of type '%s' to a var of type '%s'", self.getPos(varDeclaration.GetValue()), valueVarType, varDeclaration.GetVarType())
 			}
 			switch varDeclaration.GetVarType() {
 			case lexer.StrType:
@@ -74,7 +74,7 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration ast.IVarDeclaration, e
 			case lexer.IntType:
 				self.writeLnToFile(identNodeToBashVar(varDeclaration.GetValue()))
 			default:
-				return NewNullVal(), fmt.Errorf("%s:%d:%d: Assigning variables is not implemented for variables of type '%s'", self.filename, varDeclaration.GetLn(), varDeclaration.GetCol(), varDeclaration.GetVarType())
+				return NewNullVal(), fmt.Errorf("%s: Assigning variables is not implemented for variables of type '%s'", self.getPos(varDeclaration), varDeclaration.GetVarType())
 			}
 		}
 	case ast.BinaryExprNode:
@@ -84,16 +84,16 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration ast.IVarDeclaration, e
 		case lexer.IntType, lexer.BoolType:
 			self.writeLnToFile(value.GetTranspilat())
 		default:
-			return NewNullVal(), fmt.Errorf("%s:%d:%d: Assigning binary expressions is not implemented for variables of type '%s'", self.filename, varDeclaration.GetLn(), varDeclaration.GetCol(), varDeclaration.GetVarType())
+			return NewNullVal(), fmt.Errorf("%s: Assigning binary expressions is not implemented for variables of type '%s'", self.getPos(varDeclaration), varDeclaration.GetVarType())
 		}
 	case ast.StrLiteralNode:
 		if varDeclaration.GetVarType() != lexer.StrType {
-			return NewNullVal(), fmt.Errorf("%s:%d:%d: Cannot assign a value of type '%s' to a var of type '%s'", self.filename, varDeclaration.GetValue().GetLn(), varDeclaration.GetValue().GetCol(), lexer.StrType, varDeclaration.GetVarType())
+			return NewNullVal(), fmt.Errorf("%s: Cannot assign a value of type '%s' to a var of type '%s'", self.getPos(varDeclaration.GetValue()), lexer.StrType, varDeclaration.GetVarType())
 		}
 		self.writeLnToFile(strToBashStr(value.ToString()))
 	case ast.IntLiteralNode:
 		if varDeclaration.GetVarType() != lexer.IntType {
-			return NewNullVal(), fmt.Errorf("%s:%d:%d: Cannot assign a value of type '%s' to a var of type '%s'", self.filename, varDeclaration.GetValue().GetLn(), varDeclaration.GetValue().GetCol(), lexer.IntType, varDeclaration.GetVarType())
+			return NewNullVal(), fmt.Errorf("%s: Cannot assign a value of type '%s' to a var of type '%s'", self.getPos(varDeclaration.GetValue()), lexer.IntType, varDeclaration.GetVarType())
 		}
 		self.writeLnToFile(value.ToString())
 	case ast.ObjectLiteralNode:
@@ -118,7 +118,7 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration ast.IVarDeclaration, e
 					self.writeLnToFile(identNodeToBashVar(prop.GetValue()))
 				}
 			default:
-				return NewNullVal(), fmt.Errorf("%s:%d:%d: Assigning object properties of type '%s' is not implemented", self.filename, varDeclaration.GetLn(), varDeclaration.GetCol(), prop.GetValue().GetKind())
+				return NewNullVal(), fmt.Errorf("%s: Assigning object properties of type '%s' is not implemented", self.getPos(varDeclaration), prop.GetValue().GetKind())
 			}
 		}
 	case ast.MemberExprNode:
@@ -128,12 +128,12 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration ast.IVarDeclaration, e
 		}
 		self.writeLnToFile(memberVal.GetTranspilat())
 	default:
-		return NewNullVal(), fmt.Errorf("%s:%d:%d: Assigning value of type '%s' is not implemented", self.filename, varDeclaration.GetLn(), varDeclaration.GetCol(), varDeclaration.GetValue().GetKind())
+		return NewNullVal(), fmt.Errorf("%s: Assigning value of type '%s' is not implemented", self.getPos(varDeclaration), varDeclaration.GetValue().GetKind())
 	}
 
 	result, err := env.declareVar(varDeclaration.GetIdentifier(), value, varDeclaration.IsConstant(), varDeclaration.GetVarType())
 	if err != nil {
-		return NewNullVal(), fmt.Errorf("%s:%d:%d: %s", self.filename, varDeclaration.GetLn(), varDeclaration.GetCol(), err)
+		return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(varDeclaration), err)
 	}
 	return result, nil
 }
@@ -149,7 +149,7 @@ func (self *Transpiler) evalIfStatement(ifStatement ast.IIfStatement, env *Envir
 			return NewNullVal(), err
 		}
 		if value.GetType() != BoolValueType {
-			return NewNullVal(), fmt.Errorf("%s:%d:%d: Condition is no boolean expression. Got %s", self.filename, ifStatement.GetCondition().GetLn(), ifStatement.GetCondition().GetCol(), value.GetType())
+			return NewNullVal(), fmt.Errorf("%s: Condition is no boolean expression. Got %s", self.getPos(ifStatement.GetCondition()), value.GetType())
 		}
 		self.writeToFile(value.GetTranspilat())
 	case ast.IdentifierNode:
@@ -163,12 +163,12 @@ func (self *Transpiler) evalIfStatement(ifStatement ast.IIfStatement, env *Envir
 			}
 
 			if valueVarType != lexer.BoolType {
-				return NewNullVal(), fmt.Errorf("%s:%d:%d: Condition is not of type bool. Got %s", self.filename, ifStatement.GetCondition().GetLn(), ifStatement.GetCondition().GetCol(), valueVarType)
+				return NewNullVal(), fmt.Errorf("%s: Condition is not of type bool. Got %s", self.getPos(ifStatement.GetCondition()), valueVarType)
 			}
 			self.writeToFile(varIdentToBashComparison(identifier))
 		}
 	default:
-		return NewNullVal(), fmt.Errorf("%s:%d:%d: Unsupported type '%s' for condition", self.filename, ifStatement.GetCondition().GetLn(), ifStatement.GetCondition().GetCol(), ifStatement.GetCondition().GetKind())
+		return NewNullVal(), fmt.Errorf("%s: Unsupported type '%s' for condition", self.getPos(ifStatement.GetCondition()), ifStatement.GetCondition().GetKind())
 	}
 	self.writeLnToFile("; then")
 
@@ -199,11 +199,11 @@ func (self *Transpiler) evalFunctionDeclaration(funcDeclaration ast.IFunctionDec
 		case lexer.StrType:
 			value = NewStrVal("str")
 		default:
-			return NewNullVal(), fmt.Errorf("%s:%d:%d: Unsupported type '%s' for parameter '%s'", self.filename, funcDeclaration.GetLn(), funcDeclaration.GetCol(), fn.GetParams()[i].GetParamType(), fn.GetParams()[i].GetName())
+			return NewNullVal(), fmt.Errorf("%s: Unsupported type '%s' for parameter '%s'", self.getPos(funcDeclaration), fn.GetParams()[i].GetParamType(), fn.GetParams()[i].GetName())
 		}
 		_, err := scope.declareVar(fn.GetParams()[i].GetName(), value, false, fn.GetParams()[i].GetParamType())
 		if err != nil {
-			return NewNullVal(), fmt.Errorf("%s:%d:%d: %s", self.filename, funcDeclaration.GetLn(), funcDeclaration.GetCol(), err)
+			return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(funcDeclaration), err)
 		}
 		self.writeLnToFile("\tlocal " + param.GetName() + "=$" + strconv.Itoa(i+1))
 	}
@@ -227,7 +227,7 @@ func (self *Transpiler) evalFunctionDeclaration(funcDeclaration ast.IFunctionDec
 	self.writeLnToFile("}\n")
 	_, err := env.declareFunc(funcDeclaration.GetName(), fn)
 	if err != nil {
-		return result, fmt.Errorf("%s:%d:%d: %s", self.filename, funcDeclaration.GetLn(), funcDeclaration.GetCol(), err)
+		return result, fmt.Errorf("%s: %s", self.getPos(funcDeclaration), err)
 	}
 	return result, nil
 }
