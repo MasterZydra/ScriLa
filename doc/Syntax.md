@@ -76,6 +76,14 @@ str userInput = input("Pleas enter your name:");
 sleep(10);
 ```
 
+**IsInt**
+```
+# Check if the given input is an integer
+isInt(123); # true
+isInt("123"); # true
+isInt("str"); # false
+```
+
 ## User defined functions
 **Without parameters**
 ```

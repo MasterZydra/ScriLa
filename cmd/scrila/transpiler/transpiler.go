@@ -74,7 +74,7 @@ func (self *Transpiler) Transpile(astNode ast.IStatement, env *Environment, file
 
 	if self.nativeFuncTranspilat != "" {
 		self.writeLnToFile("# Native function implementations")
-		self.writeLnToFile(self.nativeFuncTranspilat)
+		self.writeToFile(self.nativeFuncTranspilat)
 	}
 
 	self.writeLnToFile("# User script")

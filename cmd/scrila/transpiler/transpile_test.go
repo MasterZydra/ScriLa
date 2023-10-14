@@ -653,6 +653,44 @@ func ExampleSleep() {
 	// sleep ${i}
 }
 
+func TestErrorIsIntWithoutValue(t *testing.T) {
+	initTest()
+	err := transpileTest(`isInt();`)
+	expected := fmt.Errorf("test.scri:1:1: Expected syntax: isInt(mixed value)")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func ExampleIsInt() {
+	initTestForPrintMode()
+	transpileTest(`
+		bool b = isInt(10);
+		b = isInt("10");
+		b = isInt("str");
+	`)
+
+	// Output:
+	// #!/bin/bash
+	// # Created by Scrila Transpiler v0.0.1
+	//
+	// # Native function implementations
+	// isInt () {
+	//	case $1 in
+	//		''|*[!0-9]*) tmpBool="false" ;;
+	// 		*) tmpBool="true" ;;
+	// 	esac
+	// }
+	//
+	// # User script
+	// isInt 10
+	// b="${tmpBool}"
+	// isInt "10"
+	// b="${tmpBool}"
+	// isInt "str"
+	// b="${tmpBool}"
+}
+
 func TestErrorIfWithoutOpenParen(t *testing.T) {
 	initTest()
 	err := transpileTest(`

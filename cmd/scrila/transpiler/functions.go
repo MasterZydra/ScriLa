@@ -15,6 +15,7 @@ func (self *Transpiler) declareNativeFunctions(env *Environment) {
 		"print":   self.nativePrint,
 		"printLn": self.nativePrintLn,
 		"sleep":   self.nativeSleep,
+		"isInt":   self.nativeIsInt,
 	}
 
 	for name, function := range nativeFunctions {
@@ -149,6 +150,49 @@ func (self *Transpiler) nativeSleep(args []ast.IExpr, env *Environment) (IRuntim
 		return NewNullVal(), fmt.Errorf("sleep() - Parameter seconds must be an int or a variable of type int. Got '%s'", args[0].GetKind())
 	}
 	result := NewNullVal()
+	result.SetTranspilat(transpilat)
+	return result, nil
+}
+
+func (self *Transpiler) nativeIsInt(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+	// Validate args
+	if len(args) != 1 {
+		return NewNullVal(), fmt.Errorf("Expected syntax: isInt(mixed value)")
+	}
+	value, err := self.transpile(args[0], env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+
+	// Add bash code for isInt to "usedNativeFunctions"
+	if !slices.Contains(self.usedNativeFunctions, "isInt") {
+		self.usedNativeFunctions = append(self.usedNativeFunctions, "isInt")
+		self.nativeFuncTranspilat += "isInt () {\n"
+		self.nativeFuncTranspilat += "\tcase $1 in\n"
+		self.nativeFuncTranspilat += "\t\t''|*[!0-9]*) tmpBool=\"false\" ;;\n"
+		self.nativeFuncTranspilat += "\t\t*) tmpBool=\"true\" ;;\n"
+		self.nativeFuncTranspilat += "\tesac\n"
+		self.nativeFuncTranspilat += "}\n\n"
+	}
+
+	transpilat := "isInt "
+	switch args[0].GetKind() {
+	case ast.IdentifierNode:
+		if ast.IdentIsBool(ast.ExprToIdent(args[0])) {
+			transpilat += strToBashStr(identNodeGetSymbol(args[0]))
+		} else {
+			transpilat += strToBashStr(identNodeToBashVar(args[0]))
+		}
+	case ast.IntLiteralNode:
+		transpilat += value.ToString()
+	case ast.StrLiteralNode:
+		transpilat += strToBashStr(value.ToString())
+	default:
+		return NewNullVal(), fmt.Errorf("isInt() - Support for type %s not implemented", args[0].GetKind())
+	}
+	transpilat += "\n"
+
+	result := NewBoolVal(true)
 	result.SetTranspilat(transpilat)
 	return result, nil
 }
