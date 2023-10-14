@@ -167,6 +167,7 @@ func (self *Transpiler) nativeIsInt(args []ast.IExpr, env *Environment) (IRuntim
 	// Add bash code for isInt to "usedNativeFunctions"
 	if !slices.Contains(self.usedNativeFunctions, "isInt") {
 		self.usedNativeFunctions = append(self.usedNativeFunctions, "isInt")
+		// https://stackoverflow.com/questions/806906/how-do-i-test-if-a-variable-is-a-number-in-bash/3951175#3951175
 		self.nativeFuncTranspilat += "isInt () {\n"
 		self.nativeFuncTranspilat += "\tcase $1 in\n"
 		self.nativeFuncTranspilat += "\t\t''|*[!0-9]*) tmpBool=\"false\" ;;\n"
