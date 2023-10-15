@@ -822,6 +822,7 @@ func ExampleIf() {
 func ExampleIfComparisons() {
 	initTestForPrintMode()
 	transpileTest(`
+		# Integer comparison
 		int i = 123;
 		if (i > 122) {
 			printLn(true);
@@ -841,6 +842,20 @@ func ExampleIfComparisons() {
 		if (i != 321) {
 			printLn(true);
 		}
+		# String comparison
+		str s = "str";
+		if (s > "ttr") {
+			printLn(true);
+		}
+		if (s < "ttr") {
+			printLn(true);
+		}
+		if ("str" == s) {
+			printLn(true);
+		}
+		if (s != "str") {
+			printLn(true);
+		}
 	`)
 
 	// Output:
@@ -848,6 +863,7 @@ func ExampleIfComparisons() {
 	// # Created by Scrila Transpiler v0.0.1
 	//
 	// # User script
+	// # Integer comparison
 	// i=123
 	// if [[ ${i} -gt 122 ]]; then
 	// 	echo "true"
@@ -865,6 +881,20 @@ func ExampleIfComparisons() {
 	// 	echo "true"
 	// fi
 	// if [[ ${i} -ne 321 ]]; then
+	// 	echo "true"
+	// fi
+	// # String comparison
+	// s="str"
+	// if [[ "${s}" > "ttr" ]]; then
+	// 	echo "true"
+	// fi
+	// if [[ "${s}" < "ttr" ]]; then
+	// 	echo "true"
+	// fi
+	// if [[ "str" == "${s}" ]]; then
+	// 	echo "true"
+	// fi
+	// if [[ "${s}" != "str" ]]; then
 	// 	echo "true"
 	// fi
 }

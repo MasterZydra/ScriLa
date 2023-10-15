@@ -119,6 +119,23 @@ func (self *Transpiler) evalComparisonBinaryExpr(lhs IRuntimeVal, rhs IRuntimeVa
 		default:
 			return NewBoolVal(false), fmt.Errorf("Int comparison does not support operator '%s'", operator)
 		}
+	case StrValueType:
+		switch operator {
+		case "==":
+			transpilat = fmt.Sprintf("[[ %s == %s ]]", strToBashStr(lhs.GetTranspilat()), strToBashStr(rhs.GetTranspilat()))
+			result = runtimeToStrVal(lhs).GetValue() == runtimeToStrVal(rhs).GetValue()
+		case "!=":
+			transpilat = fmt.Sprintf("[[ %s != %s ]]", strToBashStr(lhs.GetTranspilat()), strToBashStr(rhs.GetTranspilat()))
+			result = runtimeToStrVal(lhs).GetValue() != runtimeToStrVal(rhs).GetValue()
+		case "<":
+			transpilat = fmt.Sprintf("[[ %s < %s ]]", strToBashStr(lhs.GetTranspilat()), strToBashStr(rhs.GetTranspilat()))
+			result = runtimeToStrVal(lhs).GetValue() < runtimeToStrVal(rhs).GetValue()
+		case ">":
+			transpilat = fmt.Sprintf("[[ %s > %s ]]", strToBashStr(lhs.GetTranspilat()), strToBashStr(rhs.GetTranspilat()))
+			result = runtimeToStrVal(lhs).GetValue() > runtimeToStrVal(rhs).GetValue()
+		default:
+			return NewBoolVal(false), fmt.Errorf("String comparison does not support operator '%s'", operator)
+		}
 	default:
 		return NewBoolVal(false), fmt.Errorf("Comparisons for type '%s' not implemented", lhs.GetType())
 	}
