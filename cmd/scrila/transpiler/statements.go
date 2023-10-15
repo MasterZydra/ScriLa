@@ -153,48 +153,93 @@ func (self *Transpiler) evalIfStatement(ifStatement ast.IIfStatement, env *Envir
 	self.writeTranspilat("if ")
 
 	// Transpile condition
-	switch ifStatement.GetCondition().GetKind() {
-	case ast.BinaryExprNode:
-		value, err := self.transpile(ifStatement.GetCondition(), env)
+	err := self.evalIfStatementCondition(ifStatement.GetCondition(), env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+
+	// Transpile the body line by line
+	err = self.evalIfStatementBody(ifStatement.GetBody(), env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+
+	// Else block
+	self.evalIfStatementElse(ifStatement.GetElse(), env)
+
+	self.writeLnTranspilat("fi")
+	return NewNullVal(), nil
+}
+
+func (self *Transpiler) evalIfStatementElse(elseBlock ast.IIfStatement, env *Environment) error {
+	if elseBlock == nil {
+		return nil
+	}
+
+	// Else if
+	if elseBlock.GetCondition() != nil {
+		self.writeTranspilat("elif ")
+		// Transpile condition
+		err := self.evalIfStatementCondition(elseBlock.GetCondition(), env)
 		if err != nil {
-			return NewNullVal(), err
+			return err
+		}
+	} else {
+		self.writeLnTranspilat("else")
+	}
+
+	// Transpile the body line by line
+	err := self.evalIfStatementBody(elseBlock.GetBody(), env)
+	if err != nil {
+		return err
+	}
+
+	return self.evalIfStatementElse(elseBlock.GetElse(), env)
+}
+
+func (self *Transpiler) evalIfStatementCondition(condition ast.IExpr, env *Environment) error {
+	switch condition.GetKind() {
+	case ast.BinaryExprNode:
+		value, err := self.transpile(condition, env)
+		if err != nil {
+			return err
 		}
 		if value.GetType() != BoolValueType {
-			return NewNullVal(), fmt.Errorf("%s: Condition is no boolean expression. Got %s", self.getPos(ifStatement.GetCondition()), value.GetType())
+			return fmt.Errorf("%s: Condition is no boolean expression. Got %s", self.getPos(condition), value.GetType())
 		}
 		self.writeTranspilat(value.GetTranspilat())
 	case ast.IdentifierNode:
-		identifier := ast.ExprToIdent(ifStatement.GetCondition())
+		identifier := ast.ExprToIdent(condition)
 		if ast.IdentIsBool(identifier) {
 			self.writeTranspilat(boolIdentToBashComparison(identifier))
 		} else {
-			valueVarType, err := env.lookupVarType(identNodeGetSymbol(ifStatement.GetCondition()))
+			valueVarType, err := env.lookupVarType(identNodeGetSymbol(condition))
 			if err != nil {
-				return NewNullVal(), err
+				return err
 			}
 
 			if valueVarType != lexer.BoolType {
-				return NewNullVal(), fmt.Errorf("%s: Condition is not of type bool. Got %s", self.getPos(ifStatement.GetCondition()), valueVarType)
+				return fmt.Errorf("%s: Condition is not of type bool. Got %s", self.getPos(condition), valueVarType)
 			}
 			self.writeTranspilat(varIdentToBashComparison(identifier))
 		}
 	default:
-		return NewNullVal(), fmt.Errorf("%s: Unsupported type '%s' for condition", self.getPos(ifStatement.GetCondition()), ifStatement.GetCondition().GetKind())
+		return fmt.Errorf("%s: Unsupported type '%s' for condition", self.getPos(condition), condition.GetKind())
 	}
 	self.writeLnTranspilat("; then")
+	return nil
+}
 
-	// Transpile the block line by line
+func (self *Transpiler) evalIfStatementBody(body []ast.IStatement, env *Environment) error {
 	scope := NewEnvironment(env, self)
-	for _, stmt := range ifStatement.GetBody() {
+	for _, stmt := range body {
 		self.writeTranspilat("\t")
 		_, err := self.transpile(stmt, scope)
 		if err != nil {
-			return NewNullVal(), err
+			return err
 		}
 	}
-
-	self.writeLnTranspilat("fi")
-	return NewNullVal(), nil
+	return nil
 }
 
 func (self *Transpiler) evalFunctionDeclaration(funcDeclaration ast.IFunctionDeclaration, env *Environment) (IRuntimeVal, error) {

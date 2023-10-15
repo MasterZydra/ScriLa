@@ -65,12 +65,13 @@ if (i > 48) {
 ```
 if (true) {
     printLn("true");
-}
-if (true && true) {
+} else if (true && true) {
     printLn("true");
 }
 if (true || false) {
     printLn("true");
+} else {
+    printLn("false");
 }
 bool b = true;
 if (b) {

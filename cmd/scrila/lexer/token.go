@@ -29,6 +29,7 @@ var singleCharTokens = map[string]TokenType{
 var keywords = map[string]TokenType{
 	"bool":   BoolType,
 	"const":  Const,
+	"else":   Else,
 	"func":   Function,
 	"if":     If,
 	"int":    IntType,
@@ -42,6 +43,7 @@ type TokenType string
 
 const (
 	If             TokenType = "If"
+	Else           TokenType = "Else"
 	Function       TokenType = "Function"
 	Comment        TokenType = "Comment"
 	BinaryOperator TokenType = "BinaryOperator"

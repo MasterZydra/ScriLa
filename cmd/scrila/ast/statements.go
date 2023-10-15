@@ -267,23 +267,26 @@ type IIfStatement interface {
 	IStatement
 	GetCondition() IExpr
 	GetBody() []IStatement
+	GetElse() IIfStatement
 }
 
 type IfStatement struct {
 	statement *Statement
 	condition IExpr
 	body      []IStatement
+	elseBlock IIfStatement
 }
 
 func (self *IfStatement) String() string {
-	return fmt.Sprintf("&{%s %s %s}", self.GetKind(), self.GetCondition(), self.GetBody())
+	return fmt.Sprintf("&{%s %s %s %s}", self.GetKind(), self.GetCondition(), self.GetBody(), self.GetElse())
 }
 
-func NewIfStatement(condition IExpr, body []IStatement, ln int, col int) *IfStatement {
+func NewIfStatement(condition IExpr, body []IStatement, elseBlock IIfStatement, ln int, col int) *IfStatement {
 	return &IfStatement{
 		statement: NewStatement(IfStatementNode, ln, col),
 		condition: condition,
 		body:      body,
+		elseBlock: elseBlock,
 	}
 }
 
@@ -297,6 +300,10 @@ func (self *IfStatement) GetCondition() IExpr {
 
 func (self *IfStatement) GetBody() []IStatement {
 	return self.body
+}
+
+func (self *IfStatement) GetElse() IIfStatement {
+	return self.elseBlock
 }
 
 func (self *IfStatement) GetLn() int {

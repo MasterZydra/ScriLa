@@ -786,12 +786,13 @@ func ExampleIf() {
 	transpileTest(`
 		if (true) {
 			printLn("true");
-		}
-		if (true && false) {
+		} else if (true && false) {
 			printLn("true");
 		}
 		if (true || false) {
 			printLn("true");
+		} else {
+			printLn("false");
 		}
 		bool b = true;
 		if (b) {
@@ -806,12 +807,13 @@ func ExampleIf() {
 	// # User script
 	// if [[ "true" == "true" ]]; then
 	// 	echo "true"
-	// fi
-	// if [[ "true" == "true" ]] && [[ "false" == "true" ]]; then
+	// elif [[ "true" == "true" ]] && [[ "false" == "true" ]]; then
 	// 	echo "true"
 	// fi
 	// if [[ "true" == "true" ]] || [[ "false" == "true" ]]; then
 	// 	echo "true"
+	// else
+	// 	echo "false"
 	// fi
 	// b="true"
 	// if [[ "${b}" == "true" ]]; then

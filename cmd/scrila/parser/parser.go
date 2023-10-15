@@ -64,7 +64,7 @@ func (self *Parser) parseStatement() (ast.IStatement, error) {
 			return ast.NewEmptyStatement(), err
 		}
 	case lexer.If:
-		return self.parseIfStatement()
+		return self.parseIfStatement(false)
 	case lexer.Function:
 		return self.parseFunctionDeclaration()
 	case lexer.Return:
@@ -115,27 +115,36 @@ func (self *Parser) parseVarDeclaration() (ast.IStatement, error) {
 	return declaration, nil
 }
 
-func (self *Parser) parseIfStatement() (ast.IStatement, error) {
+func (self *Parser) parseIfStatement(isElse bool) (ast.IStatement, error) {
 	ifToken := self.eat()
 
-	// Condition wrapped in braces
-	_, err := self.expect(lexer.OpenParen, "Expected condition wrapped in parentheses")
-	if err != nil {
-		return ast.NewEmptyStatement(), err
-	}
+	var condition ast.IExpr
 
-	condition, err := self.parseBooleanExpr()
-	if err != nil {
-		return ast.NewEmptyStatement(), err
-	}
+	if !isElse || (isElse && self.at().TokenType == lexer.If) {
+		// Else if
+		if isElse && self.at().TokenType == lexer.If {
+			self.eat()
+		}
 
-	_, err = self.expect(lexer.CloseParen, "Expected closing parenthesis after condition")
-	if err != nil {
-		return ast.NewEmptyStatement(), err
+		// Condition wrapped in braces
+		_, err := self.expect(lexer.OpenParen, "Expected condition wrapped in parentheses")
+		if err != nil {
+			return ast.NewEmptyStatement(), err
+		}
+
+		condition, err = self.parseBooleanExpr()
+		if err != nil {
+			return ast.NewEmptyStatement(), err
+		}
+
+		_, err = self.expect(lexer.CloseParen, "Expected closing parenthesis after condition")
+		if err != nil {
+			return ast.NewEmptyStatement(), err
+		}
 	}
 
 	// Body
-	_, err = self.expect(lexer.OpenBrace, "Expected block following condition")
+	_, err := self.expect(lexer.OpenBrace, "Expected block following condition")
 	if err != nil {
 		return ast.NewEmptyStatement(), err
 	}
@@ -151,7 +160,21 @@ func (self *Parser) parseIfStatement() (ast.IStatement, error) {
 	}
 
 	_, err = self.expect(lexer.CloseBrace, "Closing brace expected after if block")
-	return ast.NewIfStatement(condition, body, ifToken.Ln, ifToken.Col), nil
+	if err != nil {
+		return ast.NewEmptyStatement(), err
+	}
+
+	// Else
+	var elseBlock ast.IIfStatement
+	if self.at().TokenType == lexer.Else {
+		elseBlockStmt, err := self.parseIfStatement(true)
+		if err != nil {
+			return ast.NewEmptyStatement(), err
+		}
+		elseBlock = ast.ExprToIfStmt(elseBlockStmt)
+	}
+
+	return ast.NewIfStatement(condition, body, elseBlock, ifToken.Ln, ifToken.Col), nil
 }
 
 func (self *Parser) parseFunctionDeclaration() (ast.IStatement, error) {
