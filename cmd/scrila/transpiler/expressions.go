@@ -22,7 +22,11 @@ func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) 
 		// Do nothing
 	case ast.IdentifierNode:
 		if ast.IdentIsBool(ast.ExprToIdent(binOp.GetLeft())) {
-			lhs.SetTranspilat(boolIdentToBashComparison(ast.ExprToIdent(binOp.GetLeft())))
+			if slices.Contains(lexer.BooleanOps, binOp.GetOperator()) {
+				lhs.SetTranspilat(boolIdentToBashComparison(ast.ExprToIdent(binOp.GetLeft())))
+			} else {
+				lhs.SetTranspilat(lhs.ToString())
+			}
 		} else {
 			lhs.SetTranspilat(identNodeToBashVar(binOp.GetLeft()))
 		}
@@ -41,7 +45,11 @@ func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) 
 		// Do nothing
 	case ast.IdentifierNode:
 		if ast.IdentIsBool(ast.ExprToIdent(binOp.GetRight())) {
-			rhs.SetTranspilat(boolIdentToBashComparison(ast.ExprToIdent(binOp.GetRight())))
+			if slices.Contains(lexer.BooleanOps, binOp.GetOperator()) {
+				rhs.SetTranspilat(boolIdentToBashComparison(ast.ExprToIdent(binOp.GetRight())))
+			} else {
+				rhs.SetTranspilat(rhs.ToString())
+			}
 		} else {
 			rhs.SetTranspilat(identNodeToBashVar(binOp.GetRight()))
 		}
@@ -96,6 +104,17 @@ func (self *Transpiler) evalComparisonBinaryExpr(lhs IRuntimeVal, rhs IRuntimeVa
 
 	// https://devmanual.gentoo.org/tools-reference/bash/index.html
 	switch lhs.GetType() {
+	case BoolValueType:
+		switch operator {
+		case "==":
+			transpilat = fmt.Sprintf("[[ %s == %s ]]", strToBashStr(lhs.GetTranspilat()), strToBashStr(rhs.GetTranspilat()))
+			result = runtimeToBoolVal(lhs).GetValue() == runtimeToBoolVal(rhs).GetValue()
+		case "!=":
+			transpilat = fmt.Sprintf("[[ %s != %s ]]", strToBashStr(lhs.GetTranspilat()), strToBashStr(rhs.GetTranspilat()))
+			result = runtimeToBoolVal(lhs).GetValue() != runtimeToBoolVal(rhs).GetValue()
+		default:
+			return NewBoolVal(false), fmt.Errorf("Bool comparison does not support operator '%s'", operator)
+		}
 	case IntValueType:
 		switch operator {
 		case ">":
