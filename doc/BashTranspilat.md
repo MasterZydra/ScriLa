@@ -3,7 +3,25 @@
 This document contains technical details how the structures have been solved in bash syntax.
 
 **Content**
+- [Bool](#bool)
 - [Function Return values](#function-return-values)
+
+## Bool
+There are no native bool types in bash. So boolean expressions are represented as strings.
+
+**Example:**  
+ScriLa
+```Python
+if (true && false) {
+	printLn("true");
+}
+```
+Bash transpilat
+```bash
+if [[ "true" == "true" ]] && [[ "false" == "true" ]]; then
+	echo "true"
+fi
+``` 
 
 ## Function Return values
 Bash functions can return a status code between 0 and 255. Zero stands for success.  
