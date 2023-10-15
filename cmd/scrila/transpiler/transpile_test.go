@@ -818,3 +818,62 @@ func ExampleIf() {
 	// 	echo "true"
 	// fi
 }
+
+func ExampleIfComparisons() {
+	initTestForPrintMode()
+	transpileTest(`
+		int i = 123;
+		if (i > 122) {
+			printLn(true);
+		}
+		if (i < 124) {
+			printLn(true);
+		}
+		if (i >= 122) {
+			printLn(true);
+		}
+		if (122 <= i) {
+			printLn(true);
+		}
+		if (123 == i) {
+			printLn(true);
+		}
+		if (i != 321) {
+			printLn(true);
+		}
+	`)
+
+	// Output:
+	// #!/bin/bash
+	// # Created by Scrila Transpiler v0.0.1
+	//
+	// # User script
+	// i=123
+	// if [[ ${i} -gt 122 ]]; then
+	// 	echo "true"
+	// fi
+	// if [[ ${i} -lt 124 ]]; then
+	// 	echo "true"
+	// fi
+	// if [[ ${i} -ge 122 ]]; then
+	// 	echo "true"
+	// fi
+	// if [[ 122 -le ${i} ]]; then
+	// 	echo "true"
+	// fi
+	// if [[ 123 -eq ${i} ]]; then
+	// 	echo "true"
+	// fi
+	// if [[ ${i} -ne 321 ]]; then
+	// 	echo "true"
+	// fi
+}
+
+func TestErrorCompareDiffVarTypes(t *testing.T) {
+	initTest()
+	err := transpileTest(`bool b = 42 > "123";`)
+	expected := fmt.Errorf("test.scri:1:13: Cannot compare type 'int' and 'str'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}

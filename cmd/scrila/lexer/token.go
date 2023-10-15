@@ -2,7 +2,9 @@ package lexer
 
 import "fmt"
 
-var comparisons = []string{"|", "&", "="}
+var BooleanOps = []string{"||", "&&"}
+
+var ComparisonOps = []string{"<", ">", "<=", ">=", "!=", "=="}
 
 var singleCharTokens = map[string]TokenType{
 	"-": BinaryOperator,
@@ -20,6 +22,8 @@ var singleCharTokens = map[string]TokenType{
 	"/": BinaryOperator,
 	"+": BinaryOperator,
 	"=": Equals,
+	"<": BinaryOperator,
+	">": BinaryOperator,
 }
 
 var keywords = map[string]TokenType{

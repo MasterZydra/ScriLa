@@ -42,8 +42,8 @@ func (self *Lexer) Tokenize(sourceCode string, filename string) ([]*Token, error
 			continue
 		}
 
-		// Handle comparisons
-		if slices.Contains(comparisons, self.at()) && self.at() == self.next(0) {
+		// Handle boolean and comparison operations
+		if op := self.at() + self.next(0); slices.Contains(BooleanOps, op) || slices.Contains(ComparisonOps, op) {
 			operation := self.eat() + self.eat()
 			self.pushToken(operation, BinaryOperator)
 		}
@@ -144,7 +144,7 @@ func (self *Lexer) at() string {
 }
 
 func (self *Lexer) next(offset int) string {
-	if len(self.sourceChars) < offset+1 {
+	if len(self.sourceChars) < offset+2 {
 		return ""
 	}
 	return self.sourceChars[offset+1]

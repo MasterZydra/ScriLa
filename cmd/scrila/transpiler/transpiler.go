@@ -68,6 +68,9 @@ func (self *Transpiler) Transpile(astNode ast.IStatement, env *Environment, file
 	}
 
 	_, err := self.transpile(astNode, env)
+	if err != nil {
+		return err
+	}
 
 	self.writeLnToFile("#!/bin/bash")
 	self.writeLnToFile("# Created by Scrila Transpiler v0.0.1\n")
@@ -80,7 +83,7 @@ func (self *Transpiler) Transpile(astNode ast.IStatement, env *Environment, file
 	self.writeLnToFile("# User script")
 	self.writeLnToFile(self.userScriptTranspilat)
 
-	return err
+	return nil
 }
 
 func (self *Transpiler) transpile(astNode ast.IStatement, env *Environment) (IRuntimeVal, error) {

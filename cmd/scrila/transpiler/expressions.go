@@ -51,6 +51,14 @@ func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) 
 		return NewNullVal(), fmt.Errorf("%s: Right side of binary expression with unsupported type '%s'", self.getPos(binOp.GetRight()), binOp.GetRight().GetKind())
 	}
 
+	if slices.Contains(lexer.ComparisonOps, binOp.GetOperator()) {
+		result, err := self.evalComparisonBinaryExpr(lhs, rhs, binOp.GetOperator())
+		if err != nil {
+			return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(binOp), err)
+		}
+		return result, nil
+	}
+
 	if lhs.GetType() == IntValueType && rhs.GetType() == IntValueType {
 		result, err := self.evalIntBinaryExpr(runtimeToIntVal(lhs), runtimeToIntVal(rhs), binOp.GetOperator())
 		if err != nil {
@@ -76,6 +84,48 @@ func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) 
 	}
 
 	return NewNullVal(), fmt.Errorf("%s: No support for binary expressions of type '%s' and '%s'", self.getPos(binOp), lhs.GetType(), rhs.GetType())
+}
+
+func (self *Transpiler) evalComparisonBinaryExpr(lhs IRuntimeVal, rhs IRuntimeVal, operator string) (IBoolVal, error) {
+	if lhs.GetType() != rhs.GetType() {
+		return NewBoolVal(false), fmt.Errorf("Cannot compare type '%s' and '%s'", lhs.GetType(), rhs.GetType())
+	}
+
+	var transpilat string
+	var result bool
+
+	// https://devmanual.gentoo.org/tools-reference/bash/index.html
+	switch lhs.GetType() {
+	case IntValueType:
+		switch operator {
+		case ">":
+			transpilat = fmt.Sprintf("[[ %s -gt %s ]]", lhs.GetTranspilat(), rhs.GetTranspilat())
+			result = runtimeToIntVal(lhs).GetValue() > runtimeToIntVal(rhs).GetValue()
+		case "<":
+			transpilat = fmt.Sprintf("[[ %s -lt %s ]]", lhs.GetTranspilat(), rhs.GetTranspilat())
+			result = runtimeToIntVal(lhs).GetValue() < runtimeToIntVal(rhs).GetValue()
+		case ">=":
+			transpilat = fmt.Sprintf("[[ %s -ge %s ]]", lhs.GetTranspilat(), rhs.GetTranspilat())
+			result = runtimeToIntVal(lhs).GetValue() >= runtimeToIntVal(rhs).GetValue()
+		case "<=":
+			transpilat = fmt.Sprintf("[[ %s -le %s ]]", lhs.GetTranspilat(), rhs.GetTranspilat())
+			result = runtimeToIntVal(lhs).GetValue() <= runtimeToIntVal(rhs).GetValue()
+		case "==":
+			transpilat = fmt.Sprintf("[[ %s -eq %s ]]", lhs.GetTranspilat(), rhs.GetTranspilat())
+			result = runtimeToIntVal(lhs).GetValue() == runtimeToIntVal(rhs).GetValue()
+		case "!=":
+			transpilat = fmt.Sprintf("[[ %s -ne %s ]]", lhs.GetTranspilat(), rhs.GetTranspilat())
+			result = runtimeToIntVal(lhs).GetValue() != runtimeToIntVal(rhs).GetValue()
+		default:
+			return NewBoolVal(false), fmt.Errorf("Int comparison does not support operator '%s'", operator)
+		}
+	default:
+		return NewBoolVal(false), fmt.Errorf("Comparisons for type '%s' not implemented", lhs.GetType())
+	}
+
+	boolVal := NewBoolVal(result)
+	boolVal.SetTranspilat(transpilat)
+	return boolVal, nil
 }
 
 func (self *Transpiler) evalBoolBinaryExpr(lhs IBoolVal, rhs IBoolVal, operator string) (IBoolVal, error) {
@@ -192,7 +242,7 @@ func (self *Transpiler) evalAssignment(assignment ast.IAssignmentExpr, env *Envi
 		switch varType {
 		case lexer.StrType:
 			self.writeLnTranspilat(strToBashStr(value.GetTranspilat()))
-		case lexer.IntType:
+		case lexer.IntType, lexer.BoolType:
 			self.writeLnTranspilat(value.GetTranspilat())
 		default:
 			return NewNullVal(), fmt.Errorf("%s: Assigning binary expressions is not implemented for variables of type '%s'", self.getPos(assignment), varType)

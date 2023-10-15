@@ -8,8 +8,6 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-var booleanOps = []string{"==", "&&", "||"}
-
 var additiveOps = []string{"+", "-"}
 
 var multiplicitaveOps = []string{"*", "/"} // TODO Modulo %
@@ -211,6 +209,7 @@ func (self *Parser) parseExpr() (ast.IExpr, error) {
 // - AssignmentExpr
 // - ObjectExpr
 // - BooleanExpr
+// - ComparisonExpr
 // - AdditiveExpr
 // - MultiplicitiveExpr
 // - CallExpr
@@ -277,13 +276,32 @@ func (self *Parser) parseObjectExpr() (ast.IExpr, error) {
 }
 
 func (self *Parser) parseBooleanExpr() (ast.IExpr, error) {
-	left, err := self.parseAdditiveExpr()
+	left, err := self.parseComparisonExpr()
 	if err != nil {
 		return ast.NewEmptyExpr(), err
 	}
 
 	// Current token is an boolean operator
-	for slices.Contains(booleanOps, self.at().Value) {
+	for slices.Contains(lexer.BooleanOps, self.at().Value) {
+		token := self.eat()
+		right, err := self.parseComparisonExpr()
+		if err != nil {
+			return ast.NewEmptyExpr(), err
+		}
+		left = ast.NewBinaryExpr(left, right, token.Value, token.Ln, token.Col)
+	}
+
+	return left, nil
+}
+
+func (self *Parser) parseComparisonExpr() (ast.IExpr, error) {
+	left, err := self.parseAdditiveExpr()
+	if err != nil {
+		return ast.NewEmptyExpr(), err
+	}
+
+	// Current token is an comparison operator
+	for slices.Contains(lexer.ComparisonOps, self.at().Value) {
 		token := self.eat()
 		right, err := self.parseAdditiveExpr()
 		if err != nil {
