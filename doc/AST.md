@@ -6,6 +6,7 @@ classDiagram
   Statement <|-- Program
   Statement <|-- VarDeclaration
   Statement <|-- FunctionDeclaration
+  Statement <|-- IfStatement
   Statement <|-- Expr
   Expr <|-- AssignmentExpr
   Expr <|-- BinaryExpr
