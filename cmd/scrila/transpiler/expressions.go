@@ -159,6 +159,14 @@ func (self *Transpiler) evalAssignment(assignment ast.IAssignmentExpr, env *Envi
 
 	switch assignment.GetValue().GetKind() {
 	case ast.CallExprNode:
+		returnType, err := self.getFuncReturnType(ast.ExprToCallExpr(assignment.GetValue()), env)
+		if err != nil {
+			return NewNullVal(), err
+		}
+		if returnType != varType {
+			return NewNullVal(), fmt.Errorf("%s: Cannot assign a value of type '%s' to a var of type '%s'", self.getPos(assignment.GetValue()), returnType, varType)
+		}
+
 		returnVarName, err := self.getCallerResultVarName(ast.ExprToCallExpr(assignment.GetValue()), env)
 		if err != nil {
 			return NewNullVal(), err
@@ -345,16 +353,16 @@ func (self *Transpiler) getCallerResultVarName(call ast.ICallExpr, env *Environm
 	}
 
 	switch returnType {
-		case lexer.IntType:
-			return "${tmpInt}", nil
-		case lexer.StrType:
-			return "${tmpStr}", nil
-		case lexer.BoolType:
-			return "${tmpBool}", nil
-		case lexer.VoidType:
+	case lexer.IntType:
+		return "${tmpInt}", nil
+	case lexer.StrType:
+		return "${tmpStr}", nil
+	case lexer.BoolType:
+		return "${tmpBool}", nil
+	case lexer.VoidType:
 		return "", fmt.Errorf("%s: Func '%s' does not have a return value", self.getPos(call.GetCaller()), identNodeGetSymbol(call.GetCaller()))
-		default:
-			return "", fmt.Errorf("%s: Function return type '%s' is not supported", self.getPos(call.GetCaller()), returnType)
+	default:
+		return "", fmt.Errorf("%s: Function return type '%s' is not supported", self.getPos(call.GetCaller()), returnType)
 	}
 }
 

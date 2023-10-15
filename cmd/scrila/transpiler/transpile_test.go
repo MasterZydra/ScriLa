@@ -504,8 +504,17 @@ func TestErrorFuncVoidReturnValUsed(t *testing.T) {
 		}
 		int i = fn();
 	`)
-	expected := fmt.Errorf("test.scri:5:11: Func 'fn' does not have a return value")
-	if !strings.HasPrefix(err.Error(), expected.Error()) {
+	expected := fmt.Errorf("test.scri:5:11: Cannot assign a value of type 'VoidType' to a var of type 'IntType'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorNativeFuncReturnTypeUnequalVarType(t *testing.T) {
+	initTest()
+	err := transpileTest(`int i = input("prompt");`)
+	expected := fmt.Errorf("test.scri:1:9: Cannot assign a value of type 'StrType' to a var of type 'IntType'")
+	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
 }

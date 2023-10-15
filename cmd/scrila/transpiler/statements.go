@@ -39,6 +39,14 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration ast.IVarDeclaration, e
 
 	switch varDeclaration.GetValue().GetKind() {
 	case ast.CallExprNode:
+		returnType, err := self.getFuncReturnType(ast.ExprToCallExpr(varDeclaration.GetValue()), env)
+		if err != nil {
+			return NewNullVal(), err
+		}
+		if returnType != varDeclaration.GetVarType() {
+			return NewNullVal(), fmt.Errorf("%s: Cannot assign a value of type '%s' to a var of type '%s'", self.getPos(varDeclaration.GetValue()), returnType, varDeclaration.GetVarType())
+		}
+
 		varName, err := self.getCallerResultVarName(ast.ExprToCallExpr(varDeclaration.GetValue()), env)
 		if err != nil {
 			return NewNullVal(), err
