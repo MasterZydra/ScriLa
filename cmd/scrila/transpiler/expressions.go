@@ -317,7 +317,7 @@ func (self *Transpiler) evalMemberExpr(memberExpr ast.IMemberExpr, env *Environm
 	return result, nil
 }
 
-func (self *Transpiler) getCallerResultVarName(call ast.ICallExpr, env *Environment) (string, error) {
+func (self *Transpiler) getFuncReturnType(call ast.ICallExpr, env *Environment) (lexer.TokenType, error) {
 	if call.GetCaller().GetKind() != ast.IdentifierNode {
 		return "", fmt.Errorf("%s: Function name must be an identifier. Got: '%s'", self.getPos(call.GetCaller()), call.GetCaller().GetKind())
 	}
@@ -327,8 +327,24 @@ func (self *Transpiler) getCallerResultVarName(call ast.ICallExpr, env *Environm
 	if err != nil {
 		return "", err
 	}
-	if caller.GetType() == FunctionValueType {
-		switch returnType := runtimeToFuncVal(caller).GetReturnType(); returnType {
+
+	switch caller.GetType() {
+	case FunctionValueType:
+		return runtimeToFuncVal(caller).GetReturnType(), nil
+	case NativeFnType:
+		return runtimeToNativeFunc(caller).GetReturnType(), nil
+	default:
+		return "", fmt.Errorf("%s: Cannot call value that is not a function: %s", self.getPos(call), caller.GetType())
+	}
+}
+
+func (self *Transpiler) getCallerResultVarName(call ast.ICallExpr, env *Environment) (string, error) {
+	returnType, err := self.getFuncReturnType(call, env)
+	if err != nil {
+		return "", err
+	}
+
+	switch returnType {
 		case lexer.IntType:
 			return "${tmpInt}", nil
 		case lexer.StrType:
@@ -336,26 +352,9 @@ func (self *Transpiler) getCallerResultVarName(call ast.ICallExpr, env *Environm
 		case lexer.BoolType:
 			return "${tmpBool}", nil
 		case lexer.VoidType:
-			return "", fmt.Errorf("%s: Func '%s' does not have a return value", self.getPos(call.GetCaller()), funcName)
+		return "", fmt.Errorf("%s: Func '%s' does not have a return value", self.getPos(call.GetCaller()), identNodeGetSymbol(call.GetCaller()))
 		default:
 			return "", fmt.Errorf("%s: Function return type '%s' is not supported", self.getPos(call.GetCaller()), returnType)
-		}
-	} else if caller.GetType() == NativeFnType {
-		// TODO Determine based on return type, if that is implemented
-		switch funcName {
-		case "print", "printLn", "sleep":
-			return "", fmt.Errorf("%s: Function '%s' has no return value", self.getPos(call.GetCaller()), funcName)
-		case "input":
-			return "${tmpStr}", nil
-		case "isInt":
-			return "${tmpBool}", nil
-		case "strToInt":
-			return "${tmpInt}", nil
-		default:
-			return "", fmt.Errorf("%s: Return type for native func '%s' is unknown", self.getPos(call), funcName)
-		}
-	} else {
-		return "", fmt.Errorf("%s: Cannot call value that is not a function: %s", self.getPos(call), caller.GetType())
 	}
 }
 

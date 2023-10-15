@@ -269,17 +269,20 @@ type FunctionCall func(args []ast.IExpr, env *Environment) (IRuntimeVal, error)
 type INativeFunc interface {
 	IRuntimeVal
 	GetCall() FunctionCall
+	GetReturnType() lexer.TokenType
 }
 
 type NativeFunc struct {
 	runtimeVal *RuntimeVal
 	call       FunctionCall
+	returnType lexer.TokenType
 }
 
-func NewNativeFunc(function FunctionCall) *NativeFunc {
+func NewNativeFunc(function FunctionCall, returnType lexer.TokenType) *NativeFunc {
 	return &NativeFunc{
 		runtimeVal: NewRuntimeVal(NativeFnType),
 		call:       function,
+		returnType: returnType,
 	}
 }
 
@@ -289,6 +292,10 @@ func (self *NativeFunc) GetType() ValueType {
 
 func (self *NativeFunc) GetCall() FunctionCall {
 	return self.call
+}
+
+func (self *NativeFunc) GetReturnType() lexer.TokenType {
+	return self.returnType
 }
 
 func (self *NativeFunc) GetTranspilat() string {

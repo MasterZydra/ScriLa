@@ -10,18 +10,12 @@ import (
 )
 
 func (self *Transpiler) declareNativeFunctions(env *Environment) {
-	var nativeFunctions = map[string]FunctionCall{
-		"input":    self.nativeInput,
-		"print":    self.nativePrint,
-		"printLn":  self.nativePrintLn,
-		"sleep":    self.nativeSleep,
-		"isInt":    self.nativeIsInt,
-		"strToInt": self.nativeStrToInt,
-	}
-
-	for name, function := range nativeFunctions {
-		env.declareFunc(name, NewNativeFunc(function))
-	}
+	env.declareFunc("input", NewNativeFunc(self.nativeInput, lexer.StrType))
+	env.declareFunc("print", NewNativeFunc(self.nativePrint, lexer.VoidType))
+	env.declareFunc("printLn", NewNativeFunc(self.nativePrintLn, lexer.VoidType))
+	env.declareFunc("sleep", NewNativeFunc(self.nativeSleep, lexer.VoidType))
+	env.declareFunc("isInt", NewNativeFunc(self.nativeIsInt, lexer.BoolType))
+	env.declareFunc("strToInt", NewNativeFunc(self.nativeStrToInt, lexer.IntType))
 }
 
 func (self *Transpiler) nativePrintLn(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
