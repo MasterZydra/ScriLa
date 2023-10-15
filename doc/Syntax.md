@@ -2,6 +2,7 @@
 
 **Content**
 - [Variables](#variables)
+- [Comparisons](#comparisons)
 - [If](#if)
 - [Native functions](#native-functions)
 - [User defined functions](#user-defined-functions)
@@ -34,6 +35,30 @@ obj o = {
 };
 o.a = 2;
 o.d = "d";
+```
+
+## Comparisons
+**Integer**
+```
+int i = 42;
+if (i == 48) {
+    # Do smth
+}
+if (i != 48) {
+    # Do smth
+}
+if (i <= 48) {
+    # Do smth
+}
+if (i >= 48) {
+    # Do smth
+}
+if (i < 48) {
+    # Do smth
+}
+if (i > 48) {
+    # Do smth
+}
 ```
 
 ## If
