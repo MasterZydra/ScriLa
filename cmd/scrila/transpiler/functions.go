@@ -202,7 +202,7 @@ func (self *Transpiler) nativeStrToInt(args []ast.IExpr, env *Environment) (IRun
 	if err != nil {
 		return NewNullVal(), err
 	}
-
+	// TODO After error handling in ScriLa is thought-out: Add error handling for the case that the value is not an int.
 	transpilat := "tmpInt="
 	switch args[0].GetKind() {
 	case ast.IdentifierNode:
