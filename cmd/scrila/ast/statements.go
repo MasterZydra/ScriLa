@@ -313,3 +313,49 @@ func (self *IfStatement) GetLn() int {
 func (self *IfStatement) GetCol() int {
 	return self.statement.GetCol()
 }
+
+// WhileStatement
+
+type IWhileStatement interface {
+	IStatement
+	GetCondition() IExpr
+	GetBody() []IStatement
+}
+
+type WhileStatement struct {
+	statement *Statement
+	condition IExpr
+	body      []IStatement
+}
+
+func (self *WhileStatement) String() string {
+	return fmt.Sprintf("&{%s %s %s}", self.GetKind(), self.GetCondition(), self.GetBody())
+}
+
+func NewWhileStatement(condition IExpr, body []IStatement, ln int, col int) *WhileStatement {
+	return &WhileStatement{
+		statement: NewStatement(WhileStatementNode, ln, col),
+		condition: condition,
+		body:      body,
+	}
+}
+
+func (self *WhileStatement) GetKind() NodeType {
+	return self.statement.GetKind()
+}
+
+func (self *WhileStatement) GetCondition() IExpr {
+	return self.condition
+}
+
+func (self *WhileStatement) GetBody() []IStatement {
+	return self.body
+}
+
+func (self *WhileStatement) GetLn() int {
+	return self.statement.GetLn()
+}
+
+func (self *WhileStatement) GetCol() int {
+	return self.statement.GetCol()
+}

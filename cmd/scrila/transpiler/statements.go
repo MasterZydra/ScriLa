@@ -28,7 +28,7 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration ast.IVarDeclaration, e
 	if err != nil {
 		return NewNullVal(), err
 	}
-	if self.funcContext {
+	if self.contextContains(FunctionContext) {
 		self.writeTranspilat("local ")
 	}
 	if varDeclaration.GetValue().GetKind() == ast.ObjectLiteralNode {
@@ -151,15 +151,16 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration ast.IVarDeclaration, e
 
 func (self *Transpiler) evalIfStatement(ifStatement ast.IIfStatement, env *Environment) (IRuntimeVal, error) {
 	self.writeTranspilat("if ")
+	self.pushContext(IfStmtContext)
 
 	// Transpile condition
-	err := self.evalIfStatementCondition(ifStatement.GetCondition(), env)
+	err := self.evalStatementCondition(ifStatement.GetCondition(), env)
 	if err != nil {
 		return NewNullVal(), err
 	}
 
 	// Transpile the body line by line
-	err = self.evalIfStatementBody(ifStatement.GetBody(), env)
+	err = self.evalStatementBody(ifStatement.GetBody(), env)
 	if err != nil {
 		return NewNullVal(), err
 	}
@@ -167,7 +168,29 @@ func (self *Transpiler) evalIfStatement(ifStatement ast.IIfStatement, env *Envir
 	// Else block
 	self.evalIfStatementElse(ifStatement.GetElse(), env)
 
-	self.writeLnTranspilat("fi")
+	self.popContext()
+	self.writeLnTranspilat(self.indent(0) + "fi")
+	return NewNullVal(), nil
+}
+
+func (self *Transpiler) evalWhileStatement(whileStatement ast.IWhileStatement, env *Environment) (IRuntimeVal, error) {
+	self.writeTranspilat("while ")
+	self.pushContext(WhileLoopContext)
+
+	// Transpile condition
+	err := self.evalStatementCondition(whileStatement.GetCondition(), env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+
+	// Transpile the body line by line
+	err = self.evalStatementBody(whileStatement.GetBody(), env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+
+	self.popContext()
+	self.writeLnTranspilat("done")
 	return NewNullVal(), nil
 }
 
@@ -180,7 +203,7 @@ func (self *Transpiler) evalIfStatementElse(elseBlock ast.IIfStatement, env *Env
 	if elseBlock.GetCondition() != nil {
 		self.writeTranspilat("elif ")
 		// Transpile condition
-		err := self.evalIfStatementCondition(elseBlock.GetCondition(), env)
+		err := self.evalStatementCondition(elseBlock.GetCondition(), env)
 		if err != nil {
 			return err
 		}
@@ -189,7 +212,7 @@ func (self *Transpiler) evalIfStatementElse(elseBlock ast.IIfStatement, env *Env
 	}
 
 	// Transpile the body line by line
-	err := self.evalIfStatementBody(elseBlock.GetBody(), env)
+	err := self.evalStatementBody(elseBlock.GetBody(), env)
 	if err != nil {
 		return err
 	}
@@ -197,7 +220,7 @@ func (self *Transpiler) evalIfStatementElse(elseBlock ast.IIfStatement, env *Env
 	return self.evalIfStatementElse(elseBlock.GetElse(), env)
 }
 
-func (self *Transpiler) evalIfStatementCondition(condition ast.IExpr, env *Environment) error {
+func (self *Transpiler) evalStatementCondition(condition ast.IExpr, env *Environment) error {
 	switch condition.GetKind() {
 	case ast.BinaryExprNode:
 		value, err := self.transpile(condition, env)
@@ -226,14 +249,21 @@ func (self *Transpiler) evalIfStatementCondition(condition ast.IExpr, env *Envir
 	default:
 		return fmt.Errorf("%s: Unsupported type '%s' for condition", self.getPos(condition), condition.GetKind())
 	}
-	self.writeLnTranspilat("then")
+	switch self.currentContext() {
+	case IfStmtContext:
+		self.writeLnTranspilat(self.indent(1) + "then")
+	case WhileLoopContext:
+		self.writeLnTranspilat(self.indent(1) + "do")
+	default:
+		return fmt.Errorf("%s: Unsupported context '%s' for condition", self.getPos(condition), self.currentContext())
+	}
 	return nil
 }
 
-func (self *Transpiler) evalIfStatementBody(body []ast.IStatement, env *Environment) error {
+func (self *Transpiler) evalStatementBody(body []ast.IStatement, env *Environment) error {
 	scope := NewEnvironment(env, self)
 	for _, stmt := range body {
-		self.writeTranspilat("\t")
+		self.writeTranspilat(self.indent(0))
 		_, err := self.transpile(stmt, scope)
 		if err != nil {
 			return err
@@ -245,6 +275,8 @@ func (self *Transpiler) evalIfStatementBody(body []ast.IStatement, env *Environm
 func (self *Transpiler) evalFunctionDeclaration(funcDeclaration ast.IFunctionDeclaration, env *Environment) (IRuntimeVal, error) {
 	fn := NewFunctionVal(funcDeclaration, env)
 	scope := NewEnvironment(fn.GetDeclarationEnv(), self)
+
+	self.pushContext(FunctionContext)
 
 	self.writeLnTranspilat(funcDeclaration.GetName() + " () {")
 	for i, param := range funcDeclaration.GetParameters() {
@@ -261,23 +293,22 @@ func (self *Transpiler) evalFunctionDeclaration(funcDeclaration ast.IFunctionDec
 		if err != nil {
 			return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(funcDeclaration), err)
 		}
-		self.writeLnTranspilat("\tlocal " + param.GetName() + "=$" + strconv.Itoa(i+1))
+		self.writeLnTranspilat(self.indent(0) + "local " + param.GetName() + "=$" + strconv.Itoa(i+1))
 	}
 
 	// Transpile the function body line by line
-	self.funcContext = true
 	self.currentFunc = fn
 	var result IRuntimeVal
 	result = NewNullVal()
 	for _, stmt := range fn.GetBody() {
 		var err error
-		self.writeTranspilat("\t")
+		self.writeTranspilat(self.indent(0))
 		result, err = self.transpile(stmt, scope)
 		if err != nil {
 			return NewNullVal(), err
 		}
 	}
-	self.funcContext = false
+	self.popContext()
 	self.currentFunc = nil
 
 	self.writeLnTranspilat("}\n")

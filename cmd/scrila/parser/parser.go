@@ -65,8 +65,12 @@ func (self *Parser) parseStatement() (ast.IStatement, error) {
 		}
 	case lexer.If:
 		return self.parseIfStatement(false)
+	case lexer.While:
+		return self.parserWhileStatement()
 	case lexer.Function:
 		return self.parseFunctionDeclaration()
+	case lexer.Break, lexer.Continue:
+		statement = ast.NewIdentifier(self.eat())
 	case lexer.Return:
 		returnToken := self.eat()
 		value, err := self.parseExpr()
@@ -175,6 +179,49 @@ func (self *Parser) parseIfStatement(isElse bool) (ast.IStatement, error) {
 	}
 
 	return ast.NewIfStatement(condition, body, elseBlock, ifToken.Ln, ifToken.Col), nil
+}
+
+func (self *Parser) parserWhileStatement() (ast.IStatement, error) {
+	whileToken := self.eat()
+
+	// Condition wrapped in braces
+	_, err := self.expect(lexer.OpenParen, "Expected condition wrapped in parentheses")
+	if err != nil {
+		return ast.NewEmptyStatement(), err
+	}
+
+	condition, err := self.parseBooleanExpr()
+	if err != nil {
+		return ast.NewEmptyStatement(), err
+	}
+
+	_, err = self.expect(lexer.CloseParen, "Expected closing parenthesis after condition")
+	if err != nil {
+		return ast.NewEmptyStatement(), err
+	}
+
+	// Body
+	_, err = self.expect(lexer.OpenBrace, "Expected block following condition")
+	if err != nil {
+		return ast.NewEmptyStatement(), err
+	}
+
+	body := make([]ast.IStatement, 0)
+
+	for self.notEOF() && self.at().TokenType != lexer.CloseBracket {
+		statement, err := self.parseStatement()
+		if err != nil {
+			return ast.NewEmptyStatement(), err
+		}
+		body = append(body, statement)
+	}
+
+	_, err = self.expect(lexer.CloseBrace, "Closing brace expected after if block")
+	if err != nil {
+		return ast.NewEmptyStatement(), err
+	}
+
+	return ast.NewWhileStatement(condition, body, whileToken.Ln, whileToken.Col), nil
 }
 
 func (self *Parser) parseFunctionDeclaration() (ast.IStatement, error) {

@@ -27,16 +27,19 @@ var singleCharTokens = map[string]TokenType{
 }
 
 var keywords = map[string]TokenType{
-	"bool":   BoolType,
-	"const":  Const,
-	"else":   Else,
-	"func":   Function,
-	"if":     If,
-	"int":    IntType,
-	"obj":    ObjType,
-	"return": Return,
-	"str":    StrType,
-	"void":   VoidType,
+	"bool":     BoolType,
+	"break":    Break,
+	"const":    Const,
+	"continue": Continue,
+	"else":     Else,
+	"func":     Function,
+	"if":       If,
+	"int":      IntType,
+	"obj":      ObjType,
+	"return":   Return,
+	"str":      StrType,
+	"void":     VoidType,
+	"while":    While,
 }
 
 type TokenType string
@@ -44,6 +47,9 @@ type TokenType string
 const (
 	If             TokenType = "If"
 	Else           TokenType = "Else"
+	While          TokenType = "While"
+	Break          TokenType = "Break"
+	Continue       TokenType = "Continue"
 	Function       TokenType = "Function"
 	Comment        TokenType = "Comment"
 	BinaryOperator TokenType = "BinaryOperator"

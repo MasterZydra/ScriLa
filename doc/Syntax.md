@@ -4,6 +4,7 @@
 - [Variables](#variables)
 - [Comparisons](#comparisons)
 - [If](#if)
+- [While](#while)
 - [Native functions](#native-functions)
 - [User defined functions](#user-defined-functions)
 
@@ -75,6 +76,20 @@ if (true || false) {
 }
 bool b = true;
 if (b) {
+    printLn("true");
+}
+```
+
+## While
+```
+while (true && true) {
+    printLn("true");
+}
+while (true || false) {
+    printLn("true");
+}
+bool b = true;
+while (b) {
     printLn("true");
 }
 ```

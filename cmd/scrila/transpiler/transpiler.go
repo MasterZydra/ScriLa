@@ -4,6 +4,18 @@ import (
 	"ScriLa/cmd/scrila/ast"
 	"fmt"
 	"os"
+	"strings"
+
+	"golang.org/x/exp/slices"
+)
+
+type Context string
+
+const (
+	NoContext        Context = "NoContext"
+	FunctionContext  Context = "FunctionContext"
+	WhileLoopContext Context = "WhileLoopContext"
+	IfStmtContext    Context = "IfStmtContext"
 )
 
 type Transpiler struct {
@@ -17,13 +29,14 @@ type Transpiler struct {
 
 	testMode      bool
 	testPrintMode bool
-	funcContext   bool
+	contexts      []Context
 	currentFunc   IFunctionVal
 }
 
 func NewTranspiler() *Transpiler {
 	return &Transpiler{
 		usedNativeFunctions: []string{},
+		contexts:            []Context{NoContext},
 	}
 }
 
@@ -130,10 +143,33 @@ func (self *Transpiler) transpile(astNode ast.IStatement, env *Environment) (IRu
 	case ast.IfStatementNode:
 		return self.evalIfStatement(ast.ExprToIfStmt(astNode), env)
 
+	case ast.WhileStatementNode:
+		return self.evalWhileStatement(ast.ExprToWhileStmt(astNode), env)
+
 	case ast.FunctionDeclarationNode:
 		return self.evalFunctionDeclaration(ast.ExprToFuncDecl(astNode), env)
 
 	default:
 		return NewNullVal(), fmt.Errorf("%s: This AST Node has not been setup for interpretion: %s", self.getPos(astNode), astNode)
 	}
+}
+
+func (self *Transpiler) pushContext(context Context) {
+	self.contexts = append(self.contexts, context)
+}
+
+func (self *Transpiler) popContext() {
+	self.contexts = self.contexts[:len(self.contexts)-1]
+}
+
+func (self *Transpiler) currentContext() Context {
+	return self.contexts[len(self.contexts)-1]
+}
+
+func (self *Transpiler) contextContains(context Context) bool {
+	return slices.Contains(self.contexts, context)
+}
+
+func (self *Transpiler) indent(offset int) string {
+	return strings.Repeat("\t", len(self.contexts)-1-offset)
 }

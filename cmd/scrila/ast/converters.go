@@ -25,6 +25,11 @@ func ExprToIfStmt(expr IExpr) IIfStatement {
 	return i.(IIfStatement)
 }
 
+func ExprToWhileStmt(expr IExpr) IWhileStatement {
+	var i interface{} = expr
+	return i.(IWhileStatement)
+}
+
 func ExprToFuncDecl(expr IExpr) IFunctionDeclaration {
 	var i interface{} = expr
 	return i.(IFunctionDeclaration)

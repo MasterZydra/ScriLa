@@ -9,6 +9,13 @@ import (
 )
 
 func (self *Transpiler) evalIdentifier(identifier ast.IIdentifier, env *Environment) (IRuntimeVal, error) {
+	if self.contextContains(WhileLoopContext) {
+		if slices.Contains([]string{"break", "continue"}, identifier.GetSymbol()) {
+			self.writeLnTranspilat(identifier.GetSymbol())
+			return NewNullVal(), nil
+		}
+	}
+
 	return env.lookupVar(identifier.GetSymbol())
 }
 
@@ -520,7 +527,7 @@ func (self *Transpiler) evalCallExpr(call ast.ICallExpr, env *Environment) (IRun
 }
 
 func (self *Transpiler) evalReturnExpr(returnExpr ast.IReturnExpr, env *Environment) (IRuntimeVal, error) {
-	if !self.funcContext || self.currentFunc == nil {
+	if !self.contextContains(FunctionContext) || self.currentFunc == nil {
 		return NewNullVal(), fmt.Errorf("%s: Return is only allowed inside a function", self.getPos(returnExpr))
 	}
 
@@ -559,6 +566,6 @@ func (self *Transpiler) evalReturnExpr(returnExpr ast.IReturnExpr, env *Environm
 	default:
 		return NewNullVal(), fmt.Errorf("%s: Return type '%s' is not supported", self.getPos(returnExpr), returnExpr.GetValue().GetKind())
 	}
-	self.writeLnTranspilat("\treturn")
+	self.writeLnTranspilat(self.indent(0) + "return")
 	return value, nil
 }

@@ -7,13 +7,15 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-var reservedIdentifiers = []string{"null", "true", "false"}
+var reservedIdentifiers = []string{"null", "true", "false", "break", "continue"}
 
 func (self *Transpiler) setupScope(env *Environment) {
 	// Create Default Global Environment
 	env.declareVar("null", NewNullVal(), true, lexer.Identifier)
 	env.declareVar("true", NewBoolVal(true), true, lexer.Bool)
 	env.declareVar("false", NewBoolVal(false), true, lexer.Bool)
+	env.declareVar("break", NewNullVal(), true, lexer.Break)
+	env.declareVar("continue", NewNullVal(), true, lexer.Continue)
 
 	// Variables used for internal use
 	env.declareVar("tmpStr", NewStrVal(""), false, lexer.StrType)

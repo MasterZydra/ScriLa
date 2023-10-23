@@ -10,6 +10,7 @@ const (
 	VarDeclarationNode      NodeType = "VarDeclaration"
 	FunctionDeclarationNode NodeType = "FunctionDeclaration"
 	IfStatementNode         NodeType = "IfExpr"
+	WhileStatementNode      NodeType = "WhileLoop"
 
 	// Expressions
 	ExprNode           NodeType = "Expr"
