@@ -805,18 +805,22 @@ func ExampleIf() {
 	// # Created by Scrila Transpiler v0.0.1
 	//
 	// # User script
-	// if [[ "true" == "true" ]]; then
+	// if [[ "true" == "true" ]]
+	// then
 	// 	echo "true"
-	// elif [[ "true" == "true" ]] && [[ "false" == "true" ]]; then
+	// elif [[ "true" == "true" ]] && [[ "false" == "true" ]]
+	// then
 	// 	echo "true"
 	// fi
-	// if [[ "true" == "true" ]] || [[ "false" == "true" ]]; then
+	// if [[ "true" == "true" ]] || [[ "false" == "true" ]]
+	// then
 	// 	echo "true"
 	// else
 	// 	echo "false"
 	// fi
 	// b="true"
-	// if [[ "${b}" == "true" ]]; then
+	// if [[ "${b}" == "true" ]]
+	// then
 	// 	echo "true"
 	// fi
 }
@@ -867,36 +871,46 @@ func ExampleIfComparisons() {
 	// # User script
 	// # Integer comparison
 	// i=123
-	// if [[ ${i} -gt 122 ]]; then
+	// if [[ ${i} -gt 122 ]]
+	// then
 	// 	echo "true"
 	// fi
-	// if [[ ${i} -lt 124 ]]; then
+	// if [[ ${i} -lt 124 ]]
+	// then
 	// 	echo "true"
 	// fi
-	// if [[ ${i} -ge 122 ]]; then
+	// if [[ ${i} -ge 122 ]]
+	// then
 	// 	echo "true"
 	// fi
-	// if [[ 122 -le ${i} ]]; then
+	// if [[ 122 -le ${i} ]]
+	// then
 	// 	echo "true"
 	// fi
-	// if [[ 123 -eq ${i} ]]; then
+	// if [[ 123 -eq ${i} ]]
+	// then
 	// 	echo "true"
 	// fi
-	// if [[ ${i} -ne 321 ]]; then
+	// if [[ ${i} -ne 321 ]]
+	// then
 	// 	echo "true"
 	// fi
 	// # String comparison
 	// s="str"
-	// if [[ "${s}" > "ttr" ]]; then
+	// if [[ "${s}" > "ttr" ]]
+	// then
 	// 	echo "true"
 	// fi
-	// if [[ "${s}" < "ttr" ]]; then
+	// if [[ "${s}" < "ttr" ]]
+	// then
 	// 	echo "true"
 	// fi
-	// if [[ "str" == "${s}" ]]; then
+	// if [[ "str" == "${s}" ]]
+	// then
 	// 	echo "true"
 	// fi
-	// if [[ "${s}" != "str" ]]; then
+	// if [[ "${s}" != "str" ]]
+	// then
 	// 	echo "true"
 	// fi
 }

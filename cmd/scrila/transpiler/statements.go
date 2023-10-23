@@ -207,11 +207,11 @@ func (self *Transpiler) evalIfStatementCondition(condition ast.IExpr, env *Envir
 		if value.GetType() != BoolValueType {
 			return fmt.Errorf("%s: Condition is no boolean expression. Got %s", self.getPos(condition), value.GetType())
 		}
-		self.writeTranspilat(value.GetTranspilat())
+		self.writeLnTranspilat(value.GetTranspilat())
 	case ast.IdentifierNode:
 		identifier := ast.ExprToIdent(condition)
 		if ast.IdentIsBool(identifier) {
-			self.writeTranspilat(boolIdentToBashComparison(identifier))
+			self.writeLnTranspilat(boolIdentToBashComparison(identifier))
 		} else {
 			valueVarType, err := env.lookupVarType(identNodeGetSymbol(condition))
 			if err != nil {
@@ -221,12 +221,12 @@ func (self *Transpiler) evalIfStatementCondition(condition ast.IExpr, env *Envir
 			if valueVarType != lexer.BoolType {
 				return fmt.Errorf("%s: Condition is not of type bool. Got %s", self.getPos(condition), valueVarType)
 			}
-			self.writeTranspilat(varIdentToBashComparison(identifier))
+			self.writeLnTranspilat(varIdentToBashComparison(identifier))
 		}
 	default:
 		return fmt.Errorf("%s: Unsupported type '%s' for condition", self.getPos(condition), condition.GetKind())
 	}
-	self.writeLnTranspilat("; then")
+	self.writeLnTranspilat("then")
 	return nil
 }
 
