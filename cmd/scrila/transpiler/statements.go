@@ -261,6 +261,12 @@ func (self *Transpiler) evalStatementCondition(condition ast.IExpr, env *Environ
 }
 
 func (self *Transpiler) evalStatementBody(body []ast.IStatement, env *Environment) error {
+	// Bash does not support an empty if-/while-body. A fix is to up a ":" inside the body.
+	if len(body) == 0 {
+		self.writeLnTranspilat(self.indent(0) + ":")
+		return nil
+	}
+
 	scope := NewEnvironment(env, self)
 	for _, stmt := range body {
 		self.writeTranspilat(self.indent(0))

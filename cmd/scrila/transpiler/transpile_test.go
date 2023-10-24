@@ -860,7 +860,6 @@ func ExampleIfComparisons() {
 			printLn(true);
 		}
 		if (s != "str") {
-			printLn(true);
 		}
 	`)
 
@@ -911,7 +910,7 @@ func ExampleIfComparisons() {
 	// fi
 	// if [[ "${s}" != "str" ]]
 	// then
-	// 	echo "true"
+	// 	:
 	// fi
 }
 
@@ -979,7 +978,6 @@ func ExampleWhile() {
 			printLn("true");
 		}
 		while (true || false) {
-			printLn("true");
 		}
 		bool b = true;
 		while (b) {
@@ -998,7 +996,7 @@ func ExampleWhile() {
 	// done
 	// while [[ "true" == "true" ]] || [[ "false" == "true" ]]
 	// do
-	// 	echo "true"
+	// 	:
 	// done
 	// b="true"
 	// while [[ "${b}" == "true" ]]
