@@ -7,6 +7,7 @@ classDiagram
   Statement <|-- VarDeclaration
   Statement <|-- FunctionDeclaration
   Statement <|-- IfStatement
+  Statement <|-- WhileStatement
   Statement <|-- Expr
   Expr <|-- AssignmentExpr
   Expr <|-- BinaryExpr

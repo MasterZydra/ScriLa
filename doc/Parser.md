@@ -5,6 +5,16 @@
 ```mermaid
 classDiagram
   parseStatement o-- parseFunctionDeclaration
+
+  parseStatement o-- parseIfStatement
+  parseIfStatement o-- parseBooleanExpr : Condition
+  parseIfStatement o-- parseStatement : Body
+  parseIfStatement o-- parseIfStatement : Else
+
+  parseStatement o-- parseWhileStatement
+  parseWhileStatement o-- parseBooleanExpr : Condition
+  parseWhileStatement o-- parseStatement : Body
+
   parseFunctionDeclaration o-- parseParams : Params
   parseFunctionDeclaration o-- parseStatement : Function body
   parseParams o-- parseParametersList
