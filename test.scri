@@ -43,19 +43,20 @@ printLn(exampleObj.x);
 printLn(foo, 13);
 str userInput = input("Please enter some text:");
 printLn("Given input: '" + userInput + "'");
+printLn("Sleeping for five seconds...");
 sleep(5);
 
 # User defined functions
-func add(int a, int b) {
+func add(int a, int b) void {
     int result = a + b;
     printLn(result);
 }
 
 add(1, 2);
 
-func sub(int a, int b) {
+func sub(int a, int b) void {
     int result = 0;
-    func internalAdd(int a, int b) {
+    func internalAdd(int a, int b) int {
         result = a + b;
     }
 
@@ -66,7 +67,7 @@ func sub(int a, int b) {
 
 sub(6, 4);
 
-func addWithReturn(int a, int b) {
+func addWithReturn(int a, int b) int {
     int result = a + b;
     return result;
 }
