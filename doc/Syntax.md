@@ -95,6 +95,14 @@ while (b) {
 ```
 
 ## Native functions
+**Exec**  
+```Python
+exec("touch test.txt");
+
+str cmd = "touch test.txt";
+exec(cmd);
+```
+
 **Print**  
 ```Python
 print("Hello ");
@@ -117,12 +125,12 @@ str userInput = input("Pleas enter your name:");
 sleep(10);
 ```
 
-**IsInt**  
+**StrIsInt**  
 ```Python
 # Check if the given input is an integer
-isInt(123); # true
-isInt("123"); # true
-isInt("str"); # false
+strIsInt(123); # true
+strIsInt("123"); # true
+strIsInt("str"); # false
 ```
 
 **StrToInt**  

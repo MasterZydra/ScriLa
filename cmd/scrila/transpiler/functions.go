@@ -14,8 +14,9 @@ func (self *Transpiler) declareNativeFunctions(env *Environment) {
 	env.declareFunc("print", NewNativeFunc(self.nativePrint, lexer.VoidType))
 	env.declareFunc("printLn", NewNativeFunc(self.nativePrintLn, lexer.VoidType))
 	env.declareFunc("sleep", NewNativeFunc(self.nativeSleep, lexer.VoidType))
-	env.declareFunc("isInt", NewNativeFunc(self.nativeIsInt, lexer.BoolType))
+	env.declareFunc("strIsInt", NewNativeFunc(self.nativeStrIsInt, lexer.BoolType))
 	env.declareFunc("strToInt", NewNativeFunc(self.nativeStrToInt, lexer.IntType))
+	env.declareFunc("exec", NewNativeFunc(self.nativeExec, lexer.VoidType))
 }
 
 func (self *Transpiler) nativePrintLn(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
@@ -149,21 +150,21 @@ func (self *Transpiler) nativeSleep(args []ast.IExpr, env *Environment) (IRuntim
 	return result, nil
 }
 
-func (self *Transpiler) nativeIsInt(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+func (self *Transpiler) nativeStrIsInt(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
 	// Validate args
 	if len(args) != 1 {
-		return NewNullVal(), fmt.Errorf("Expected syntax: isInt(mixed value)")
+		return NewNullVal(), fmt.Errorf("Expected syntax: strIsInt(mixed value)")
 	}
 	value, err := self.transpile(args[0], env)
 	if err != nil {
 		return NewNullVal(), err
 	}
 
-	// Add bash code for isInt to "usedNativeFunctions"
-	if !slices.Contains(self.usedNativeFunctions, "isInt") {
-		self.usedNativeFunctions = append(self.usedNativeFunctions, "isInt")
+	// Add bash code for strIsInt to "usedNativeFunctions"
+	if !slices.Contains(self.usedNativeFunctions, "strIsInt") {
+		self.usedNativeFunctions = append(self.usedNativeFunctions, "strIsInt")
 		// https://stackoverflow.com/questions/806906/how-do-i-test-if-a-variable-is-a-number-in-bash/3951175#3951175
-		self.nativeFuncTranspilat += "isInt () {\n"
+		self.nativeFuncTranspilat += "strIsInt () {\n"
 		self.nativeFuncTranspilat += "\tcase $1 in\n"
 		self.nativeFuncTranspilat += "\t\t''|*[!0-9]*) tmpBool=\"false\" ;;\n"
 		self.nativeFuncTranspilat += "\t\t*) tmpBool=\"true\" ;;\n"
@@ -171,7 +172,7 @@ func (self *Transpiler) nativeIsInt(args []ast.IExpr, env *Environment) (IRuntim
 		self.nativeFuncTranspilat += "}\n\n"
 	}
 
-	transpilat := "isInt "
+	transpilat := "strIsInt "
 	switch args[0].GetKind() {
 	case ast.IdentifierNode:
 		if ast.IdentIsBool(ast.ExprToIdent(args[0])) {
@@ -184,7 +185,7 @@ func (self *Transpiler) nativeIsInt(args []ast.IExpr, env *Environment) (IRuntim
 	case ast.StrLiteralNode:
 		transpilat += strToBashStr(value.ToString())
 	default:
-		return NewNullVal(), fmt.Errorf("isInt() - Support for type %s not implemented", args[0].GetKind())
+		return NewNullVal(), fmt.Errorf("strIsInt() - Support for type %s not implemented", args[0].GetKind())
 	}
 	transpilat += "\n"
 
@@ -223,6 +224,39 @@ func (self *Transpiler) nativeStrToInt(args []ast.IExpr, env *Environment) (IRun
 	transpilat += "\n"
 
 	result := NewIntVal(1)
+	result.SetTranspilat(transpilat)
+	return result, nil
+}
+
+func (self *Transpiler) nativeExec(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+	// Validate args
+	if len(args) != 1 {
+		return NewNullVal(), fmt.Errorf("Expected syntax: exec(str command)")
+	}
+	value, err := self.transpile(args[0], env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+	transpilat := ""
+	switch args[0].GetKind() {
+	case ast.IdentifierNode:
+		varType, err := env.lookupVarType(identNodeGetSymbol(args[0]))
+		if err != nil {
+			return NewNullVal(), err
+		}
+		if varType != lexer.StrType {
+			return NewNullVal(), fmt.Errorf("exec() - Parameter value must be a string or a variable of type string. Got '%s'", varType)
+		}
+
+		transpilat += identNodeToBashVar(args[0])
+	case ast.StrLiteralNode:
+		transpilat += value.ToString()
+	default:
+		return NewNullVal(), fmt.Errorf("exec() - Parameter value must be a string or a variable of type string. Got '%s'", args[0].GetKind())
+	}
+	transpilat += "\n"
+
+	result := NewNullVal()
 	result.SetTranspilat(transpilat)
 	return result, nil
 }
