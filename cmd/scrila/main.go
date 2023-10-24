@@ -10,18 +10,23 @@ import (
 )
 
 func main() {
-	filename := flag.String("f", "", "Path of file")
+	// Check if a argument is passed
+	if len(os.Args) != 2 {
+		fmt.Println("Usage: scrila [filename.scri]")
+		os.Exit(1)
+	}
+	filename := os.Args[1]
+	// Check if filename is not empty
+	if filename == "" {
+		fmt.Println("Usage: scrila [filename.scri]")
+		os.Exit(1)
+	}
+
 	showTokens := flag.Bool("st", false, "Show tokens")
 	showAST := flag.Bool("sa", false, "Show AST")
 	flag.Parse()
 
-	if *filename == "" {
-		fmt.Println("Usage of scrila:")
-		flag.PrintDefaults()
-		os.Exit(1)
-	}
-
-	transpile(*filename, *showTokens, *showAST)
+	transpile(filename, *showTokens, *showAST)
 }
 
 func transpile(filename string, showTokens bool, showAST bool) {
