@@ -201,11 +201,19 @@ func TestErrorStrIsIntWithoutValue(t *testing.T) {
 	}
 }
 
+func TestErrorStrIsIntWithWrongArgType(t *testing.T) {
+	initTest()
+	err := transpileTest(`strIsInt(123);`)
+	expected := fmt.Errorf("test.scri:1:1: strIsInt() - Parameter value must be a string or a variable of type string. Got 'IntLiteral'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
 func ExampleStrIsInt() {
 	initTestForPrintMode()
 	transpileTest(`
-		bool b = strIsInt(10);
-		b = strIsInt("10");
+		bool b = strIsInt("10");
 		b = strIsInt("str");
 	`)
 
@@ -222,8 +230,6 @@ func ExampleStrIsInt() {
 	// }
 	//
 	// # User script
-	// strIsInt 10
-	// b="${tmpBool}"
 	// strIsInt "10"
 	// b="${tmpBool}"
 	// strIsInt "str"

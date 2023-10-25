@@ -175,17 +175,19 @@ func (self *Transpiler) nativeStrIsInt(args []ast.IExpr, env *Environment) (IRun
 	transpilat := "strIsInt "
 	switch args[0].GetKind() {
 	case ast.IdentifierNode:
-		if ast.IdentIsBool(ast.ExprToIdent(args[0])) {
-			transpilat += strToBashStr(identNodeGetSymbol(args[0]))
-		} else {
-			transpilat += strToBashStr(identNodeToBashVar(args[0]))
+		varType, err := env.lookupVarType(identNodeGetSymbol(args[0]))
+		if err != nil {
+			return NewNullVal(), err
 		}
-	case ast.IntLiteralNode:
-		transpilat += value.ToString()
+		if varType != lexer.StrType {
+			return NewNullVal(), fmt.Errorf("strIsInt() - Parameter value must be a string or a variable of type string. Got '%s'", varType)
+		}
+
+		transpilat += strToBashStr(identNodeToBashVar(args[0]))
 	case ast.StrLiteralNode:
 		transpilat += strToBashStr(value.ToString())
 	default:
-		return NewNullVal(), fmt.Errorf("strIsInt() - Support for type %s not implemented", args[0].GetKind())
+		return NewNullVal(), fmt.Errorf("strIsInt() - Parameter value must be a string or a variable of type string. Got '%s'", args[0].GetKind())
 	}
 	transpilat += "\n"
 
