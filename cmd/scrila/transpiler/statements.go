@@ -150,11 +150,16 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration ast.IVarDeclaration, e
 }
 
 func (self *Transpiler) evalIfStatement(ifStatement ast.IIfStatement, env *Environment) (IRuntimeVal, error) {
+	_, err := self.transpile(ifStatement.GetCondition(), env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+
 	self.writeTranspilat("if ")
 	self.pushContext(IfStmtContext)
 
 	// Transpile condition
-	err := self.evalStatementCondition(ifStatement.GetCondition(), env)
+	err = self.evalStatementCondition(ifStatement.GetCondition(), env)
 	if err != nil {
 		return NewNullVal(), err
 	}
@@ -174,11 +179,16 @@ func (self *Transpiler) evalIfStatement(ifStatement ast.IIfStatement, env *Envir
 }
 
 func (self *Transpiler) evalWhileStatement(whileStatement ast.IWhileStatement, env *Environment) (IRuntimeVal, error) {
+	_, err := self.transpile(whileStatement.GetCondition(), env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+
 	self.writeTranspilat("while ")
 	self.pushContext(WhileLoopContext)
 
 	// Transpile condition
-	err := self.evalStatementCondition(whileStatement.GetCondition(), env)
+	err = self.evalStatementCondition(whileStatement.GetCondition(), env)
 	if err != nil {
 		return NewNullVal(), err
 	}
@@ -231,6 +241,20 @@ func (self *Transpiler) evalStatementCondition(condition ast.IExpr, env *Environ
 			return fmt.Errorf("%s: Condition is no boolean expression. Got %s", self.getPos(condition), value.GetType())
 		}
 		self.writeLnTranspilat(value.GetTranspilat())
+	case ast.CallExprNode:
+		returnType, err := self.getFuncReturnType(ast.ExprToCallExpr(condition), env)
+		if err != nil {
+			return err
+		}
+		if returnType != lexer.BoolType {
+			return fmt.Errorf("%s: Cannot use a value of type '%s' as condition", self.getPos(condition), returnType)
+		}
+
+		varName, err := self.getCallerResultVarName(ast.ExprToCallExpr(condition), env)
+		if err != nil {
+			return err
+		}
+		self.writeLnTranspilat(strToBashStr(varName))
 	case ast.IdentifierNode:
 		identifier := ast.ExprToIdent(condition)
 		if ast.IdentIsBool(identifier) {

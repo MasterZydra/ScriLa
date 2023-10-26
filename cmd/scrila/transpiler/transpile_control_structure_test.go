@@ -142,6 +142,15 @@ func TestErrorIfWithWrongVarType(t *testing.T) {
 	}
 }
 
+func TestErrorIfWithWrongFuncReturnType(t *testing.T) {
+	initTest()
+	err := transpileTest(`if (strToInt("123")) {}`)
+	expected := fmt.Errorf("test.scri:1:5: Cannot use a value of type 'IntType' as condition")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
 func ExampleIf() {
 	initTestForPrintMode()
 	transpileTest(`
@@ -159,11 +168,22 @@ func ExampleIf() {
 		if (b) {
 			printLn("true");
 		}
+		str intStr = "123";
+		if (strIsInt(intStr)) {
+		}
 	`)
 
 	// Output:
 	// #!/bin/bash
 	// # Created by Scrila Transpiler v0.0.1
+	//
+	// # Native function implementations
+	// strIsInt () {
+	// 	case $1 in
+	// 		''|*[!0-9]*) tmpBool="false" ;;
+	// 		*) tmpBool="true" ;;
+	// 	esac
+	// }
 	//
 	// # User script
 	// if [[ "true" == "true" ]]
@@ -183,6 +203,12 @@ func ExampleIf() {
 	// if [[ "${b}" == "true" ]]
 	// then
 	// 	echo "true"
+	// fi
+	// intStr="123"
+	// strIsInt "${intStr}"
+	// if "${tmpBool}"
+	// then
+	// 	:
 	// fi
 }
 
