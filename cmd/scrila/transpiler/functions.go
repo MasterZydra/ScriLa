@@ -153,7 +153,7 @@ func (self *Transpiler) nativeSleep(args []ast.IExpr, env *Environment) (IRuntim
 func (self *Transpiler) nativeStrIsInt(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
 	// Validate args
 	if len(args) != 1 {
-		return NewNullVal(), fmt.Errorf("Expected syntax: strIsInt(mixed value)")
+		return NewNullVal(), fmt.Errorf("Expected syntax: strIsInt(str value)")
 	}
 	value, err := self.transpile(args[0], env)
 	if err != nil {

@@ -195,7 +195,7 @@ func ExampleSleep() {
 func TestErrorStrIsIntWithoutValue(t *testing.T) {
 	initTest()
 	err := transpileTest(`strIsInt();`)
-	expected := fmt.Errorf("test.scri:1:1: Expected syntax: strIsInt(mixed value)")
+	expected := fmt.Errorf("test.scri:1:1: Expected syntax: strIsInt(str value)")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
