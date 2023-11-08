@@ -140,7 +140,7 @@ func ExampleStrAssignmentBinaryExprWithVar() {
 	initTestForPrintMode()
 	transpileTest(`
 		str a = "Hello";
-		str b = "World";
+		str b = "\"World\"";
 		str c = a + " " + b;
 		str d = a + " World";
 		d = a + " World";
@@ -152,7 +152,7 @@ func ExampleStrAssignmentBinaryExprWithVar() {
 	//
 	// # User script
 	// a="Hello"
-	// b="World"
+	// b="\"World\""
 	// c="${a} ${b}"
 	// d="${a} World"
 	// d="${a} World"

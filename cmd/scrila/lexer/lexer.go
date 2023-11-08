@@ -107,6 +107,9 @@ func (self *Lexer) tokenizeString() {
 	self.eat()
 	content := ""
 	for self.isNotEof() && self.at() != "\"" {
+		if self.at() == "\\" {
+			content += self.eat()
+		}
 		content += self.eat()
 	}
 	self.eat()
