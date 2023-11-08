@@ -151,6 +151,10 @@ func (self *Lexer) next(offset int) string {
 }
 
 func (self *Lexer) eat() string {
+	if len(self.sourceChars) == 0 {
+		return ""
+	}
+
 	self.currCol += 1
 	var prev string
 	prev, self.sourceChars = self.sourceChars[0], self.sourceChars[1:]
