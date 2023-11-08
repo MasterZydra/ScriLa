@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Added check if type of return value and the function type match
+
 ### Changed
 
 - Allow `return` expression without a value for functions with return type `void`

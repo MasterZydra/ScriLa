@@ -545,6 +545,10 @@ func (self *Transpiler) evalReturnExpr(returnExpr ast.IReturnExpr, env *Environm
 		return NewNullVal(), err
 	}
 
+	if !doTypesMatch(self.currentFunc.GetReturnType(), value.GetType()) {
+		return NewNullVal(), fmt.Errorf("%s: %s(): Return type does not match with function type. Expected: %s, Got: %s", self.getPos(returnExpr), self.currentFunc.GetName(), self.currentFunc.GetReturnType(), value.GetType())
+	}
+
 	switch self.currentFunc.GetReturnType() {
 	case lexer.IntType:
 		self.writeTranspilat("tmpInt=")

@@ -474,3 +474,12 @@ func TestErrorVoidFnReturnValue(t *testing.T) {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
 }
+
+func TestErrorFuncReturnWrongType(t *testing.T) {
+	initTest()
+	err := transpileTest(`func retInt() int { return "123"; }`)
+	expected := fmt.Errorf("test.scri:1:21: retInt(): Return type does not match with function type. Expected: IntType, Got: str")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
