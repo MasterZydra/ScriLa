@@ -72,12 +72,10 @@ func (self *Parser) parseStatement() (ast.IStatement, error) {
 	case lexer.Break, lexer.Continue:
 		statement = ast.NewIdentifier(self.eat())
 	case lexer.Return:
-		returnToken := self.eat()
-		value, err := self.parseExpr()
+		statement, err = self.parseReturnExpr()
 		if err != nil {
 			return ast.NewEmptyStatement(), err
 		}
-		statement = ast.NewReturnExpr(value, returnToken.Ln, returnToken.Col)
 	default:
 		statement, err = self.parseExpr()
 		if err != nil {
@@ -117,6 +115,24 @@ func (self *Parser) parseVarDeclaration() (ast.IStatement, error) {
 	}
 	declaration := ast.NewVarDeclaration(varType, isConstant, identifier, expr, token.Ln, token.Col)
 	return declaration, nil
+}
+
+func (self *Parser) parseReturnExpr() (ast.IStatement, error) {
+	var value ast.IExpr
+
+	returnToken := self.eat()
+	isEmpty := self.at().TokenType == lexer.Semicolon
+	if isEmpty {
+		value = ast.NewEmptyExpr()
+	} else {
+		var err error
+		value, err = self.parseExpr()
+		if err != nil {
+			return ast.NewEmptyStatement(), err
+		}
+	}
+
+	return ast.NewReturnExpr(value, isEmpty, returnToken.Ln, returnToken.Col), nil
 }
 
 func (self *Parser) parseIfStatement(isElse bool) (ast.IStatement, error) {

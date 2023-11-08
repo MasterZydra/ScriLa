@@ -531,6 +531,15 @@ func (self *Transpiler) evalReturnExpr(returnExpr ast.IReturnExpr, env *Environm
 		return NewNullVal(), fmt.Errorf("%s: Return is only allowed inside a function", self.getPos(returnExpr))
 	}
 
+	if self.currentFunc.GetReturnType() == lexer.VoidType {
+		if !returnExpr.IsEmpty() {
+			return NewNullVal(), fmt.Errorf("%s: Cannot return value if function type is 'void'", self.getPos(returnExpr))
+		}
+
+		self.writeLnTranspilat("return")
+		return NewNullVal(), nil
+	}
+
 	value, err := self.transpile(returnExpr.GetValue(), env)
 	if err != nil {
 		return NewNullVal(), err

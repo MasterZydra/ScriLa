@@ -465,3 +465,12 @@ func TestErrorFuncVoidReturnValUsed(t *testing.T) {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
 }
+
+func TestErrorVoidFnReturnValue(t *testing.T) {
+	initTest()
+	err := transpileTest(`func retVoid() void { return 1; }`)
+	expected := fmt.Errorf("test.scri:1:23: Cannot return value if function type is 'void'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}

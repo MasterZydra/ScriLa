@@ -240,21 +240,24 @@ func (self *MemberExpr) GetCol() int {
 type IReturnExpr interface {
 	IExpr
 	GetValue() IExpr
+	IsEmpty() bool
 }
 
 type ReturnExpr struct {
-	expr  *Expr
-	value IExpr
+	expr    *Expr
+	value   IExpr
+	isEmpty bool
 }
 
 func (self *ReturnExpr) String() string {
-	return fmt.Sprintf("&{%s %s}", self.GetKind(), self.GetValue())
+	return fmt.Sprintf("&{%s %s %t}", self.GetKind(), self.GetValue(), self.IsEmpty())
 }
 
-func NewReturnExpr(value IExpr, ln int, col int) *ReturnExpr {
+func NewReturnExpr(value IExpr, isEmpty bool, ln int, col int) *ReturnExpr {
 	return &ReturnExpr{
-		expr:  NewExpr(ReturnExprNode, ln, col),
-		value: value,
+		expr:    NewExpr(ReturnExprNode, ln, col),
+		value:   value,
+		isEmpty: isEmpty,
 	}
 }
 
@@ -264,6 +267,10 @@ func (self *ReturnExpr) GetKind() NodeType {
 
 func (self *ReturnExpr) GetValue() IExpr {
 	return self.value
+}
+
+func (self *ReturnExpr) IsEmpty() bool {
+	return self.isEmpty
 }
 
 func (self *ReturnExpr) GetLn() int {
