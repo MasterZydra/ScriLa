@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - '!*'
+    tags:
+      - 'v*'
+
+jobs:
+  tagged-release:
+    name: Create release
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Set up Go 1.18
+      uses: actions/setup-go@v4
+      with:
+        go-version: ^1.18
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v4
+
+    - name: Compile
+      run: |
+        # Windows
+        GOOS=windows GOARCH=amd64 go build -o bin/scrila-amd64.exe ./cmd/scrila/main.go
+        GOOS=windows GOARCH=386 go build -o bin/scrila-386.exe ./cmd/scrila/main.go
+
+        # macOS
+        GOOS=darwin GOARCH=amd64 go build -o bin/scrila-amd64-darwin ./cmd/scrila/main.go
+        GOOS=darwin GOARCH=386 go build -o bin/scrila-386-darwin ./cmd/scrila/main.go
+
+        # Linux
+        GOOS=linux GOARCH=amd64 go build -o bin/scrila-amd64-linux ./cmd/scrila/main.go
+        GOOS=linux GOARCH=386 go build -o bin/scrila-386-linux ./cmd/scrila/main.go
+
+    - uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        prerelease: false
+        files: bin/*
