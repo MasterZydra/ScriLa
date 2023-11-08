@@ -29,7 +29,6 @@ jobs:
 
         # macOS
         GOOS=darwin GOARCH=amd64 go build -o bin/scrila-amd64-darwin ./cmd/scrila/main.go
-        GOOS=darwin GOARCH=386 go build -o bin/scrila-386-darwin ./cmd/scrila/main.go
 
         # Linux
         GOOS=linux GOARCH=amd64 go build -o bin/scrila-amd64-linux ./cmd/scrila/main.go
