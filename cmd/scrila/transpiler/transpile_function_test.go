@@ -469,7 +469,7 @@ func TestErrorFuncVoidReturnValUsed(t *testing.T) {
 func TestErrorVoidFnReturnValue(t *testing.T) {
 	initTest()
 	err := transpileTest(`func retVoid() void { return 1; }`)
-	expected := fmt.Errorf("test.scri:1:23: Cannot return value if function type is 'void'")
+	expected := fmt.Errorf("test.scri:1:23: retVoid(): Cannot return value if function type is 'void'")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
@@ -479,6 +479,15 @@ func TestErrorFuncReturnWrongType(t *testing.T) {
 	initTest()
 	err := transpileTest(`func retInt() int { return "123"; }`)
 	expected := fmt.Errorf("test.scri:1:21: retInt(): Return type does not match with function type. Expected: IntType, Got: str")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorFuncWithoutReturnValue(t *testing.T) {
+	initTest()
+	err := transpileTest(`func retInt() int { return; }`)
+	expected := fmt.Errorf("test.scri:1:21: retInt(): Cannot return without a value for a function with return value")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}

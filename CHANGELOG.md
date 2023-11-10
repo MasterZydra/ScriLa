@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Added check if return expression has a return value if the function has a return value
+
 ## v0.0.2-alpha
 
 ### Added
