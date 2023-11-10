@@ -24,6 +24,10 @@ func (self *Transpiler) evalIdentifier(identifier ast.IIdentifier, env *Environm
 func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) (ast.IRuntimeVal, error) {
 	self.printFuncName("")
 
+	if binOp.GetResult() != nil {
+		return binOp.GetResult(), nil
+	}
+
 	lhs, lhsError := self.transpile(binOp.GetLeft(), env)
 	if lhsError != nil {
 		return NewNullVal(), lhsError
@@ -87,6 +91,7 @@ func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) 
 		if err != nil {
 			return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(binOp), err)
 		}
+		binOp.SetResult(result)
 		return result, nil
 	}
 
@@ -95,6 +100,7 @@ func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) 
 		if err != nil {
 			return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(binOp), err)
 		}
+		binOp.SetResult(result)
 		return result, nil
 	}
 
@@ -103,6 +109,7 @@ func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) 
 		if err != nil {
 			return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(binOp), err)
 		}
+		binOp.SetResult(result)
 		return result, nil
 	}
 
@@ -111,6 +118,7 @@ func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) 
 		if err != nil {
 			return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(binOp), err)
 		}
+		binOp.SetResult(result)
 		return result, nil
 	}
 

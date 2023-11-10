@@ -119,6 +119,8 @@ func ExamplePrint() {
 		bool b = false;
 		printLn(i, s, b);
 		printLn();
+		# Print with function call and binary op
+		printLn(strToInt("123")+2);
 	`)
 
 	// Output:
@@ -138,6 +140,9 @@ func ExamplePrint() {
 	// b="false"
 	// echo "${i} ${s} ${b}"
 	// echo ""
+	// # Print with function call and binary op
+	// tmpInt="123"
+	// echo "$((${tmpInt} + 2))"
 }
 
 // -------- Native function "Sleep" --------
