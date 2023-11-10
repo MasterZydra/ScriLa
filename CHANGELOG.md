@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 
 - Fixed arguments so that the flags and filename can be passed
+- Fixed runtime value for input function
 
 ## v0.0.2-alpha
 

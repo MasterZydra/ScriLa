@@ -113,7 +113,7 @@ func (self *Transpiler) nativeInput(args []ast.IExpr, env *Environment) (IRuntim
 
 	transpilat += " tmpStr\n"
 
-	result := NewNullVal()
+	result := NewStrVal("str")
 	result.SetTranspilat(transpilat)
 	return result, nil
 }
