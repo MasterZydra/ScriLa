@@ -29,6 +29,12 @@ func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) 
 		return NewNullVal(), lhsError
 	}
 	switch binOp.GetLeft().GetKind() {
+	case ast.CallExprNode:
+		resultVarname, err := self.getCallerResultVarName(ast.ExprToCallExpr(binOp.GetLeft()), env)
+		if err != nil {
+			return NewNullVal(), err
+		}
+		lhs.SetTranspilat(resultVarname)
 	case ast.BinaryExprNode:
 		// Do nothing
 	case ast.IdentifierNode:
@@ -52,6 +58,12 @@ func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) 
 		return NewNullVal(), rhsError
 	}
 	switch binOp.GetRight().GetKind() {
+	case ast.CallExprNode:
+		resultVarname, err := self.getCallerResultVarName(ast.ExprToCallExpr(binOp.GetRight()), env)
+		if err != nil {
+			return NewNullVal(), err
+		}
+		rhs.SetTranspilat(resultVarname)
 	case ast.BinaryExprNode:
 		// Do nothing
 	case ast.IdentifierNode:

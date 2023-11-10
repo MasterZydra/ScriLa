@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Added check if return expression has a return value if the function has a return value
 - Added flag to show call stack
+- Added support for call expression in binary expression evaluation
 
 ### Fixed
 
