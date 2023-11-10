@@ -489,6 +489,7 @@ func (self *Transpiler) evalCallExpr(call ast.ICallExpr, env *Environment) (IRun
 		return result, nil
 
 	case FunctionValueType:
+		var result IRuntimeVal
 		fn := runtimeToFuncVal(caller)
 
 		if len(fn.GetParams()) != len(args) {
@@ -502,14 +503,18 @@ func (self *Transpiler) evalCallExpr(call ast.ICallExpr, env *Environment) (IRun
 			switch call.GetArgs()[i].GetKind() {
 			case ast.IntLiteralNode:
 				self.writeTranspilat(" " + args[i].ToString())
+				result = NewIntVal(1)
 			case ast.StrLiteralNode:
 				self.writeTranspilat(" " + strToBashStr(args[i].ToString()))
+				result = NewStrVal("str")
 			case ast.IdentifierNode:
 				switch param.GetParamType() {
 				case lexer.IntType:
 					self.writeTranspilat(" " + identNodeToBashVar(call.GetArgs()[i]))
+					result = NewIntVal(1)
 				case lexer.StrType:
 					self.writeTranspilat(" " + strToBashStr(identNodeToBashVar(call.GetArgs()[i])))
+					result = NewStrVal("str")
 				default:
 					return NewNullVal(), fmt.Errorf("%s: %s(): Parameter of variable type '%s' is not supported", self.getPos(call), fn.GetName(), param.GetParamType())
 				}
@@ -519,7 +524,7 @@ func (self *Transpiler) evalCallExpr(call ast.ICallExpr, env *Environment) (IRun
 		}
 
 		self.writeLnTranspilat("")
-		return NewNullVal(), nil
+		return result, nil
 
 	default:
 		return NewNullVal(), fmt.Errorf("%s: Cannot call value that is not a function: %s", self.getPos(call), caller)
