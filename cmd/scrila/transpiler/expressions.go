@@ -484,6 +484,10 @@ func (self *Transpiler) getCallerResultVarName(call ast.ICallExpr, env *Environm
 }
 
 func (self *Transpiler) evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {
+	if call.GetCaller().GetKind() != ast.IdentifierNode {
+		return NewNullVal(), fmt.Errorf("%s: Function name must be an identifier. Got: '%s'", self.getPos(call.GetCaller()), call.GetCaller().GetKind())
+	}
+
 	self.printFuncName(identNodeGetSymbol(call.GetCaller()))
 
 	// TODO add helpers? https://zetcode.com/golang/filter-map/
@@ -494,10 +498,6 @@ func (self *Transpiler) evalCallExpr(call ast.ICallExpr, env *Environment) (IRun
 			return NewNullVal(), err
 		}
 		args = append(args, evalArg)
-	}
-
-	if call.GetCaller().GetKind() != ast.IdentifierNode {
-		return NewNullVal(), fmt.Errorf("%s: Function name must be an identifier. Got: '%s'", self.getPos(call.GetCaller()), call.GetCaller().GetKind())
 	}
 
 	caller, err := env.lookupFunc(identNodeGetSymbol(call.GetCaller()))

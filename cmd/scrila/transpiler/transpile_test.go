@@ -10,7 +10,7 @@ import (
 var testTranspiler *Transpiler
 
 func initTest() {
-	testTranspiler = NewTranspiler()
+	testTranspiler = NewTranspiler(false)
 	testTranspiler.filename = "test.scri"
 	testTranspiler.testMode = true
 }
