@@ -21,7 +21,7 @@ if (strIsInt(yearStr)) {
 
 **Usage**  
 To transpile a script written in ScriLa into a bash script, execute the following command:  
-`> scrila myFileName.scri`  
+`> scrila -f myFileName.scri`  
 
 The bash file will be named `myFileName.scri.sh` and will be placed in the same folder as the passed file.
 
