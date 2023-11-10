@@ -8,7 +8,7 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-func (self *Transpiler) evalIdentifier(identifier ast.IIdentifier, env *Environment) (IRuntimeVal, error) {
+func (self *Transpiler) evalIdentifier(identifier ast.IIdentifier, env *Environment) (ast.IRuntimeVal, error) {
 	self.printFuncName(identifier.GetSymbol())
 
 	if self.contextContains(WhileLoopContext) {
@@ -21,7 +21,7 @@ func (self *Transpiler) evalIdentifier(identifier ast.IIdentifier, env *Environm
 	return env.lookupVar(identifier.GetSymbol())
 }
 
-func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) (IRuntimeVal, error) {
+func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) (ast.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	lhs, lhsError := self.transpile(binOp.GetLeft(), env)
@@ -78,7 +78,7 @@ func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) 
 		return result, nil
 	}
 
-	if lhs.GetType() == IntValueType && rhs.GetType() == IntValueType {
+	if lhs.GetType() == ast.IntValueType && rhs.GetType() == ast.IntValueType {
 		result, err := self.evalIntBinaryExpr(runtimeToIntVal(lhs), runtimeToIntVal(rhs), binOp.GetOperator())
 		if err != nil {
 			return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(binOp), err)
@@ -86,7 +86,7 @@ func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) 
 		return result, nil
 	}
 
-	if lhs.GetType() == StrValueType && rhs.GetType() == StrValueType {
+	if lhs.GetType() == ast.StrValueType && rhs.GetType() == ast.StrValueType {
 		result, err := self.evalStrBinaryExpr(runtimeToStrVal(lhs), runtimeToStrVal(rhs), binOp.GetOperator())
 		if err != nil {
 			return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(binOp), err)
@@ -94,7 +94,7 @@ func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) 
 		return result, nil
 	}
 
-	if lhs.GetType() == BoolValueType && rhs.GetType() == BoolValueType {
+	if lhs.GetType() == ast.BoolValueType && rhs.GetType() == ast.BoolValueType {
 		result, err := self.evalBoolBinaryExpr(runtimeToBoolVal(lhs), runtimeToBoolVal(rhs), binOp.GetOperator())
 		if err != nil {
 			return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(binOp), err)
@@ -105,7 +105,7 @@ func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) 
 	return NewNullVal(), fmt.Errorf("%s: No support for binary expressions of type '%s' and '%s'", self.getPos(binOp), lhs.GetType(), rhs.GetType())
 }
 
-func (self *Transpiler) evalComparisonBinaryExpr(lhs IRuntimeVal, rhs IRuntimeVal, operator string) (IBoolVal, error) {
+func (self *Transpiler) evalComparisonBinaryExpr(lhs ast.IRuntimeVal, rhs ast.IRuntimeVal, operator string) (IBoolVal, error) {
 	self.printFuncName("")
 
 	if lhs.GetType() != rhs.GetType() {
@@ -117,7 +117,7 @@ func (self *Transpiler) evalComparisonBinaryExpr(lhs IRuntimeVal, rhs IRuntimeVa
 
 	// https://devmanual.gentoo.org/tools-reference/bash/index.html
 	switch lhs.GetType() {
-	case BoolValueType:
+	case ast.BoolValueType:
 		switch operator {
 		case "==":
 			transpilat = fmt.Sprintf("[[ %s == %s ]]", strToBashStr(lhs.GetTranspilat()), strToBashStr(rhs.GetTranspilat()))
@@ -128,7 +128,7 @@ func (self *Transpiler) evalComparisonBinaryExpr(lhs IRuntimeVal, rhs IRuntimeVa
 		default:
 			return NewBoolVal(false), fmt.Errorf("Bool comparison does not support operator '%s'", operator)
 		}
-	case IntValueType:
+	case ast.IntValueType:
 		switch operator {
 		case ">":
 			transpilat = fmt.Sprintf("[[ %s -gt %s ]]", lhs.GetTranspilat(), rhs.GetTranspilat())
@@ -151,7 +151,7 @@ func (self *Transpiler) evalComparisonBinaryExpr(lhs IRuntimeVal, rhs IRuntimeVa
 		default:
 			return NewBoolVal(false), fmt.Errorf("Int comparison does not support operator '%s'", operator)
 		}
-	case StrValueType:
+	case ast.StrValueType:
 		switch operator {
 		case "==":
 			transpilat = fmt.Sprintf("[[ %s == %s ]]", strToBashStr(lhs.GetTranspilat()), strToBashStr(rhs.GetTranspilat()))
@@ -240,7 +240,7 @@ func (self *Transpiler) evalStrBinaryExpr(lhs IStrVal, rhs IStrVal, operator str
 	}
 }
 
-func (self *Transpiler) evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeVal, error) {
+func (self *Transpiler) evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (ast.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	if assignment.GetAssigne().GetKind() == ast.MemberExprNode {
@@ -348,7 +348,7 @@ func (self *Transpiler) evalAssignment(assignment ast.IAssignmentExpr, env *Envi
 	return result, nil
 }
 
-func (self *Transpiler) evalAssignmentObjMember(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeVal, error) {
+func (self *Transpiler) evalAssignmentObjMember(assignment ast.IAssignmentExpr, env *Environment) (ast.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	if assignment.GetAssigne().GetKind() != ast.MemberExprNode {
@@ -370,7 +370,7 @@ func (self *Transpiler) evalAssignmentObjMember(assignment ast.IAssignmentExpr, 
 	if err != nil {
 		return NewNullVal(), err
 	}
-	if obj.GetType() != ObjValueType {
+	if obj.GetType() != ast.ObjValueType {
 		return NewNullVal(), fmt.Errorf("%s: Variable '%s' is not of type 'object'", self.getPos(memberExpr.GetObject()), objName)
 	}
 
@@ -394,7 +394,7 @@ func (self *Transpiler) evalAssignmentObjMember(assignment ast.IAssignmentExpr, 
 	return value, nil
 }
 
-func (self *Transpiler) evalObjectExpr(object ast.IObjectLiteral, env *Environment) (IRuntimeVal, error) {
+func (self *Transpiler) evalObjectExpr(object ast.IObjectLiteral, env *Environment) (ast.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	obj := NewObjVal()
@@ -410,7 +410,7 @@ func (self *Transpiler) evalObjectExpr(object ast.IObjectLiteral, env *Environme
 	return obj, nil
 }
 
-func (self *Transpiler) evalMemberExpr(memberExpr ast.IMemberExpr, env *Environment) (IRuntimeVal, error) {
+func (self *Transpiler) evalMemberExpr(memberExpr ast.IMemberExpr, env *Environment) (ast.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	if memberExpr.GetObject().GetKind() != ast.IdentifierNode {
@@ -422,7 +422,7 @@ func (self *Transpiler) evalMemberExpr(memberExpr ast.IMemberExpr, env *Environm
 	if err != nil {
 		return NewNullVal(), err
 	}
-	if obj.GetType() != ObjValueType {
+	if obj.GetType() != ast.ObjValueType {
 		return NewNullVal(), fmt.Errorf("%s: Variable '%s' is not of type 'object'", self.getPos(memberExpr.GetObject()), objName)
 	}
 
@@ -452,9 +452,9 @@ func (self *Transpiler) getFuncReturnType(call ast.ICallExpr, env *Environment) 
 	}
 
 	switch caller.GetType() {
-	case FunctionValueType:
+	case ast.FunctionValueType:
 		return runtimeToFuncVal(caller).GetReturnType(), nil
-	case NativeFnType:
+	case ast.NativeFnType:
 		return runtimeToNativeFunc(caller).GetReturnType(), nil
 	default:
 		return "", fmt.Errorf("%s: Cannot call value that is not a function: %s", self.getPos(call), caller.GetType())
@@ -483,7 +483,7 @@ func (self *Transpiler) getCallerResultVarName(call ast.ICallExpr, env *Environm
 	}
 }
 
-func (self *Transpiler) evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {
+func (self *Transpiler) evalCallExpr(call ast.ICallExpr, env *Environment) (ast.IRuntimeVal, error) {
 	if call.GetCaller().GetKind() != ast.IdentifierNode {
 		return NewNullVal(), fmt.Errorf("%s: Function name must be an identifier. Got: '%s'", self.getPos(call.GetCaller()), call.GetCaller().GetKind())
 	}
@@ -491,7 +491,7 @@ func (self *Transpiler) evalCallExpr(call ast.ICallExpr, env *Environment) (IRun
 	self.printFuncName(identNodeGetSymbol(call.GetCaller()))
 
 	// TODO add helpers? https://zetcode.com/golang/filter-map/
-	var args []IRuntimeVal
+	var args []ast.IRuntimeVal
 	for _, arg := range call.GetArgs() {
 		evalArg, err := self.transpile(arg, env)
 		if err != nil {
@@ -506,7 +506,7 @@ func (self *Transpiler) evalCallExpr(call ast.ICallExpr, env *Environment) (IRun
 	}
 
 	switch caller.GetType() {
-	case NativeFnType:
+	case ast.NativeFnType:
 		result, err := runtimeToNativeFunc(caller).GetCall()(call.GetArgs(), env)
 		if err != nil {
 			return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(call), err)
@@ -514,8 +514,8 @@ func (self *Transpiler) evalCallExpr(call ast.ICallExpr, env *Environment) (IRun
 		self.writeTranspilat(result.GetTranspilat())
 		return result, nil
 
-	case FunctionValueType:
-		var result IRuntimeVal
+	case ast.FunctionValueType:
+		var result ast.IRuntimeVal
 		fn := runtimeToFuncVal(caller)
 
 		if len(fn.GetParams()) != len(args) {
@@ -523,7 +523,7 @@ func (self *Transpiler) evalCallExpr(call ast.ICallExpr, env *Environment) (IRun
 		}
 		self.writeTranspilat(fn.GetName())
 		for i, param := range fn.GetParams() {
-			if !doTypesMatch(param.GetParamType(), args[i].GetType()) {
+			if !ast.DoTypesMatch(param.GetParamType(), args[i].GetType()) {
 				return NewNullVal(), fmt.Errorf("%s: %s(): Parameter '%s' type does not match. Expected: %s, Got: %s", self.getPos(call), fn.GetName(), param.GetName(), param.GetParamType(), args[i].GetType())
 			}
 			switch call.GetArgs()[i].GetKind() {
@@ -557,7 +557,7 @@ func (self *Transpiler) evalCallExpr(call ast.ICallExpr, env *Environment) (IRun
 	}
 }
 
-func (self *Transpiler) evalReturnExpr(returnExpr ast.IReturnExpr, env *Environment) (IRuntimeVal, error) {
+func (self *Transpiler) evalReturnExpr(returnExpr ast.IReturnExpr, env *Environment) (ast.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	if !self.contextContains(FunctionContext) || self.currentFunc == nil {
@@ -582,7 +582,7 @@ func (self *Transpiler) evalReturnExpr(returnExpr ast.IReturnExpr, env *Environm
 		return NewNullVal(), err
 	}
 
-	if !doTypesMatch(self.currentFunc.GetReturnType(), value.GetType()) {
+	if !ast.DoTypesMatch(self.currentFunc.GetReturnType(), value.GetType()) {
 		return NewNullVal(), fmt.Errorf("%s: %s(): Return type does not match with function type. Expected: %s, Got: %s", self.getPos(returnExpr), self.currentFunc.GetName(), self.currentFunc.GetReturnType(), value.GetType())
 	}
 
@@ -600,9 +600,9 @@ func (self *Transpiler) evalReturnExpr(returnExpr ast.IReturnExpr, env *Environm
 	switch returnExpr.GetValue().GetKind() {
 	case ast.BinaryExprNode:
 		switch value.GetType() {
-		case StrValueType:
+		case ast.StrValueType:
 			self.writeLnTranspilat(strToBashStr(value.GetTranspilat()))
-		case IntValueType:
+		case ast.IntValueType:
 			self.writeLnTranspilat(value.GetTranspilat())
 		default:
 			return NewNullVal(), fmt.Errorf("%s: Returning binary expression of type '%s' is not supported", self.getPos(returnExpr), value.GetType())

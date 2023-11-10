@@ -19,7 +19,7 @@ func (self *Transpiler) declareNativeFunctions(env *Environment) {
 	env.declareFunc("exec", NewNativeFunc(self.nativeExec, lexer.VoidType))
 }
 
-func (self *Transpiler) nativePrintLn(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+func (self *Transpiler) nativePrintLn(args []ast.IExpr, env *Environment) (ast.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	argStr, err := self.printArgs(args, env)
@@ -30,7 +30,7 @@ func (self *Transpiler) nativePrintLn(args []ast.IExpr, env *Environment) (IRunt
 	return NewNullVal(), nil
 }
 
-func (self *Transpiler) nativePrint(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+func (self *Transpiler) nativePrint(args []ast.IExpr, env *Environment) (ast.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	argStr, err := self.printArgs(args, env)
@@ -89,7 +89,7 @@ func (self *Transpiler) printArgs(args []ast.IExpr, env *Environment) (string, e
 	return argStr, nil
 }
 
-func (self *Transpiler) nativeInput(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+func (self *Transpiler) nativeInput(args []ast.IExpr, env *Environment) (ast.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	if len(args) != 1 {
@@ -126,7 +126,7 @@ func (self *Transpiler) nativeInput(args []ast.IExpr, env *Environment) (IRuntim
 	return result, nil
 }
 
-func (self *Transpiler) nativeSleep(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+func (self *Transpiler) nativeSleep(args []ast.IExpr, env *Environment) (ast.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	if len(args) != 1 {
@@ -160,7 +160,7 @@ func (self *Transpiler) nativeSleep(args []ast.IExpr, env *Environment) (IRuntim
 	return result, nil
 }
 
-func (self *Transpiler) nativeStrIsInt(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+func (self *Transpiler) nativeStrIsInt(args []ast.IExpr, env *Environment) (ast.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	// Validate args
@@ -208,7 +208,7 @@ func (self *Transpiler) nativeStrIsInt(args []ast.IExpr, env *Environment) (IRun
 	return result, nil
 }
 
-func (self *Transpiler) nativeStrToInt(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+func (self *Transpiler) nativeStrToInt(args []ast.IExpr, env *Environment) (ast.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	// Validate args
@@ -244,7 +244,7 @@ func (self *Transpiler) nativeStrToInt(args []ast.IExpr, env *Environment) (IRun
 	return result, nil
 }
 
-func (self *Transpiler) nativeExec(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+func (self *Transpiler) nativeExec(args []ast.IExpr, env *Environment) (ast.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	// Validate args

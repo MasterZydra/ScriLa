@@ -1,6 +1,7 @@
 package transpiler
 
 import (
+	"ScriLa/cmd/scrila/ast"
 	"ScriLa/cmd/scrila/lexer"
 	"fmt"
 
@@ -28,8 +29,8 @@ func (self *Transpiler) setupScope(env *Environment) {
 
 type Environment struct {
 	parent    *Environment
-	functions map[string]IRuntimeVal
-	variables map[string]IRuntimeVal
+	functions map[string]ast.IRuntimeVal
+	variables map[string]ast.IRuntimeVal
 	varTypes  map[string]lexer.TokenType
 	constants []string
 }
@@ -38,8 +39,8 @@ func NewEnvironment(parentEnv *Environment, transpiler *Transpiler) *Environment
 	isGlobal := parentEnv == nil
 	env := &Environment{
 		parent:    parentEnv,
-		functions: make(map[string]IRuntimeVal),
-		variables: make(map[string]IRuntimeVal),
+		functions: make(map[string]ast.IRuntimeVal),
+		variables: make(map[string]ast.IRuntimeVal),
 		varTypes:  make(map[string]lexer.TokenType),
 		constants: make([]string, 0),
 	}
@@ -50,7 +51,7 @@ func NewEnvironment(parentEnv *Environment, transpiler *Transpiler) *Environment
 	return env
 }
 
-func (self *Environment) declareFunc(funcName string, value IRuntimeVal) (IRuntimeVal, error) {
+func (self *Environment) declareFunc(funcName string, value ast.IRuntimeVal) (ast.IRuntimeVal, error) {
 	if self.isFuncDeclared(funcName) {
 		return NewNullVal(), fmt.Errorf("Cannot declare function '%s' as it already is defined", funcName)
 	}
@@ -84,7 +85,7 @@ func (self *Environment) resolveFunc(funcName string) (*Environment, error) {
 	return self.parent.resolveFunc(funcName)
 }
 
-func (self *Environment) lookupFunc(funcName string) (IRuntimeVal, error) {
+func (self *Environment) lookupFunc(funcName string) (ast.IRuntimeVal, error) {
 	env, err := self.resolveFunc(funcName)
 	if err != nil {
 		return NewNullVal(), err
@@ -92,7 +93,7 @@ func (self *Environment) lookupFunc(funcName string) (IRuntimeVal, error) {
 	return env.functions[funcName], nil
 }
 
-func (self *Environment) declareVar(varName string, value IRuntimeVal, isConstant bool, varType lexer.TokenType) (IRuntimeVal, error) {
+func (self *Environment) declareVar(varName string, value ast.IRuntimeVal, isConstant bool, varType lexer.TokenType) (ast.IRuntimeVal, error) {
 	if _, ok := self.variables[varName]; ok {
 		return NewNullVal(), fmt.Errorf("Cannot declare variable '%s' as it already is defined", varName)
 	}
@@ -106,7 +107,7 @@ func (self *Environment) declareVar(varName string, value IRuntimeVal, isConstan
 	return value, nil
 }
 
-func (self *Environment) assignVar(varName string, value IRuntimeVal) (IRuntimeVal, error) {
+func (self *Environment) assignVar(varName string, value ast.IRuntimeVal) (ast.IRuntimeVal, error) {
 	env, err := self.resolve(varName)
 	if err != nil {
 		return NewNullVal(), err
@@ -133,7 +134,7 @@ func (self *Environment) resolve(varName string) (*Environment, error) {
 	return self.parent.resolve(varName)
 }
 
-func (self *Environment) lookupVar(varName string) (IRuntimeVal, error) {
+func (self *Environment) lookupVar(varName string) (ast.IRuntimeVal, error) {
 	env, err := self.resolve(varName)
 	if err != nil {
 		return NewNullVal(), err

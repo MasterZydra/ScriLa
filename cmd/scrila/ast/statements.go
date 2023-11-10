@@ -11,12 +11,15 @@ type IStatement interface {
 	GetKind() NodeType
 	GetLn() int
 	GetCol() int
+	GetResult() IRuntimeVal
+	SetResult(value IRuntimeVal)
 }
 
 type Statement struct {
-	kind NodeType
-	ln   int
-	col  int
+	kind   NodeType
+	ln     int
+	col    int
+	result IRuntimeVal
 }
 
 func NewStatement(kind NodeType, ln int, col int) *Statement {
@@ -37,6 +40,14 @@ func (self *Statement) GetLn() int {
 
 func (self *Statement) GetCol() int {
 	return self.col
+}
+
+func (self *Statement) GetResult() IRuntimeVal {
+	return self.result
+}
+
+func (self *Statement) SetResult(value IRuntimeVal) {
+	self.result = value
 }
 
 // Program
@@ -78,6 +89,14 @@ func (self *Program) GetCol() int {
 	return self.statement.GetCol()
 }
 
+func (self *Program) GetResult() IRuntimeVal {
+	return self.statement.GetResult()
+}
+
+func (self *Program) SetResult(value IRuntimeVal) {
+	self.statement.SetResult(value)
+}
+
 // Comment
 
 type IComment interface {
@@ -115,6 +134,14 @@ func (self *Comment) GetLn() int {
 
 func (self *Comment) GetCol() int {
 	return self.statement.GetCol()
+}
+
+func (self *Comment) GetResult() IRuntimeVal {
+	return self.statement.GetResult()
+}
+
+func (self *Comment) SetResult(value IRuntimeVal) {
+	self.statement.SetResult(value)
 }
 
 // VarDeclaration
@@ -175,6 +202,14 @@ func (self *VarDeclaration) GetLn() int {
 
 func (self *VarDeclaration) GetCol() int {
 	return self.statement.GetCol()
+}
+
+func (self *VarDeclaration) GetResult() IRuntimeVal {
+	return self.statement.GetResult()
+}
+
+func (self *VarDeclaration) SetResult(value IRuntimeVal) {
+	self.statement.SetResult(value)
 }
 
 // FunctionDeclaration
@@ -261,6 +296,14 @@ func (self *FunctionDeclaration) GetCol() int {
 	return self.statement.GetCol()
 }
 
+func (self *FunctionDeclaration) GetResult() IRuntimeVal {
+	return self.statement.GetResult()
+}
+
+func (self *FunctionDeclaration) SetResult(value IRuntimeVal) {
+	self.statement.SetResult(value)
+}
+
 // IfStatement
 
 type IIfStatement interface {
@@ -314,6 +357,14 @@ func (self *IfStatement) GetCol() int {
 	return self.statement.GetCol()
 }
 
+func (self *IfStatement) GetResult() IRuntimeVal {
+	return self.statement.GetResult()
+}
+
+func (self *IfStatement) SetResult(value IRuntimeVal) {
+	self.statement.SetResult(value)
+}
+
 // WhileStatement
 
 type IWhileStatement interface {
@@ -358,4 +409,12 @@ func (self *WhileStatement) GetLn() int {
 
 func (self *WhileStatement) GetCol() int {
 	return self.statement.GetCol()
+}
+
+func (self *WhileStatement) GetResult() IRuntimeVal {
+	return self.statement.GetResult()
+}
+
+func (self *WhileStatement) SetResult(value IRuntimeVal) {
+	self.statement.SetResult(value)
 }

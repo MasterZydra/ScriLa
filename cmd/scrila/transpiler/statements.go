@@ -9,10 +9,10 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-func (self *Transpiler) evalProgram(program ast.IProgram, env *Environment) (IRuntimeVal, error) {
+func (self *Transpiler) evalProgram(program ast.IProgram, env *Environment) (ast.IRuntimeVal, error) {
 	self.printFuncName("")
 
-	var lastEvaluated IRuntimeVal = NewNullVal()
+	var lastEvaluated ast.IRuntimeVal = NewNullVal()
 
 	for _, statement := range program.GetBody() {
 		var err error
@@ -25,7 +25,7 @@ func (self *Transpiler) evalProgram(program ast.IProgram, env *Environment) (IRu
 	return lastEvaluated, nil
 }
 
-func (self *Transpiler) evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (IRuntimeVal, error) {
+func (self *Transpiler) evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (ast.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	value, err := self.transpile(varDeclaration.GetValue(), env)
@@ -153,7 +153,7 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration ast.IVarDeclaration, e
 	return result, nil
 }
 
-func (self *Transpiler) evalIfStatement(ifStatement ast.IIfStatement, env *Environment) (IRuntimeVal, error) {
+func (self *Transpiler) evalIfStatement(ifStatement ast.IIfStatement, env *Environment) (ast.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	_, err := self.transpile(ifStatement.GetCondition(), env)
@@ -184,7 +184,7 @@ func (self *Transpiler) evalIfStatement(ifStatement ast.IIfStatement, env *Envir
 	return NewNullVal(), nil
 }
 
-func (self *Transpiler) evalWhileStatement(whileStatement ast.IWhileStatement, env *Environment) (IRuntimeVal, error) {
+func (self *Transpiler) evalWhileStatement(whileStatement ast.IWhileStatement, env *Environment) (ast.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	_, err := self.transpile(whileStatement.GetCondition(), env)
@@ -249,7 +249,7 @@ func (self *Transpiler) evalStatementCondition(condition ast.IExpr, env *Environ
 		if err != nil {
 			return err
 		}
-		if value.GetType() != BoolValueType {
+		if value.GetType() != ast.BoolValueType {
 			return fmt.Errorf("%s: Condition is no boolean expression. Got %s", self.getPos(condition), value.GetType())
 		}
 		self.writeLnTranspilat(value.GetTranspilat())
@@ -316,7 +316,7 @@ func (self *Transpiler) evalStatementBody(body []ast.IStatement, env *Environmen
 	return nil
 }
 
-func (self *Transpiler) evalFunctionDeclaration(funcDeclaration ast.IFunctionDeclaration, env *Environment) (IRuntimeVal, error) {
+func (self *Transpiler) evalFunctionDeclaration(funcDeclaration ast.IFunctionDeclaration, env *Environment) (ast.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	fn := NewFunctionVal(funcDeclaration, env)
@@ -326,7 +326,7 @@ func (self *Transpiler) evalFunctionDeclaration(funcDeclaration ast.IFunctionDec
 
 	self.writeLnTranspilat(funcDeclaration.GetName() + " () {")
 	for i, param := range funcDeclaration.GetParameters() {
-		var value IRuntimeVal
+		var value ast.IRuntimeVal
 		switch fn.GetParams()[i].GetParamType() {
 		case lexer.IntType:
 			value = NewIntVal(1)
@@ -344,7 +344,7 @@ func (self *Transpiler) evalFunctionDeclaration(funcDeclaration ast.IFunctionDec
 
 	// Transpile the function body line by line
 	self.currentFunc = fn
-	var result IRuntimeVal
+	var result ast.IRuntimeVal
 	result = NewNullVal()
 	for _, stmt := range fn.GetBody() {
 		var err error

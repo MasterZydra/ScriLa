@@ -111,7 +111,7 @@ func (self *Transpiler) Transpile(astNode ast.IStatement, env *Environment, file
 	return nil
 }
 
-func (self *Transpiler) transpile(astNode ast.IStatement, env *Environment) (IRuntimeVal, error) {
+func (self *Transpiler) transpile(astNode ast.IStatement, env *Environment) (ast.IRuntimeVal, error) {
 	switch astNode.GetKind() {
 	// Handle Expressions
 	case ast.IntLiteralNode:

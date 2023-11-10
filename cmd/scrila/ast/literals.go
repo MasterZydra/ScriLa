@@ -44,6 +44,14 @@ func (self *IntLiteral) GetCol() int {
 	return self.expr.GetCol()
 }
 
+func (self *IntLiteral) GetResult() IRuntimeVal {
+	return self.expr.GetResult()
+}
+
+func (self *IntLiteral) SetResult(value IRuntimeVal) {
+	self.expr.SetResult(value)
+}
+
 // StrLiteral
 
 type IStrLiteral interface {
@@ -77,6 +85,14 @@ func (self *StrLiteral) GetLn() int {
 
 func (self *StrLiteral) GetCol() int {
 	return self.expr.GetCol()
+}
+
+func (self *StrLiteral) GetResult() IRuntimeVal {
+	return self.expr.GetResult()
+}
+
+func (self *StrLiteral) SetResult(value IRuntimeVal) {
+	self.expr.SetResult(value)
 }
 
 // Property
@@ -125,6 +141,14 @@ func (self *Property) GetCol() int {
 	return self.expr.GetCol()
 }
 
+func (self *Property) GetResult() IRuntimeVal {
+	return self.expr.GetResult()
+}
+
+func (self *Property) SetResult(value IRuntimeVal) {
+	self.expr.SetResult(value)
+}
+
 // ObjectLiteral
 
 type IObjectLiteral interface {
@@ -164,6 +188,14 @@ func (self *ObjectLiteral) GetCol() int {
 	return self.expr.GetCol()
 }
 
+func (self *ObjectLiteral) GetResult() IRuntimeVal {
+	return self.expr.GetResult()
+}
+
+func (self *ObjectLiteral) SetResult(value IRuntimeVal) {
+	self.expr.SetResult(value)
+}
+
 // Identifier
 
 type IIdentifier interface {
@@ -197,4 +229,12 @@ func (self *Identifier) GetLn() int {
 
 func (self *Identifier) GetCol() int {
 	return self.expr.GetCol()
+}
+
+func (self *Identifier) GetResult() IRuntimeVal {
+	return self.expr.GetResult()
+}
+
+func (self *Identifier) SetResult(value IRuntimeVal) {
+	self.expr.SetResult(value)
 }

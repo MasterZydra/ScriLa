@@ -33,6 +33,14 @@ func (self *Expr) GetCol() int {
 	return self.statement.GetCol()
 }
 
+func (self *Expr) GetResult() IRuntimeVal {
+	return self.statement.GetResult()
+}
+
+func (self *Expr) SetResult(value IRuntimeVal) {
+	self.statement.SetResult(value)
+}
+
 // AssignmentExpr
 
 type IAssignmentExpr interface {
@@ -77,6 +85,14 @@ func (self *AssignmentExpr) GetLn() int {
 
 func (self *AssignmentExpr) GetCol() int {
 	return self.expr.GetCol()
+}
+
+func (self *AssignmentExpr) GetResult() IRuntimeVal {
+	return self.expr.GetResult()
+}
+
+func (self *AssignmentExpr) SetResult(value IRuntimeVal) {
+	self.expr.SetResult(value)
 }
 
 // BinaryExpr
@@ -132,6 +148,14 @@ func (self *BinaryExpr) GetCol() int {
 	return self.expr.GetCol()
 }
 
+func (self *BinaryExpr) GetResult() IRuntimeVal {
+	return self.expr.GetResult()
+}
+
+func (self *BinaryExpr) SetResult(value IRuntimeVal) {
+	self.expr.SetResult(value)
+}
+
 // CallExpr
 
 type ICallExpr interface {
@@ -176,6 +200,14 @@ func (self *CallExpr) GetLn() int {
 
 func (self *CallExpr) GetCol() int {
 	return self.expr.GetCol()
+}
+
+func (self *CallExpr) GetResult() IRuntimeVal {
+	return self.expr.GetResult()
+}
+
+func (self *CallExpr) SetResult(value IRuntimeVal) {
+	self.expr.SetResult(value)
 }
 
 // MemberExpr
@@ -235,6 +267,14 @@ func (self *MemberExpr) GetCol() int {
 	return self.expr.GetCol()
 }
 
+func (self *MemberExpr) GetResult() IRuntimeVal {
+	return self.expr.GetResult()
+}
+
+func (self *MemberExpr) SetResult(value IRuntimeVal) {
+	self.expr.SetResult(value)
+}
+
 // ReturnExpr
 
 type IReturnExpr interface {
@@ -279,4 +319,12 @@ func (self *ReturnExpr) GetLn() int {
 
 func (self *ReturnExpr) GetCol() int {
 	return self.expr.GetCol()
+}
+
+func (self *ReturnExpr) GetResult() IRuntimeVal {
+	return self.expr.GetResult()
+}
+
+func (self *ReturnExpr) SetResult(value IRuntimeVal) {
+	self.expr.SetResult(value)
 }

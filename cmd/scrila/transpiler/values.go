@@ -6,83 +6,26 @@ import (
 	"fmt"
 )
 
-type ValueType string
-
-const (
-	BoolValueType     ValueType = "bool"
-	FunctionValueType ValueType = "function"
-	IntValueType      ValueType = "int"
-	NativeFnType      ValueType = "native-func"
-	NullValueType     ValueType = "null"
-	ObjValueType      ValueType = "obj"
-	StrValueType      ValueType = "str"
-)
-
-var valueTypeLexerTypeMapping = map[ValueType]lexer.TokenType{
-	BoolValueType: lexer.BoolType,
-	IntValueType:  lexer.IntType,
-	ObjValueType:  lexer.ObjType,
-	StrValueType:  lexer.StrType,
-}
-
-func doTypesMatch(type1 lexer.TokenType, type2 ValueType) bool {
-	value, ok := valueTypeLexerTypeMapping[type2]
-	if !ok {
-		return false
-	}
-	return value == type1
-}
-
-// RuntimeVal
-
-type IRuntimeVal interface {
-	GetType() ValueType
-	ToString() string
-	GetTranspilat() string
-	SetTranspilat(transpilat string)
-}
-
-type RuntimeVal struct {
-	valueType  ValueType
-	transpilat string
-}
-
-func NewRuntimeVal(valueType ValueType) *RuntimeVal {
-	return &RuntimeVal{valueType: valueType}
-}
-
-func (self *RuntimeVal) GetType() ValueType {
-	return self.valueType
-}
-
-func (self *RuntimeVal) GetTranspilat() string {
-	return self.transpilat
-}
-
-func (self *RuntimeVal) SetTranspilat(transpilat string) {
-	self.transpilat = transpilat
-}
-
 // NullVal
 
 type INullVal interface {
-	IRuntimeVal
+	ast.IRuntimeVal
 	GetValue() string
 }
 
 type NullVal struct {
-	runtimeVal *RuntimeVal
+	runtimeVal *ast.RuntimeVal
 	value      string
 }
 
 func NewNullVal() *NullVal {
 	return &NullVal{
-		runtimeVal: NewRuntimeVal(NullValueType),
+		runtimeVal: ast.NewRuntimeVal(ast.NullValueType),
 		value:      "null",
 	}
 }
 
-func (self *NullVal) GetType() ValueType {
+func (self *NullVal) GetType() ast.ValueType {
 	return self.runtimeVal.GetType()
 }
 
@@ -91,11 +34,11 @@ func (self *NullVal) GetValue() string {
 }
 
 func (self *NullVal) GetTranspilat() string {
-	return self.runtimeVal.transpilat
+	return self.runtimeVal.GetTranspilat()
 }
 
 func (self *NullVal) SetTranspilat(transpilat string) {
-	self.runtimeVal.transpilat = transpilat
+	self.runtimeVal.SetTranspilat(transpilat)
 }
 
 func (self *NullVal) ToString() string {
@@ -105,23 +48,23 @@ func (self *NullVal) ToString() string {
 // IntVal
 
 type IIntVal interface {
-	IRuntimeVal
+	ast.IRuntimeVal
 	GetValue() int64
 }
 
 type IntVal struct {
-	runtimeVal *RuntimeVal
+	runtimeVal *ast.RuntimeVal
 	value      int64
 }
 
 func NewIntVal(value int64) *IntVal {
 	return &IntVal{
-		runtimeVal: NewRuntimeVal(IntValueType),
+		runtimeVal: ast.NewRuntimeVal(ast.IntValueType),
 		value:      value,
 	}
 }
 
-func (self *IntVal) GetType() ValueType {
+func (self *IntVal) GetType() ast.ValueType {
 	return self.runtimeVal.GetType()
 }
 
@@ -130,11 +73,11 @@ func (self *IntVal) GetValue() int64 {
 }
 
 func (self *IntVal) GetTranspilat() string {
-	return self.runtimeVal.transpilat
+	return self.runtimeVal.GetTranspilat()
 }
 
 func (self *IntVal) SetTranspilat(transpilat string) {
-	self.runtimeVal.transpilat = transpilat
+	self.runtimeVal.SetTranspilat(transpilat)
 }
 
 func (self *IntVal) ToString() string {
@@ -144,12 +87,12 @@ func (self *IntVal) ToString() string {
 // BoolVal
 
 type IBoolVal interface {
-	IRuntimeVal
+	ast.IRuntimeVal
 	GetValue() bool
 }
 
 type BoolVal struct {
-	runtimeVal *RuntimeVal
+	runtimeVal *ast.RuntimeVal
 	value      bool
 }
 
@@ -159,12 +102,12 @@ func (self *BoolVal) String() string {
 
 func NewBoolVal(value bool) *BoolVal {
 	return &BoolVal{
-		runtimeVal: NewRuntimeVal(BoolValueType),
+		runtimeVal: ast.NewRuntimeVal(ast.BoolValueType),
 		value:      value,
 	}
 }
 
-func (self *BoolVal) GetType() ValueType {
+func (self *BoolVal) GetType() ast.ValueType {
 	return self.runtimeVal.GetType()
 }
 
@@ -173,11 +116,11 @@ func (self *BoolVal) GetValue() bool {
 }
 
 func (self *BoolVal) GetTranspilat() string {
-	return self.runtimeVal.transpilat
+	return self.runtimeVal.GetTranspilat()
 }
 
 func (self *BoolVal) SetTranspilat(transpilat string) {
-	self.runtimeVal.transpilat = transpilat
+	self.runtimeVal.SetTranspilat(transpilat)
 }
 
 func (self *BoolVal) ToString() string {
@@ -187,36 +130,36 @@ func (self *BoolVal) ToString() string {
 // ObjVal
 
 type IObjVal interface {
-	IRuntimeVal
-	GetProperties() map[string]IRuntimeVal
+	ast.IRuntimeVal
+	GetProperties() map[string]ast.IRuntimeVal
 }
 
 type ObjVal struct {
-	runtimeVal *RuntimeVal
-	properties map[string]IRuntimeVal
+	runtimeVal *ast.RuntimeVal
+	properties map[string]ast.IRuntimeVal
 }
 
 func NewObjVal() *ObjVal {
 	return &ObjVal{
-		runtimeVal: NewRuntimeVal(ObjValueType),
-		properties: make(map[string]IRuntimeVal),
+		runtimeVal: ast.NewRuntimeVal(ast.ObjValueType),
+		properties: make(map[string]ast.IRuntimeVal),
 	}
 }
 
-func (self *ObjVal) GetType() ValueType {
+func (self *ObjVal) GetType() ast.ValueType {
 	return self.runtimeVal.GetType()
 }
 
-func (self *ObjVal) GetProperties() map[string]IRuntimeVal {
+func (self *ObjVal) GetProperties() map[string]ast.IRuntimeVal {
 	return self.properties
 }
 
 func (self *ObjVal) GetTranspilat() string {
-	return self.runtimeVal.transpilat
+	return self.runtimeVal.GetTranspilat()
 }
 
 func (self *ObjVal) SetTranspilat(transpilat string) {
-	self.runtimeVal.transpilat = transpilat
+	self.runtimeVal.SetTranspilat(transpilat)
 }
 
 func (self *ObjVal) ToString() string {
@@ -226,23 +169,23 @@ func (self *ObjVal) ToString() string {
 // StrVal
 
 type IStrVal interface {
-	IRuntimeVal
+	ast.IRuntimeVal
 	GetValue() string
 }
 
 type StrVal struct {
-	runtimeVal *RuntimeVal
+	runtimeVal *ast.RuntimeVal
 	value      string
 }
 
 func NewStrVal(value string) *StrVal {
 	return &StrVal{
-		runtimeVal: NewRuntimeVal(StrValueType),
+		runtimeVal: ast.NewRuntimeVal(ast.StrValueType),
 		value:      value,
 	}
 }
 
-func (self *StrVal) GetType() ValueType {
+func (self *StrVal) GetType() ast.ValueType {
 	return self.runtimeVal.GetType()
 }
 
@@ -251,11 +194,11 @@ func (self *StrVal) GetValue() string {
 }
 
 func (self *StrVal) GetTranspilat() string {
-	return self.runtimeVal.transpilat
+	return self.runtimeVal.GetTranspilat()
 }
 
 func (self *StrVal) SetTranspilat(transpilat string) {
-	self.runtimeVal.transpilat = transpilat
+	self.runtimeVal.SetTranspilat(transpilat)
 }
 
 func (self *StrVal) ToString() string {
@@ -264,29 +207,29 @@ func (self *StrVal) ToString() string {
 
 // NativeFunc
 
-type FunctionCall func(args []ast.IExpr, env *Environment) (IRuntimeVal, error)
+type FunctionCall func(args []ast.IExpr, env *Environment) (ast.IRuntimeVal, error)
 
 type INativeFunc interface {
-	IRuntimeVal
+	ast.IRuntimeVal
 	GetCall() FunctionCall
 	GetReturnType() lexer.TokenType
 }
 
 type NativeFunc struct {
-	runtimeVal *RuntimeVal
+	runtimeVal *ast.RuntimeVal
 	call       FunctionCall
 	returnType lexer.TokenType
 }
 
 func NewNativeFunc(function FunctionCall, returnType lexer.TokenType) *NativeFunc {
 	return &NativeFunc{
-		runtimeVal: NewRuntimeVal(NativeFnType),
+		runtimeVal: ast.NewRuntimeVal(ast.NativeFnType),
 		call:       function,
 		returnType: returnType,
 	}
 }
 
-func (self *NativeFunc) GetType() ValueType {
+func (self *NativeFunc) GetType() ast.ValueType {
 	return self.runtimeVal.GetType()
 }
 
@@ -299,11 +242,11 @@ func (self *NativeFunc) GetReturnType() lexer.TokenType {
 }
 
 func (self *NativeFunc) GetTranspilat() string {
-	return self.runtimeVal.transpilat
+	return self.runtimeVal.GetTranspilat()
 }
 
 func (self *NativeFunc) SetTranspilat(transpilat string) {
-	self.runtimeVal.transpilat = transpilat
+	self.runtimeVal.SetTranspilat(transpilat)
 }
 
 func (self *NativeFunc) ToString() string {
@@ -313,7 +256,7 @@ func (self *NativeFunc) ToString() string {
 // FunctionVal
 
 type IFunctionVal interface {
-	IRuntimeVal
+	ast.IRuntimeVal
 	GetName() string
 	GetParams() []*ast.Parameter
 	GetDeclarationEnv() *Environment
@@ -322,7 +265,7 @@ type IFunctionVal interface {
 }
 
 type FunctionVal struct {
-	runtimeVal     *RuntimeVal
+	runtimeVal     *ast.RuntimeVal
 	name           string
 	params         []*ast.Parameter
 	declarationEnv *Environment
@@ -332,7 +275,7 @@ type FunctionVal struct {
 
 func NewFunctionVal(funcDeclaration ast.IFunctionDeclaration, env *Environment) *FunctionVal {
 	return &FunctionVal{
-		runtimeVal:     NewRuntimeVal(FunctionValueType),
+		runtimeVal:     ast.NewRuntimeVal(ast.FunctionValueType),
 		name:           funcDeclaration.GetName(),
 		params:         funcDeclaration.GetParameters(),
 		declarationEnv: env,
@@ -341,7 +284,7 @@ func NewFunctionVal(funcDeclaration ast.IFunctionDeclaration, env *Environment) 
 	}
 }
 
-func (self *FunctionVal) GetType() ValueType {
+func (self *FunctionVal) GetType() ast.ValueType {
 	return self.runtimeVal.GetType()
 }
 
@@ -366,11 +309,11 @@ func (self *FunctionVal) GetReturnType() lexer.TokenType {
 }
 
 func (self *FunctionVal) GetTranspilat() string {
-	return self.runtimeVal.transpilat
+	return self.runtimeVal.GetTranspilat()
 }
 
 func (self *FunctionVal) SetTranspilat(transpilat string) {
-	self.runtimeVal.transpilat = transpilat
+	self.runtimeVal.SetTranspilat(transpilat)
 }
 
 func (self *FunctionVal) ToString() string {
