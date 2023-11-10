@@ -10,6 +10,8 @@ import (
 )
 
 func (self *Transpiler) evalProgram(program ast.IProgram, env *Environment) (IRuntimeVal, error) {
+	self.printFuncName("")
+
 	var lastEvaluated IRuntimeVal = NewNullVal()
 
 	for _, statement := range program.GetBody() {
@@ -24,6 +26,8 @@ func (self *Transpiler) evalProgram(program ast.IProgram, env *Environment) (IRu
 }
 
 func (self *Transpiler) evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (IRuntimeVal, error) {
+	self.printFuncName("")
+
 	value, err := self.transpile(varDeclaration.GetValue(), env)
 	if err != nil {
 		return NewNullVal(), err
@@ -150,6 +154,8 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration ast.IVarDeclaration, e
 }
 
 func (self *Transpiler) evalIfStatement(ifStatement ast.IIfStatement, env *Environment) (IRuntimeVal, error) {
+	self.printFuncName("")
+
 	_, err := self.transpile(ifStatement.GetCondition(), env)
 	if err != nil {
 		return NewNullVal(), err
@@ -179,6 +185,8 @@ func (self *Transpiler) evalIfStatement(ifStatement ast.IIfStatement, env *Envir
 }
 
 func (self *Transpiler) evalWhileStatement(whileStatement ast.IWhileStatement, env *Environment) (IRuntimeVal, error) {
+	self.printFuncName("")
+
 	_, err := self.transpile(whileStatement.GetCondition(), env)
 	if err != nil {
 		return NewNullVal(), err
@@ -205,6 +213,8 @@ func (self *Transpiler) evalWhileStatement(whileStatement ast.IWhileStatement, e
 }
 
 func (self *Transpiler) evalIfStatementElse(elseBlock ast.IIfStatement, env *Environment) error {
+	self.printFuncName("")
+
 	if elseBlock == nil {
 		return nil
 	}
@@ -231,6 +241,8 @@ func (self *Transpiler) evalIfStatementElse(elseBlock ast.IIfStatement, env *Env
 }
 
 func (self *Transpiler) evalStatementCondition(condition ast.IExpr, env *Environment) error {
+	self.printFuncName("")
+
 	switch condition.GetKind() {
 	case ast.BinaryExprNode:
 		value, err := self.transpile(condition, env)
@@ -285,6 +297,8 @@ func (self *Transpiler) evalStatementCondition(condition ast.IExpr, env *Environ
 }
 
 func (self *Transpiler) evalStatementBody(body []ast.IStatement, env *Environment) error {
+	self.printFuncName("")
+
 	// Bash does not support an empty if-/while-body. A fix is to up a ":" inside the body.
 	if len(body) == 0 {
 		self.writeLnTranspilat(self.indent(0) + ":")
@@ -303,6 +317,8 @@ func (self *Transpiler) evalStatementBody(body []ast.IStatement, env *Environmen
 }
 
 func (self *Transpiler) evalFunctionDeclaration(funcDeclaration ast.IFunctionDeclaration, env *Environment) (IRuntimeVal, error) {
+	self.printFuncName("")
+
 	fn := NewFunctionVal(funcDeclaration, env)
 	scope := NewEnvironment(fn.GetDeclarationEnv(), self)
 

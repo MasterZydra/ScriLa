@@ -12,6 +12,7 @@ import (
 func main() {
 	showTokens := flag.Bool("st", false, "Show tokens")
 	showAST := flag.Bool("sa", false, "Show AST")
+	showCallStack := flag.Bool("sc", false, "Show call stack")
 	filename := flag.String("f", "", "Script file")
 	flag.Parse()
 
@@ -21,12 +22,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	transpile(*filename, *showTokens, *showAST)
+	transpile(*filename, *showTokens, *showAST, *showCallStack)
 }
 
-func transpile(filename string, showTokens bool, showAST bool) {
+func transpile(filename string, showTokens bool, showAST bool, showCallStack bool) {
 	parser := parser.NewParser()
-	transpilerObj := transpiler.NewTranspiler()
+	transpilerObj := transpiler.NewTranspiler(showCallStack)
 	env := transpiler.NewEnvironment(nil, transpilerObj)
 
 	fileContent, err := os.ReadFile(filename)

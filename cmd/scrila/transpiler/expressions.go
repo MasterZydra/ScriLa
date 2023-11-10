@@ -9,6 +9,8 @@ import (
 )
 
 func (self *Transpiler) evalIdentifier(identifier ast.IIdentifier, env *Environment) (IRuntimeVal, error) {
+	self.printFuncName(identifier.GetSymbol())
+
 	if self.contextContains(WhileLoopContext) {
 		if slices.Contains([]string{"break", "continue"}, identifier.GetSymbol()) {
 			self.writeLnTranspilat(identifier.GetSymbol())
@@ -20,6 +22,8 @@ func (self *Transpiler) evalIdentifier(identifier ast.IIdentifier, env *Environm
 }
 
 func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) (IRuntimeVal, error) {
+	self.printFuncName("")
+
 	lhs, lhsError := self.transpile(binOp.GetLeft(), env)
 	if lhsError != nil {
 		return NewNullVal(), lhsError
@@ -102,6 +106,8 @@ func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) 
 }
 
 func (self *Transpiler) evalComparisonBinaryExpr(lhs IRuntimeVal, rhs IRuntimeVal, operator string) (IBoolVal, error) {
+	self.printFuncName("")
+
 	if lhs.GetType() != rhs.GetType() {
 		return NewBoolVal(false), fmt.Errorf("Cannot compare type '%s' and '%s'", lhs.GetType(), rhs.GetType())
 	}
@@ -172,6 +178,8 @@ func (self *Transpiler) evalComparisonBinaryExpr(lhs IRuntimeVal, rhs IRuntimeVa
 }
 
 func (self *Transpiler) evalBoolBinaryExpr(lhs IBoolVal, rhs IBoolVal, operator string) (IBoolVal, error) {
+	self.printFuncName("")
+
 	var result bool
 	transpilat := ""
 	switch operator {
@@ -191,6 +199,8 @@ func (self *Transpiler) evalBoolBinaryExpr(lhs IBoolVal, rhs IBoolVal, operator 
 }
 
 func (self *Transpiler) evalIntBinaryExpr(lhs IIntVal, rhs IIntVal, operator string) (IIntVal, error) {
+	self.printFuncName("")
+
 	var result int64
 	transpilat := "$(("
 	switch operator {
@@ -218,6 +228,8 @@ func (self *Transpiler) evalIntBinaryExpr(lhs IIntVal, rhs IIntVal, operator str
 }
 
 func (self *Transpiler) evalStrBinaryExpr(lhs IStrVal, rhs IStrVal, operator string) (IStrVal, error) {
+	self.printFuncName("")
+
 	switch operator {
 	case "+":
 		strVal := NewStrVal(lhs.GetValue() + rhs.GetValue())
@@ -229,6 +241,8 @@ func (self *Transpiler) evalStrBinaryExpr(lhs IStrVal, rhs IStrVal, operator str
 }
 
 func (self *Transpiler) evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeVal, error) {
+	self.printFuncName("")
+
 	if assignment.GetAssigne().GetKind() == ast.MemberExprNode {
 		return self.evalAssignmentObjMember(assignment, env)
 	}
@@ -335,6 +349,8 @@ func (self *Transpiler) evalAssignment(assignment ast.IAssignmentExpr, env *Envi
 }
 
 func (self *Transpiler) evalAssignmentObjMember(assignment ast.IAssignmentExpr, env *Environment) (IRuntimeVal, error) {
+	self.printFuncName("")
+
 	if assignment.GetAssigne().GetKind() != ast.MemberExprNode {
 		return NewNullVal(), fmt.Errorf("%s: Left side of object member assignment is invalid type '%s'", self.getPos(assignment.GetAssigne()), assignment.GetAssigne().GetKind())
 	}
@@ -379,6 +395,8 @@ func (self *Transpiler) evalAssignmentObjMember(assignment ast.IAssignmentExpr, 
 }
 
 func (self *Transpiler) evalObjectExpr(object ast.IObjectLiteral, env *Environment) (IRuntimeVal, error) {
+	self.printFuncName("")
+
 	obj := NewObjVal()
 
 	for _, property := range object.GetProperties() {
@@ -393,6 +411,8 @@ func (self *Transpiler) evalObjectExpr(object ast.IObjectLiteral, env *Environme
 }
 
 func (self *Transpiler) evalMemberExpr(memberExpr ast.IMemberExpr, env *Environment) (IRuntimeVal, error) {
+	self.printFuncName("")
+
 	if memberExpr.GetObject().GetKind() != ast.IdentifierNode {
 		return NewNullVal(), fmt.Errorf("%s: Object name is not the right type. Got '%s'", self.getPos(memberExpr.GetObject()), memberExpr.GetObject().GetKind())
 	}
@@ -419,6 +439,8 @@ func (self *Transpiler) evalMemberExpr(memberExpr ast.IMemberExpr, env *Environm
 }
 
 func (self *Transpiler) getFuncReturnType(call ast.ICallExpr, env *Environment) (lexer.TokenType, error) {
+	self.printFuncName("")
+
 	if call.GetCaller().GetKind() != ast.IdentifierNode {
 		return "", fmt.Errorf("%s: Function name must be an identifier. Got: '%s'", self.getPos(call.GetCaller()), call.GetCaller().GetKind())
 	}
@@ -440,6 +462,8 @@ func (self *Transpiler) getFuncReturnType(call ast.ICallExpr, env *Environment) 
 }
 
 func (self *Transpiler) getCallerResultVarName(call ast.ICallExpr, env *Environment) (string, error) {
+	self.printFuncName("")
+
 	returnType, err := self.getFuncReturnType(call, env)
 	if err != nil {
 		return "", err
@@ -460,6 +484,8 @@ func (self *Transpiler) getCallerResultVarName(call ast.ICallExpr, env *Environm
 }
 
 func (self *Transpiler) evalCallExpr(call ast.ICallExpr, env *Environment) (IRuntimeVal, error) {
+	self.printFuncName(identNodeGetSymbol(call.GetCaller()))
+
 	// TODO add helpers? https://zetcode.com/golang/filter-map/
 	var args []IRuntimeVal
 	for _, arg := range call.GetArgs() {
@@ -532,6 +558,8 @@ func (self *Transpiler) evalCallExpr(call ast.ICallExpr, env *Environment) (IRun
 }
 
 func (self *Transpiler) evalReturnExpr(returnExpr ast.IReturnExpr, env *Environment) (IRuntimeVal, error) {
+	self.printFuncName("")
+
 	if !self.contextContains(FunctionContext) || self.currentFunc == nil {
 		return NewNullVal(), fmt.Errorf("%s: Return is only allowed inside a function", self.getPos(returnExpr))
 	}

@@ -4,6 +4,7 @@ import (
 	"ScriLa/cmd/scrila/ast"
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 
 	"golang.org/x/exp/slices"
@@ -31,28 +32,39 @@ type Transpiler struct {
 	testPrintMode bool
 	contexts      []Context
 	currentFunc   IFunctionVal
+
+	showCallStack bool
 }
 
-func NewTranspiler() *Transpiler {
+func NewTranspiler(showCallStack bool) *Transpiler {
 	return &Transpiler{
 		usedNativeFunctions: []string{},
 		contexts:            []Context{NoContext},
+		showCallStack:       showCallStack,
 	}
 }
 
 func (self *Transpiler) writeLnTranspilat(content string) {
+	self.printFuncName("")
+
 	self.writeTranspilat(content + "\n")
 }
 
 func (self *Transpiler) writeTranspilat(content string) {
+	self.printFuncName("")
+
 	self.userScriptTranspilat += content
 }
 
 func (self *Transpiler) writeLnToFile(content string) {
+	self.printFuncName("")
+
 	self.writeToFile(content + "\n")
 }
 
 func (self *Transpiler) writeToFile(content string) {
+	self.printFuncName("")
+
 	if self.testPrintMode {
 		fmt.Print(content)
 	} else {
@@ -172,4 +184,18 @@ func (self *Transpiler) contextContains(context Context) bool {
 
 func (self *Transpiler) indent(offset int) string {
 	return strings.Repeat("\t", len(self.contexts)-1-offset)
+}
+
+func (self *Transpiler) printFuncName(msg string) {
+	if self.showCallStack {
+		pc, _, _, _ := runtime.Caller(1)
+		funcName := runtime.FuncForPC(pc).Name()
+		funcName = strings.Replace(funcName, "ScriLa/cmd/scrila/transpiler.(*Transpiler).", "", -1)
+
+		if msg == "" {
+			fmt.Printf("%s()\n", funcName)
+		} else {
+			fmt.Printf("%s(): %s\n", funcName, msg)
+		}
+	}
 }

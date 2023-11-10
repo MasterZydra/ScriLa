@@ -20,6 +20,8 @@ func (self *Transpiler) declareNativeFunctions(env *Environment) {
 }
 
 func (self *Transpiler) nativePrintLn(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+	self.printFuncName("")
+
 	argStr, err := self.printArgs(args, env)
 	if err != nil {
 		return NewNullVal(), err
@@ -29,6 +31,8 @@ func (self *Transpiler) nativePrintLn(args []ast.IExpr, env *Environment) (IRunt
 }
 
 func (self *Transpiler) nativePrint(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+	self.printFuncName("")
+
 	argStr, err := self.printArgs(args, env)
 	if err != nil {
 		return NewNullVal(), err
@@ -38,6 +42,8 @@ func (self *Transpiler) nativePrint(args []ast.IExpr, env *Environment) (IRuntim
 }
 
 func (self *Transpiler) printArgs(args []ast.IExpr, env *Environment) (string, error) {
+	self.printFuncName("")
+
 	argStr := ""
 	var isFirst bool = true
 	for _, arg := range args {
@@ -84,6 +90,8 @@ func (self *Transpiler) printArgs(args []ast.IExpr, env *Environment) (string, e
 }
 
 func (self *Transpiler) nativeInput(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+	self.printFuncName("")
+
 	if len(args) != 1 {
 		return NewNullVal(), fmt.Errorf("Expected syntax: input(str prompt)")
 	}
@@ -119,6 +127,8 @@ func (self *Transpiler) nativeInput(args []ast.IExpr, env *Environment) (IRuntim
 }
 
 func (self *Transpiler) nativeSleep(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+	self.printFuncName("")
+
 	if len(args) != 1 {
 		return NewNullVal(), fmt.Errorf("Expected syntax: sleep(int seconds)")
 	}
@@ -151,6 +161,8 @@ func (self *Transpiler) nativeSleep(args []ast.IExpr, env *Environment) (IRuntim
 }
 
 func (self *Transpiler) nativeStrIsInt(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+	self.printFuncName("")
+
 	// Validate args
 	if len(args) != 1 {
 		return NewNullVal(), fmt.Errorf("Expected syntax: strIsInt(str value)")
@@ -197,6 +209,8 @@ func (self *Transpiler) nativeStrIsInt(args []ast.IExpr, env *Environment) (IRun
 }
 
 func (self *Transpiler) nativeStrToInt(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+	self.printFuncName("")
+
 	// Validate args
 	if len(args) != 1 {
 		return NewNullVal(), fmt.Errorf("Expected syntax: strToInt(str value)")
@@ -231,6 +245,8 @@ func (self *Transpiler) nativeStrToInt(args []ast.IExpr, env *Environment) (IRun
 }
 
 func (self *Transpiler) nativeExec(args []ast.IExpr, env *Environment) (IRuntimeVal, error) {
+	self.printFuncName("")
+
 	// Validate args
 	if len(args) != 1 {
 		return NewNullVal(), fmt.Errorf("Expected syntax: exec(str command)")
