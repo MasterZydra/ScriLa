@@ -30,8 +30,9 @@ The foundation of this project was created by following the playlist [Build a Cu
 
 **Documentation**  
 - [Syntax](doc/Syntax.md)
-- [AST](doc/AST.md)
 - [Development](doc/Development.md)
+- [Steps](doc/Steps.md)
+- [AST](doc/AST.md)
 - [Parser](doc/Parser.md)
 - [Bash transpilat](doc/BashTranspilat.md)
 

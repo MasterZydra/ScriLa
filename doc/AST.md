@@ -1,5 +1,11 @@
 # AST Nodes
 
+**Content**
+- [ScriLa AST Nodes](#scrila-ast-nodes)
+- [Bash AST Nodes](#bash-ast-nodes)
+
+## ScriLa AST Nodes
+
 ```mermaid
 classDiagram
   Statement <|-- Comment
@@ -19,4 +25,21 @@ classDiagram
   Expr <|-- StrLiteral
   Expr <|-- Property
   Expr <|-- ObjectLiteral
+```
+
+## Bash AST Nodes
+
+```mermaid
+classDiagram
+  Statement <|-- BashStmt
+  Statement <|-- Comment
+  Statement <|-- FuncDeclaration
+  Statement <|-- Program
+  Statement <|-- AssignmentExpr
+  Statement <|-- CallExpr
+  Statement <|-- ReturnExpr
+  Statement <|-- BoolLiteral
+  Statement <|-- IntLiteral
+  Statement <|-- StrLiteral
+  Statement <|-- VarLiteral
 ```
