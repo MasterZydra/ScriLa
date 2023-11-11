@@ -1,4 +1,4 @@
-package transpiler
+package bashTranspiler
 
 import (
 	"ScriLa/cmd/scrila/parser"
