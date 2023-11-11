@@ -1,7 +1,7 @@
 package bashTranspiler
 
 import (
-	"ScriLa/cmd/scrila/ast"
+	"ScriLa/cmd/scrila/scrilaAst"
 	"fmt"
 )
 
@@ -11,26 +11,26 @@ func strToBashStr(str string) string {
 }
 
 // Returns the symbol of the given expr of kind Identifier
-func identNodeGetSymbol(expr ast.IExpr) string {
-	return ast.ExprToIdent(expr).GetSymbol()
+func identNodeGetSymbol(expr scrilaAst.IExpr) string {
+	return scrilaAst.ExprToIdent(expr).GetSymbol()
 }
 
 // Return the given Identifier as Bash variable.
-func identNodeToBashVar(expr ast.IExpr) string {
+func identNodeToBashVar(expr scrilaAst.IExpr) string {
 	return fmt.Sprintf("${%s}", identNodeGetSymbol(expr))
 }
 
 // Return a bash comparision to represent a bool (true|false)
-func boolIdentToBashComparison(ident ast.IIdentifier) string {
+func boolIdentToBashComparison(ident scrilaAst.IIdentifier) string {
 	return fmt.Sprintf("[[ %s == \"true\" ]]", strToBashStr(ident.GetSymbol()))
 }
 
 // Return a bash comparison for a given bool variable
-func varIdentToBashComparison(ident ast.IIdentifier) string {
+func varIdentToBashComparison(ident scrilaAst.IIdentifier) string {
 	return fmt.Sprintf("[[ \"%s\" == \"true\" ]]", identNodeToBashVar(ident))
 }
 
 // Return a bash if statement that sets the tmpBool variable
-func binCompExpValueToBashIf(value ast.IRuntimeVal) string {
+func binCompExpValueToBashIf(value scrilaAst.IRuntimeVal) string {
 	return fmt.Sprintf("if %s\nthen\n\ttmpBool=\"true\"\nelse\n\ttmpBool=\"false\"\nfi", value.GetTranspilat())
 }

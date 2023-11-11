@@ -1,4 +1,4 @@
-package ast
+package scrilaAst
 
 import "ScriLa/cmd/scrila/lexer"
 

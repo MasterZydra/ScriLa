@@ -1,18 +1,18 @@
 package bashTranspiler
 
 import (
-	"ScriLa/cmd/scrila/ast"
 	"ScriLa/cmd/scrila/lexer"
+	"ScriLa/cmd/scrila/scrilaAst"
 	"fmt"
 	"strconv"
 
 	"golang.org/x/exp/slices"
 )
 
-func (self *Transpiler) evalProgram(program ast.IProgram, env *Environment) (ast.IRuntimeVal, error) {
+func (self *Transpiler) evalProgram(program scrilaAst.IProgram, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
-	var lastEvaluated ast.IRuntimeVal = NewNullVal()
+	var lastEvaluated scrilaAst.IRuntimeVal = NewNullVal()
 
 	for _, statement := range program.GetBody() {
 		var err error
@@ -25,7 +25,7 @@ func (self *Transpiler) evalProgram(program ast.IProgram, env *Environment) (ast
 	return lastEvaluated, nil
 }
 
-func (self *Transpiler) evalVarDeclaration(varDeclaration ast.IVarDeclaration, env *Environment) (ast.IRuntimeVal, error) {
+func (self *Transpiler) evalVarDeclaration(varDeclaration scrilaAst.IVarDeclaration, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	value, err := self.transpile(varDeclaration.GetValue(), env)
@@ -33,22 +33,22 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration ast.IVarDeclaration, e
 		return NewNullVal(), err
 	}
 
-	if varDeclaration.GetValue().GetKind() == ast.BinaryExprNode && ast.BinExprReturnsBool(ast.ExprToBinExpr(varDeclaration.GetValue())) {
+	if varDeclaration.GetValue().GetKind() == scrilaAst.BinaryExprNode && scrilaAst.BinExprReturnsBool(scrilaAst.ExprToBinExpr(varDeclaration.GetValue())) {
 		self.writeLnTranspilat(binCompExpValueToBashIf(value))
 	}
 
 	if self.contextContains(FunctionContext) {
 		self.writeTranspilat("local ")
 	}
-	if varDeclaration.GetValue().GetKind() == ast.ObjectLiteralNode {
+	if varDeclaration.GetValue().GetKind() == scrilaAst.ObjectLiteralNode {
 		self.writeLnTranspilat("declare -A " + varDeclaration.GetIdentifier())
 	} else {
 		self.writeTranspilat(varDeclaration.GetIdentifier() + "=")
 	}
 
 	switch varDeclaration.GetValue().GetKind() {
-	case ast.CallExprNode:
-		returnType, err := self.getFuncReturnType(ast.ExprToCallExpr(varDeclaration.GetValue()), env)
+	case scrilaAst.CallExprNode:
+		returnType, err := self.getFuncReturnType(scrilaAst.ExprToCallExpr(varDeclaration.GetValue()), env)
 		if err != nil {
 			return NewNullVal(), err
 		}
@@ -56,7 +56,7 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration ast.IVarDeclaration, e
 			return NewNullVal(), fmt.Errorf("%s: Cannot assign a value of type '%s' to a var of type '%s'", self.getPos(varDeclaration.GetValue()), returnType, varDeclaration.GetVarType())
 		}
 
-		varName, err := self.getCallerResultVarName(ast.ExprToCallExpr(varDeclaration.GetValue()), env)
+		varName, err := self.getCallerResultVarName(scrilaAst.ExprToCallExpr(varDeclaration.GetValue()), env)
 		if err != nil {
 			return NewNullVal(), err
 		}
@@ -74,9 +74,9 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration ast.IVarDeclaration, e
 			return NewNullVal(), fmt.Errorf("%s: Assigning return values is not implemented for variables of type '%s'", self.getPos(varDeclaration), varDeclaration.GetVarType())
 		}
 
-	case ast.IdentifierNode:
+	case scrilaAst.IdentifierNode:
 		symbol := identNodeGetSymbol(varDeclaration.GetValue())
-		if symbol == "null" || ast.IdentIsBool(ast.ExprToIdent(varDeclaration.GetValue())) {
+		if symbol == "null" || scrilaAst.IdentIsBool(scrilaAst.ExprToIdent(varDeclaration.GetValue())) {
 			self.writeLnTranspilat(strToBashStr(symbol))
 		} else if slices.Contains(reservedIdentifiers, symbol) {
 			self.writeLnTranspilat(symbol)
@@ -97,14 +97,14 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration ast.IVarDeclaration, e
 				return NewNullVal(), fmt.Errorf("%s: Assigning variables is not implemented for variables of type '%s'", self.getPos(varDeclaration), varDeclaration.GetVarType())
 			}
 		}
-	case ast.BinaryExprNode:
+	case scrilaAst.BinaryExprNode:
 		switch varDeclaration.GetVarType() {
 		case lexer.StrType:
 			self.writeLnTranspilat(strToBashStr(value.GetTranspilat()))
 		case lexer.IntType:
 			self.writeLnTranspilat(value.GetTranspilat())
 		case lexer.BoolType:
-			if ast.BinExprReturnsBool(ast.ExprToBinExpr(varDeclaration.GetValue())) {
+			if scrilaAst.BinExprReturnsBool(scrilaAst.ExprToBinExpr(varDeclaration.GetValue())) {
 				self.writeLnTranspilat("${tmpBool}")
 			} else {
 				self.writeLnTranspilat(value.GetTranspilat())
@@ -112,29 +112,29 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration ast.IVarDeclaration, e
 		default:
 			return NewNullVal(), fmt.Errorf("%s: Assigning binary expressions is not implemented for variables of type '%s'", self.getPos(varDeclaration), varDeclaration.GetVarType())
 		}
-	case ast.StrLiteralNode:
+	case scrilaAst.StrLiteralNode:
 		if varDeclaration.GetVarType() != lexer.StrType {
 			return NewNullVal(), fmt.Errorf("%s: Cannot assign a value of type '%s' to a var of type '%s'", self.getPos(varDeclaration.GetValue()), lexer.StrType, varDeclaration.GetVarType())
 		}
 		self.writeLnTranspilat(strToBashStr(value.ToString()))
-	case ast.IntLiteralNode:
+	case scrilaAst.IntLiteralNode:
 		if varDeclaration.GetVarType() != lexer.IntType {
 			return NewNullVal(), fmt.Errorf("%s: Cannot assign a value of type '%s' to a var of type '%s'", self.getPos(varDeclaration.GetValue()), lexer.IntType, varDeclaration.GetVarType())
 		}
 		self.writeLnTranspilat(value.ToString())
-	case ast.ObjectLiteralNode:
-		for _, prop := range ast.ExprToObjLit(varDeclaration.GetValue()).GetProperties() {
+	case scrilaAst.ObjectLiteralNode:
+		for _, prop := range scrilaAst.ExprToObjLit(varDeclaration.GetValue()).GetProperties() {
 			self.writeTranspilat(varDeclaration.GetIdentifier() + "[" + strToBashStr(prop.GetKey()) + "]=")
 			value, err := self.transpile(prop.GetValue(), env)
 			if err != nil {
 				return NewNullVal(), err
 			}
 			switch prop.GetValue().GetKind() {
-			case ast.IntLiteralNode:
+			case scrilaAst.IntLiteralNode:
 				self.writeLnTranspilat(value.ToString())
-			case ast.StrLiteralNode:
+			case scrilaAst.StrLiteralNode:
 				self.writeLnTranspilat(strToBashStr(value.ToString()))
-			case ast.IdentifierNode:
+			case scrilaAst.IdentifierNode:
 				symbol := identNodeGetSymbol(prop.GetValue())
 				if symbol == "null" {
 					self.writeLnTranspilat(strToBashStr(symbol))
@@ -147,8 +147,8 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration ast.IVarDeclaration, e
 				return NewNullVal(), fmt.Errorf("%s: Assigning object properties of type '%s' is not implemented", self.getPos(varDeclaration), prop.GetValue().GetKind())
 			}
 		}
-	case ast.MemberExprNode:
-		memberVal, err := self.evalMemberExpr(ast.ExprToMemberExpr(varDeclaration.GetValue()), env)
+	case scrilaAst.MemberExprNode:
+		memberVal, err := self.evalMemberExpr(scrilaAst.ExprToMemberExpr(varDeclaration.GetValue()), env)
 		if err != nil {
 			return NewNullVal(), err
 		}
@@ -164,7 +164,7 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration ast.IVarDeclaration, e
 	return result, nil
 }
 
-func (self *Transpiler) evalIfStatement(ifStatement ast.IIfStatement, env *Environment) (ast.IRuntimeVal, error) {
+func (self *Transpiler) evalIfStatement(ifStatement scrilaAst.IIfStatement, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	_, err := self.transpile(ifStatement.GetCondition(), env)
@@ -195,7 +195,7 @@ func (self *Transpiler) evalIfStatement(ifStatement ast.IIfStatement, env *Envir
 	return NewNullVal(), nil
 }
 
-func (self *Transpiler) evalWhileStatement(whileStatement ast.IWhileStatement, env *Environment) (ast.IRuntimeVal, error) {
+func (self *Transpiler) evalWhileStatement(whileStatement scrilaAst.IWhileStatement, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	_, err := self.transpile(whileStatement.GetCondition(), env)
@@ -223,7 +223,7 @@ func (self *Transpiler) evalWhileStatement(whileStatement ast.IWhileStatement, e
 	return NewNullVal(), nil
 }
 
-func (self *Transpiler) evalIfStatementElse(elseBlock ast.IIfStatement, env *Environment) error {
+func (self *Transpiler) evalIfStatementElse(elseBlock scrilaAst.IIfStatement, env *Environment) error {
 	self.printFuncName("")
 
 	if elseBlock == nil {
@@ -251,21 +251,21 @@ func (self *Transpiler) evalIfStatementElse(elseBlock ast.IIfStatement, env *Env
 	return self.evalIfStatementElse(elseBlock.GetElse(), env)
 }
 
-func (self *Transpiler) evalStatementCondition(condition ast.IExpr, env *Environment) error {
+func (self *Transpiler) evalStatementCondition(condition scrilaAst.IExpr, env *Environment) error {
 	self.printFuncName("")
 
 	switch condition.GetKind() {
-	case ast.BinaryExprNode:
+	case scrilaAst.BinaryExprNode:
 		value, err := self.transpile(condition, env)
 		if err != nil {
 			return err
 		}
-		if value.GetType() != ast.BoolValueType {
+		if value.GetType() != scrilaAst.BoolValueType {
 			return fmt.Errorf("%s: Condition is no boolean expression. Got %s", self.getPos(condition), value.GetType())
 		}
 		self.writeLnTranspilat(value.GetTranspilat())
-	case ast.CallExprNode:
-		returnType, err := self.getFuncReturnType(ast.ExprToCallExpr(condition), env)
+	case scrilaAst.CallExprNode:
+		returnType, err := self.getFuncReturnType(scrilaAst.ExprToCallExpr(condition), env)
 		if err != nil {
 			return err
 		}
@@ -273,14 +273,14 @@ func (self *Transpiler) evalStatementCondition(condition ast.IExpr, env *Environ
 			return fmt.Errorf("%s: Cannot use a value of type '%s' as condition", self.getPos(condition), returnType)
 		}
 
-		varName, err := self.getCallerResultVarName(ast.ExprToCallExpr(condition), env)
+		varName, err := self.getCallerResultVarName(scrilaAst.ExprToCallExpr(condition), env)
 		if err != nil {
 			return err
 		}
 		self.writeLnTranspilat(strToBashStr(varName))
-	case ast.IdentifierNode:
-		identifier := ast.ExprToIdent(condition)
-		if ast.IdentIsBool(identifier) {
+	case scrilaAst.IdentifierNode:
+		identifier := scrilaAst.ExprToIdent(condition)
+		if scrilaAst.IdentIsBool(identifier) {
 			self.writeLnTranspilat(boolIdentToBashComparison(identifier))
 		} else {
 			valueVarType, err := env.lookupVarType(identNodeGetSymbol(condition))
@@ -307,7 +307,7 @@ func (self *Transpiler) evalStatementCondition(condition ast.IExpr, env *Environ
 	return nil
 }
 
-func (self *Transpiler) evalStatementBody(body []ast.IStatement, env *Environment) error {
+func (self *Transpiler) evalStatementBody(body []scrilaAst.IStatement, env *Environment) error {
 	self.printFuncName("")
 
 	// Bash does not support an empty if-/while-body. A fix is to up a ":" inside the body.
@@ -327,7 +327,7 @@ func (self *Transpiler) evalStatementBody(body []ast.IStatement, env *Environmen
 	return nil
 }
 
-func (self *Transpiler) evalFunctionDeclaration(funcDeclaration ast.IFunctionDeclaration, env *Environment) (ast.IRuntimeVal, error) {
+func (self *Transpiler) evalFunctionDeclaration(funcDeclaration scrilaAst.IFunctionDeclaration, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	fn := NewFunctionVal(funcDeclaration, env)
@@ -337,7 +337,7 @@ func (self *Transpiler) evalFunctionDeclaration(funcDeclaration ast.IFunctionDec
 
 	self.writeLnTranspilat(funcDeclaration.GetName() + " () {")
 	for i, param := range funcDeclaration.GetParameters() {
-		var value ast.IRuntimeVal
+		var value scrilaAst.IRuntimeVal
 		switch fn.GetParams()[i].GetParamType() {
 		case lexer.IntType:
 			value = NewIntVal(1)
@@ -355,7 +355,7 @@ func (self *Transpiler) evalFunctionDeclaration(funcDeclaration ast.IFunctionDec
 
 	// Transpile the function body line by line
 	self.currentFunc = fn
-	var result ast.IRuntimeVal
+	var result scrilaAst.IRuntimeVal
 	result = NewNullVal()
 	for _, stmt := range fn.GetBody() {
 		var err error

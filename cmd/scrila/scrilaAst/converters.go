@@ -1,4 +1,4 @@
-package ast
+package scrilaAst
 
 func ExprToProgram(expr IExpr) IProgram {
 	var i interface{} = expr

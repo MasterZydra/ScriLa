@@ -1,14 +1,14 @@
 package bashTranspiler
 
 import (
-	"ScriLa/cmd/scrila/ast"
 	"ScriLa/cmd/scrila/lexer"
+	"ScriLa/cmd/scrila/scrilaAst"
 	"fmt"
 
 	"golang.org/x/exp/slices"
 )
 
-func (self *Transpiler) evalIdentifier(identifier ast.IIdentifier, env *Environment) (ast.IRuntimeVal, error) {
+func (self *Transpiler) evalIdentifier(identifier scrilaAst.IIdentifier, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName(identifier.GetSymbol())
 
 	if self.contextContains(WhileLoopContext) {
@@ -21,7 +21,7 @@ func (self *Transpiler) evalIdentifier(identifier ast.IIdentifier, env *Environm
 	return env.lookupVar(identifier.GetSymbol())
 }
 
-func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) (ast.IRuntimeVal, error) {
+func (self *Transpiler) evalBinaryExpr(binOp scrilaAst.IBinaryExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	if binOp.GetResult() != nil {
@@ -33,25 +33,25 @@ func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) 
 		return NewNullVal(), lhsError
 	}
 	switch binOp.GetLeft().GetKind() {
-	case ast.CallExprNode:
-		resultVarname, err := self.getCallerResultVarName(ast.ExprToCallExpr(binOp.GetLeft()), env)
+	case scrilaAst.CallExprNode:
+		resultVarname, err := self.getCallerResultVarName(scrilaAst.ExprToCallExpr(binOp.GetLeft()), env)
 		if err != nil {
 			return NewNullVal(), err
 		}
 		lhs.SetTranspilat(resultVarname)
-	case ast.BinaryExprNode:
+	case scrilaAst.BinaryExprNode:
 		// Do nothing
-	case ast.IdentifierNode:
-		if ast.IdentIsBool(ast.ExprToIdent(binOp.GetLeft())) {
+	case scrilaAst.IdentifierNode:
+		if scrilaAst.IdentIsBool(scrilaAst.ExprToIdent(binOp.GetLeft())) {
 			if slices.Contains(lexer.BooleanOps, binOp.GetOperator()) {
-				lhs.SetTranspilat(boolIdentToBashComparison(ast.ExprToIdent(binOp.GetLeft())))
+				lhs.SetTranspilat(boolIdentToBashComparison(scrilaAst.ExprToIdent(binOp.GetLeft())))
 			} else {
 				lhs.SetTranspilat(lhs.ToString())
 			}
 		} else {
 			lhs.SetTranspilat(identNodeToBashVar(binOp.GetLeft()))
 		}
-	case ast.IntLiteralNode, ast.StrLiteralNode:
+	case scrilaAst.IntLiteralNode, scrilaAst.StrLiteralNode:
 		lhs.SetTranspilat(lhs.ToString())
 	default:
 		return NewNullVal(), fmt.Errorf("%s: Left side of binary expression with unsupported type '%s'", self.getPos(binOp.GetLeft()), binOp.GetLeft().GetKind())
@@ -62,31 +62,31 @@ func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) 
 		return NewNullVal(), rhsError
 	}
 	switch binOp.GetRight().GetKind() {
-	case ast.CallExprNode:
-		resultVarname, err := self.getCallerResultVarName(ast.ExprToCallExpr(binOp.GetRight()), env)
+	case scrilaAst.CallExprNode:
+		resultVarname, err := self.getCallerResultVarName(scrilaAst.ExprToCallExpr(binOp.GetRight()), env)
 		if err != nil {
 			return NewNullVal(), err
 		}
 		rhs.SetTranspilat(resultVarname)
-	case ast.BinaryExprNode:
+	case scrilaAst.BinaryExprNode:
 		// Do nothing
-	case ast.IdentifierNode:
-		if ast.IdentIsBool(ast.ExprToIdent(binOp.GetRight())) {
+	case scrilaAst.IdentifierNode:
+		if scrilaAst.IdentIsBool(scrilaAst.ExprToIdent(binOp.GetRight())) {
 			if slices.Contains(lexer.BooleanOps, binOp.GetOperator()) {
-				rhs.SetTranspilat(boolIdentToBashComparison(ast.ExprToIdent(binOp.GetRight())))
+				rhs.SetTranspilat(boolIdentToBashComparison(scrilaAst.ExprToIdent(binOp.GetRight())))
 			} else {
 				rhs.SetTranspilat(rhs.ToString())
 			}
 		} else {
 			rhs.SetTranspilat(identNodeToBashVar(binOp.GetRight()))
 		}
-	case ast.IntLiteralNode, ast.StrLiteralNode:
+	case scrilaAst.IntLiteralNode, scrilaAst.StrLiteralNode:
 		rhs.SetTranspilat(rhs.ToString())
 	default:
 		return NewNullVal(), fmt.Errorf("%s: Right side of binary expression with unsupported type '%s'", self.getPos(binOp.GetRight()), binOp.GetRight().GetKind())
 	}
 
-	if ast.BinExprIsComp(binOp) {
+	if scrilaAst.BinExprIsComp(binOp) {
 		result, err := self.evalComparisonBinaryExpr(lhs, rhs, binOp.GetOperator())
 		if err != nil {
 			return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(binOp), err)
@@ -95,7 +95,7 @@ func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) 
 		return result, nil
 	}
 
-	if lhs.GetType() == ast.IntValueType && rhs.GetType() == ast.IntValueType {
+	if lhs.GetType() == scrilaAst.IntValueType && rhs.GetType() == scrilaAst.IntValueType {
 		result, err := self.evalIntBinaryExpr(runtimeToIntVal(lhs), runtimeToIntVal(rhs), binOp.GetOperator())
 		if err != nil {
 			return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(binOp), err)
@@ -104,7 +104,7 @@ func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) 
 		return result, nil
 	}
 
-	if lhs.GetType() == ast.StrValueType && rhs.GetType() == ast.StrValueType {
+	if lhs.GetType() == scrilaAst.StrValueType && rhs.GetType() == scrilaAst.StrValueType {
 		result, err := self.evalStrBinaryExpr(runtimeToStrVal(lhs), runtimeToStrVal(rhs), binOp.GetOperator())
 		if err != nil {
 			return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(binOp), err)
@@ -113,7 +113,7 @@ func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) 
 		return result, nil
 	}
 
-	if lhs.GetType() == ast.BoolValueType && rhs.GetType() == ast.BoolValueType {
+	if lhs.GetType() == scrilaAst.BoolValueType && rhs.GetType() == scrilaAst.BoolValueType {
 		result, err := self.evalBoolBinaryExpr(runtimeToBoolVal(lhs), runtimeToBoolVal(rhs), binOp.GetOperator())
 		if err != nil {
 			return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(binOp), err)
@@ -125,7 +125,7 @@ func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) 
 	return NewNullVal(), fmt.Errorf("%s: No support for binary expressions of type '%s' and '%s'", self.getPos(binOp), lhs.GetType(), rhs.GetType())
 }
 
-func (self *Transpiler) evalComparisonBinaryExpr(lhs ast.IRuntimeVal, rhs ast.IRuntimeVal, operator string) (IBoolVal, error) {
+func (self *Transpiler) evalComparisonBinaryExpr(lhs scrilaAst.IRuntimeVal, rhs scrilaAst.IRuntimeVal, operator string) (IBoolVal, error) {
 	self.printFuncName("")
 
 	if lhs.GetType() != rhs.GetType() {
@@ -137,7 +137,7 @@ func (self *Transpiler) evalComparisonBinaryExpr(lhs ast.IRuntimeVal, rhs ast.IR
 
 	// https://devmanual.gentoo.org/tools-reference/bash/index.html
 	switch lhs.GetType() {
-	case ast.BoolValueType:
+	case scrilaAst.BoolValueType:
 		switch operator {
 		case "==":
 			transpilat = fmt.Sprintf("[[ %s == %s ]]", strToBashStr(lhs.GetTranspilat()), strToBashStr(rhs.GetTranspilat()))
@@ -148,7 +148,7 @@ func (self *Transpiler) evalComparisonBinaryExpr(lhs ast.IRuntimeVal, rhs ast.IR
 		default:
 			return NewBoolVal(false), fmt.Errorf("Bool comparison does not support operator '%s'", operator)
 		}
-	case ast.IntValueType:
+	case scrilaAst.IntValueType:
 		switch operator {
 		case ">":
 			transpilat = fmt.Sprintf("[[ %s -gt %s ]]", lhs.GetTranspilat(), rhs.GetTranspilat())
@@ -171,7 +171,7 @@ func (self *Transpiler) evalComparisonBinaryExpr(lhs ast.IRuntimeVal, rhs ast.IR
 		default:
 			return NewBoolVal(false), fmt.Errorf("Int comparison does not support operator '%s'", operator)
 		}
-	case ast.StrValueType:
+	case scrilaAst.StrValueType:
 		switch operator {
 		case "==":
 			transpilat = fmt.Sprintf("[[ %s == %s ]]", strToBashStr(lhs.GetTranspilat()), strToBashStr(rhs.GetTranspilat()))
@@ -260,14 +260,14 @@ func (self *Transpiler) evalStrBinaryExpr(lhs IStrVal, rhs IStrVal, operator str
 	}
 }
 
-func (self *Transpiler) evalAssignment(assignment ast.IAssignmentExpr, env *Environment) (ast.IRuntimeVal, error) {
+func (self *Transpiler) evalAssignment(assignment scrilaAst.IAssignmentExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
-	if assignment.GetAssigne().GetKind() == ast.MemberExprNode {
+	if assignment.GetAssigne().GetKind() == scrilaAst.MemberExprNode {
 		return self.evalAssignmentObjMember(assignment, env)
 	}
 
-	if assignment.GetAssigne().GetKind() != ast.IdentifierNode {
+	if assignment.GetAssigne().GetKind() != scrilaAst.IdentifierNode {
 		return NewNullVal(), fmt.Errorf("%s: Left side of an assignment must be a variable. Got '%s'", self.getPos(assignment.GetAssigne()), assignment.GetAssigne().GetKind())
 	}
 
@@ -282,15 +282,15 @@ func (self *Transpiler) evalAssignment(assignment ast.IAssignmentExpr, env *Envi
 		return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(assignment.GetAssigne()), err)
 	}
 
-	if assignment.GetValue().GetKind() == ast.BinaryExprNode && ast.BinExprReturnsBool(ast.ExprToBinExpr(assignment.GetValue())) {
+	if assignment.GetValue().GetKind() == scrilaAst.BinaryExprNode && scrilaAst.BinExprReturnsBool(scrilaAst.ExprToBinExpr(assignment.GetValue())) {
 		self.writeLnTranspilat(binCompExpValueToBashIf(value))
 	}
 
 	self.writeTranspilat(varName + "=")
 
 	switch assignment.GetValue().GetKind() {
-	case ast.CallExprNode:
-		returnType, err := self.getFuncReturnType(ast.ExprToCallExpr(assignment.GetValue()), env)
+	case scrilaAst.CallExprNode:
+		returnType, err := self.getFuncReturnType(scrilaAst.ExprToCallExpr(assignment.GetValue()), env)
 		if err != nil {
 			return NewNullVal(), err
 		}
@@ -298,7 +298,7 @@ func (self *Transpiler) evalAssignment(assignment ast.IAssignmentExpr, env *Envi
 			return NewNullVal(), fmt.Errorf("%s: Cannot assign a value of type '%s' to a var of type '%s'", self.getPos(assignment.GetValue()), returnType, varType)
 		}
 
-		returnVarName, err := self.getCallerResultVarName(ast.ExprToCallExpr(assignment.GetValue()), env)
+		returnVarName, err := self.getCallerResultVarName(scrilaAst.ExprToCallExpr(assignment.GetValue()), env)
 		if err != nil {
 			return NewNullVal(), err
 		}
@@ -315,7 +315,7 @@ func (self *Transpiler) evalAssignment(assignment ast.IAssignmentExpr, env *Envi
 		default:
 			return NewNullVal(), fmt.Errorf("%s: Assigning return values is not implemented for variables of type '%s'", self.getPos(assignment), varType)
 		}
-	case ast.BinaryExprNode:
+	case scrilaAst.BinaryExprNode:
 		varType, err := env.lookupVarType(varName)
 		if err != nil {
 			return NewNullVal(), err
@@ -326,7 +326,7 @@ func (self *Transpiler) evalAssignment(assignment ast.IAssignmentExpr, env *Envi
 		case lexer.IntType:
 			self.writeLnTranspilat(value.GetTranspilat())
 		case lexer.BoolType:
-			if ast.BinExprReturnsBool(ast.ExprToBinExpr(assignment.GetValue())) {
+			if scrilaAst.BinExprReturnsBool(scrilaAst.ExprToBinExpr(assignment.GetValue())) {
 				self.writeLnTranspilat("${tmpBool}")
 			} else {
 				self.writeLnTranspilat(value.GetTranspilat())
@@ -334,19 +334,19 @@ func (self *Transpiler) evalAssignment(assignment ast.IAssignmentExpr, env *Envi
 		default:
 			return NewNullVal(), fmt.Errorf("%s: Assigning binary expressions is not implemented for variables of type '%s'", self.getPos(assignment), varType)
 		}
-	case ast.IntLiteralNode:
+	case scrilaAst.IntLiteralNode:
 		if varType != lexer.IntType {
 			return NewNullVal(), fmt.Errorf("%s: Cannot assign a value of type '%s' to a var of type '%s'", self.getPos(assignment.GetValue()), lexer.IntType, varType)
 		}
 		self.writeLnTranspilat(value.ToString())
-	case ast.StrLiteralNode:
+	case scrilaAst.StrLiteralNode:
 		if varType != lexer.StrType {
 			return NewNullVal(), fmt.Errorf("%s: Cannot assign a value of type '%s' to a var of type '%s'", self.getPos(assignment.GetValue()), lexer.StrType, varType)
 		}
 		self.writeLnTranspilat(strToBashStr(value.ToString()))
-	case ast.IdentifierNode:
+	case scrilaAst.IdentifierNode:
 		symbol := identNodeGetSymbol(assignment.GetValue())
-		if symbol == "null" || ast.IdentIsBool(ast.ExprToIdent(assignment.GetValue())) {
+		if symbol == "null" || scrilaAst.IdentIsBool(scrilaAst.ExprToIdent(assignment.GetValue())) {
 			self.writeLnTranspilat(strToBashStr(symbol))
 		} else if slices.Contains(reservedIdentifiers, symbol) {
 			self.writeLnTranspilat(symbol)
@@ -378,20 +378,20 @@ func (self *Transpiler) evalAssignment(assignment ast.IAssignmentExpr, env *Envi
 	return result, nil
 }
 
-func (self *Transpiler) evalAssignmentObjMember(assignment ast.IAssignmentExpr, env *Environment) (ast.IRuntimeVal, error) {
+func (self *Transpiler) evalAssignmentObjMember(assignment scrilaAst.IAssignmentExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
-	if assignment.GetAssigne().GetKind() != ast.MemberExprNode {
+	if assignment.GetAssigne().GetKind() != scrilaAst.MemberExprNode {
 		return NewNullVal(), fmt.Errorf("%s: Left side of object member assignment is invalid type '%s'", self.getPos(assignment.GetAssigne()), assignment.GetAssigne().GetKind())
 	}
 
-	memberExpr := ast.ExprToMemberExpr(assignment.GetAssigne())
+	memberExpr := scrilaAst.ExprToMemberExpr(assignment.GetAssigne())
 
-	if memberExpr.GetObject().GetKind() != ast.IdentifierNode {
+	if memberExpr.GetObject().GetKind() != scrilaAst.IdentifierNode {
 		return NewNullVal(), fmt.Errorf("%s: Object name is not the right type. Got '%s'", self.getPos(memberExpr.GetObject()), memberExpr.GetObject().GetKind())
 	}
 
-	if memberExpr.GetProperty().GetKind() != ast.IdentifierNode {
+	if memberExpr.GetProperty().GetKind() != scrilaAst.IdentifierNode {
 		return NewNullVal(), fmt.Errorf("%s: Object property name is not the right type. Got '%s'", self.getPos(memberExpr.GetProperty()), memberExpr.GetProperty().GetKind())
 	}
 
@@ -400,7 +400,7 @@ func (self *Transpiler) evalAssignmentObjMember(assignment ast.IAssignmentExpr, 
 	if err != nil {
 		return NewNullVal(), err
 	}
-	if obj.GetType() != ast.ObjValueType {
+	if obj.GetType() != scrilaAst.ObjValueType {
 		return NewNullVal(), fmt.Errorf("%s: Variable '%s' is not of type 'object'", self.getPos(memberExpr.GetObject()), objName)
 	}
 
@@ -414,7 +414,7 @@ func (self *Transpiler) evalAssignmentObjMember(assignment ast.IAssignmentExpr, 
 	self.writeTranspilat(objName + "[" + strToBashStr(propName) + "]=")
 
 	switch assignment.GetValue().GetKind() {
-	case ast.IntLiteralNode:
+	case scrilaAst.IntLiteralNode:
 		self.writeLnTranspilat(value.ToString())
 	default:
 		return NewNullVal(), fmt.Errorf("%s: Object member value '%s' is not supported", self.getPos(assignment.GetValue()), assignment.GetValue().GetKind())
@@ -424,7 +424,7 @@ func (self *Transpiler) evalAssignmentObjMember(assignment ast.IAssignmentExpr, 
 	return value, nil
 }
 
-func (self *Transpiler) evalObjectExpr(object ast.IObjectLiteral, env *Environment) (ast.IRuntimeVal, error) {
+func (self *Transpiler) evalObjectExpr(object scrilaAst.IObjectLiteral, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	obj := NewObjVal()
@@ -440,10 +440,10 @@ func (self *Transpiler) evalObjectExpr(object ast.IObjectLiteral, env *Environme
 	return obj, nil
 }
 
-func (self *Transpiler) evalMemberExpr(memberExpr ast.IMemberExpr, env *Environment) (ast.IRuntimeVal, error) {
+func (self *Transpiler) evalMemberExpr(memberExpr scrilaAst.IMemberExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
-	if memberExpr.GetObject().GetKind() != ast.IdentifierNode {
+	if memberExpr.GetObject().GetKind() != scrilaAst.IdentifierNode {
 		return NewNullVal(), fmt.Errorf("%s: Object name is not the right type. Got '%s'", self.getPos(memberExpr.GetObject()), memberExpr.GetObject().GetKind())
 	}
 
@@ -452,11 +452,11 @@ func (self *Transpiler) evalMemberExpr(memberExpr ast.IMemberExpr, env *Environm
 	if err != nil {
 		return NewNullVal(), err
 	}
-	if obj.GetType() != ast.ObjValueType {
+	if obj.GetType() != scrilaAst.ObjValueType {
 		return NewNullVal(), fmt.Errorf("%s: Variable '%s' is not of type 'object'", self.getPos(memberExpr.GetObject()), objName)
 	}
 
-	if memberExpr.GetProperty().GetKind() != ast.IdentifierNode {
+	if memberExpr.GetProperty().GetKind() != scrilaAst.IdentifierNode {
 		return NewNullVal(), fmt.Errorf("%s: Object property name is not the right type. Got '%s'", self.getPos(memberExpr.GetProperty()), memberExpr.GetProperty().GetKind())
 	}
 
@@ -468,10 +468,10 @@ func (self *Transpiler) evalMemberExpr(memberExpr ast.IMemberExpr, env *Environm
 	return result, nil
 }
 
-func (self *Transpiler) getFuncReturnType(call ast.ICallExpr, env *Environment) (lexer.TokenType, error) {
+func (self *Transpiler) getFuncReturnType(call scrilaAst.ICallExpr, env *Environment) (lexer.TokenType, error) {
 	self.printFuncName("")
 
-	if call.GetCaller().GetKind() != ast.IdentifierNode {
+	if call.GetCaller().GetKind() != scrilaAst.IdentifierNode {
 		return "", fmt.Errorf("%s: Function name must be an identifier. Got: '%s'", self.getPos(call.GetCaller()), call.GetCaller().GetKind())
 	}
 
@@ -482,16 +482,16 @@ func (self *Transpiler) getFuncReturnType(call ast.ICallExpr, env *Environment) 
 	}
 
 	switch caller.GetType() {
-	case ast.FunctionValueType:
+	case scrilaAst.FunctionValueType:
 		return runtimeToFuncVal(caller).GetReturnType(), nil
-	case ast.NativeFnType:
+	case scrilaAst.NativeFnType:
 		return runtimeToNativeFunc(caller).GetReturnType(), nil
 	default:
 		return "", fmt.Errorf("%s: Cannot call value that is not a function: %s", self.getPos(call), caller.GetType())
 	}
 }
 
-func (self *Transpiler) getCallerResultVarName(call ast.ICallExpr, env *Environment) (string, error) {
+func (self *Transpiler) getCallerResultVarName(call scrilaAst.ICallExpr, env *Environment) (string, error) {
 	self.printFuncName("")
 
 	returnType, err := self.getFuncReturnType(call, env)
@@ -513,15 +513,15 @@ func (self *Transpiler) getCallerResultVarName(call ast.ICallExpr, env *Environm
 	}
 }
 
-func (self *Transpiler) evalCallExpr(call ast.ICallExpr, env *Environment) (ast.IRuntimeVal, error) {
-	if call.GetCaller().GetKind() != ast.IdentifierNode {
+func (self *Transpiler) evalCallExpr(call scrilaAst.ICallExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
+	if call.GetCaller().GetKind() != scrilaAst.IdentifierNode {
 		return NewNullVal(), fmt.Errorf("%s: Function name must be an identifier. Got: '%s'", self.getPos(call.GetCaller()), call.GetCaller().GetKind())
 	}
 
 	self.printFuncName(identNodeGetSymbol(call.GetCaller()))
 
 	// TODO add helpers? https://zetcode.com/golang/filter-map/
-	var args []ast.IRuntimeVal
+	var args []scrilaAst.IRuntimeVal
 	for _, arg := range call.GetArgs() {
 		evalArg, err := self.transpile(arg, env)
 		if err != nil {
@@ -536,7 +536,7 @@ func (self *Transpiler) evalCallExpr(call ast.ICallExpr, env *Environment) (ast.
 	}
 
 	switch caller.GetType() {
-	case ast.NativeFnType:
+	case scrilaAst.NativeFnType:
 		result, err := runtimeToNativeFunc(caller).GetCall()(call.GetArgs(), env)
 		if err != nil {
 			return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(call), err)
@@ -544,8 +544,8 @@ func (self *Transpiler) evalCallExpr(call ast.ICallExpr, env *Environment) (ast.
 		self.writeTranspilat(result.GetTranspilat())
 		return result, nil
 
-	case ast.FunctionValueType:
-		var result ast.IRuntimeVal
+	case scrilaAst.FunctionValueType:
+		var result scrilaAst.IRuntimeVal
 		fn := runtimeToFuncVal(caller)
 
 		if len(fn.GetParams()) != len(args) {
@@ -553,17 +553,17 @@ func (self *Transpiler) evalCallExpr(call ast.ICallExpr, env *Environment) (ast.
 		}
 		self.writeTranspilat(fn.GetName())
 		for i, param := range fn.GetParams() {
-			if !ast.DoTypesMatch(param.GetParamType(), args[i].GetType()) {
+			if !scrilaAst.DoTypesMatch(param.GetParamType(), args[i].GetType()) {
 				return NewNullVal(), fmt.Errorf("%s: %s(): Parameter '%s' type does not match. Expected: %s, Got: %s", self.getPos(call), fn.GetName(), param.GetName(), param.GetParamType(), args[i].GetType())
 			}
 			switch call.GetArgs()[i].GetKind() {
-			case ast.IntLiteralNode:
+			case scrilaAst.IntLiteralNode:
 				self.writeTranspilat(" " + args[i].ToString())
 				result = NewIntVal(1)
-			case ast.StrLiteralNode:
+			case scrilaAst.StrLiteralNode:
 				self.writeTranspilat(" " + strToBashStr(args[i].ToString()))
 				result = NewStrVal("str")
-			case ast.IdentifierNode:
+			case scrilaAst.IdentifierNode:
 				switch param.GetParamType() {
 				case lexer.IntType:
 					self.writeTranspilat(" " + identNodeToBashVar(call.GetArgs()[i]))
@@ -587,7 +587,7 @@ func (self *Transpiler) evalCallExpr(call ast.ICallExpr, env *Environment) (ast.
 	}
 }
 
-func (self *Transpiler) evalReturnExpr(returnExpr ast.IReturnExpr, env *Environment) (ast.IRuntimeVal, error) {
+func (self *Transpiler) evalReturnExpr(returnExpr scrilaAst.IReturnExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	if !self.contextContains(FunctionContext) || self.currentFunc == nil {
@@ -612,7 +612,7 @@ func (self *Transpiler) evalReturnExpr(returnExpr ast.IReturnExpr, env *Environm
 		return NewNullVal(), err
 	}
 
-	if !ast.DoTypesMatch(self.currentFunc.GetReturnType(), value.GetType()) {
+	if !scrilaAst.DoTypesMatch(self.currentFunc.GetReturnType(), value.GetType()) {
 		return NewNullVal(), fmt.Errorf("%s: %s(): Return type does not match with function type. Expected: %s, Got: %s", self.getPos(returnExpr), self.currentFunc.GetName(), self.currentFunc.GetReturnType(), value.GetType())
 	}
 
@@ -628,20 +628,20 @@ func (self *Transpiler) evalReturnExpr(returnExpr ast.IReturnExpr, env *Environm
 	}
 
 	switch returnExpr.GetValue().GetKind() {
-	case ast.BinaryExprNode:
+	case scrilaAst.BinaryExprNode:
 		switch value.GetType() {
-		case ast.StrValueType:
+		case scrilaAst.StrValueType:
 			self.writeLnTranspilat(strToBashStr(value.GetTranspilat()))
-		case ast.IntValueType:
+		case scrilaAst.IntValueType:
 			self.writeLnTranspilat(value.GetTranspilat())
 		default:
 			return NewNullVal(), fmt.Errorf("%s: Returning binary expression of type '%s' is not supported", self.getPos(returnExpr), value.GetType())
 		}
-	case ast.IntLiteralNode:
+	case scrilaAst.IntLiteralNode:
 		self.writeLnTranspilat(value.ToString())
-	case ast.StrLiteralNode:
+	case scrilaAst.StrLiteralNode:
 		self.writeLnTranspilat(strToBashStr(value.ToString()))
-	case ast.IdentifierNode:
+	case scrilaAst.IdentifierNode:
 		self.writeLnTranspilat(identNodeToBashVar(returnExpr.GetValue()))
 	default:
 		return NewNullVal(), fmt.Errorf("%s: Return type '%s' is not supported", self.getPos(returnExpr), returnExpr.GetValue().GetKind())
