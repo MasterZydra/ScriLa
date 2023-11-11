@@ -61,6 +61,11 @@ func ExprToMemberExpr(expr IExpr) IMemberExpr {
 	return memberExpr
 }
 
+func ExprToBoolLit(expr IExpr) IBoolLiteral {
+	var i interface{} = expr
+	return i.(IBoolLiteral)
+}
+
 func ExprToIntLit(expr IExpr) IIntLiteral {
 	var i interface{} = expr
 	return i.(IIntLiteral)

@@ -1,8 +1,6 @@
 package scrilaAst
 
 import (
-	"ScriLa/cmd/scrila/lexer"
-
 	"golang.org/x/exp/slices"
 )
 
@@ -12,12 +10,16 @@ func IdentIsBool(ident IIdentifier) bool {
 	return slices.Contains(bools, ident.GetSymbol())
 }
 
+var ComparisonOps = []string{"<", ">", "<=", ">=", "!=", "=="}
+
 func BinExprIsComp(binOp IBinaryExpr) bool {
-	return slices.Contains(lexer.ComparisonOps, binOp.GetOperator())
+	return slices.Contains(ComparisonOps, binOp.GetOperator())
 }
 
+var BooleanOps = []string{"||", "&&"}
+
 func BinExprIsBoolOp(binOp IBinaryExpr) bool {
-	return slices.Contains(lexer.BooleanOps, binOp.GetOperator())
+	return slices.Contains(BooleanOps, binOp.GetOperator())
 }
 
 func BinExprReturnsBool(binOp IBinaryExpr) bool {

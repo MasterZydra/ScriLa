@@ -1,4 +1,4 @@
-package bashTranspiler
+package bashAssembler
 
 import (
 	"fmt"
@@ -36,12 +36,20 @@ func ExampleExec() {
 
 	// Output:
 	// #!/bin/bash
-	// # Created by Scrila Transpiler v0.0.1
+	//
+	// # Native function implementations
+	//
+	// # exec(str command) void
+	// exec () {
+	// 	local command=$1
+	// 	${command}
+	// }
 	//
 	// # User script
-	// echo hi
+	//
+	// exec "echo hi"
 	// cmd="echo hi"
-	// ${cmd}
+	// exec "${cmd}"
 }
 
 // -------- Native function "Input" --------
@@ -52,7 +60,7 @@ func TestErrorInputFuncCallWithWrongParamVarType(t *testing.T) {
 		int i = 42;
 		input(i);
 	`)
-	expected := fmt.Errorf("test.scri:3:3: input() - Parameter prompt must be a string or a variable of type string. Got 'IntType'")
+	expected := fmt.Errorf("test.scri:3:3: input() - Parameter prompt must be a string or a variable of type string. Got 'IntLiteral'")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
@@ -70,7 +78,7 @@ func TestErrorInputFuncCallWithWrongParamType(t *testing.T) {
 func TestErrorNativeFuncReturnTypeUnequalVarType(t *testing.T) {
 	initTest()
 	err := transpileTest(`int i = input("prompt");`)
-	expected := fmt.Errorf("test.scri:1:9: Cannot assign a value of type 'StrType' to a var of type 'IntType'")
+	expected := fmt.Errorf("test.scri:1:9: Cannot assign a value of type 'StrLiteral' to a var of type 'IntLiteral'")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
@@ -94,12 +102,20 @@ func ExampleInput() {
 
 	// Output:
 	// #!/bin/bash
-	// # Created by Scrila Transpiler v0.0.1
+	//
+	// # Native function implementations
+	//
+	// # input(str prompt) str
+	// input () {
+	// 	local prompt=$1
+	// 	read -p "${prompt} " tmpStr
+	// }
 	//
 	// # User script
-	// read -p "Enter username: " tmpStr
+	//
+	// input "Enter username:"
 	// s="${tmpStr}"
-	// read -p "${s} " tmpStr
+	// input "${s}"
 }
 
 // -------- Native function "Print" --------
@@ -112,7 +128,7 @@ func ExamplePrint() {
 		printLn("World");
 		printLn("!");
 		# Print base types
-		printLn(42, "str", true, false, null);
+		printLn(42, "str", true, false);
 		# Print variables
 		int i = 42;
 		str s = "hello world";
@@ -125,15 +141,23 @@ func ExamplePrint() {
 
 	// Output:
 	// #!/bin/bash
-	// # Created by Scrila Transpiler v0.0.1
+	//
+	// # Native function implementations
+	//
+	// # strToInt(str value) int
+	// strToInt () {
+	// 	local value=$1
+	// 	tmpInt=${value}
+	// }
 	//
 	// # User script
+	//
 	// # Print with(out) linebreaks
 	// echo -n "Hello "
 	// echo "World"
 	// echo "!"
 	// # Print base types
-	// echo "42 str true false null"
+	// echo "42 str true false"
 	// # Print variables
 	// i=42
 	// s="hello world"
@@ -141,7 +165,7 @@ func ExamplePrint() {
 	// echo "${i} ${s} ${b}"
 	// echo ""
 	// # Print with function call and binary op
-	// tmpInt="123"
+	// strToInt "123"
 	// echo "$((${tmpInt} + 2))"
 }
 
@@ -153,7 +177,7 @@ func TestErrorSleepFuncCallWithWrongParamVarType(t *testing.T) {
 		str s = "123";
 		sleep(s);
 	`)
-	expected := fmt.Errorf("test.scri:3:3: sleep() - Parameter seconds must be an int or a variable of type int. Got 'StrType'")
+	expected := fmt.Errorf("test.scri:3:3: sleep() - Parameter seconds must be an int or a variable of type int. Got 'StrLiteral'")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
@@ -187,9 +211,9 @@ func ExampleSleep() {
 
 	// Output:
 	// #!/bin/bash
-	// # Created by Scrila Transpiler v0.0.1
 	//
 	// # User script
+	//
 	// sleep 10
 	// i=10
 	// sleep ${i}
@@ -224,17 +248,20 @@ func ExampleStrIsInt() {
 
 	// Output:
 	// #!/bin/bash
-	// # Created by Scrila Transpiler v0.0.1
 	//
 	// # Native function implementations
+	//
+	// # strIsInt(str value) bool
 	// strIsInt () {
-	//	case $1 in
-	//		''|*[!0-9]*) tmpBool="false" ;;
+	// 	local value=$1
+	// 	case ${value} in
+	// 		''|*[!0-9]*) tmpBool="false" ;;
 	// 		*) tmpBool="true" ;;
 	// 	esac
 	// }
 	//
 	// # User script
+	//
 	// strIsInt "10"
 	// b="${tmpBool}"
 	// strIsInt "str"
@@ -267,10 +294,18 @@ func ExampleStrToInt() {
 
 	// Output:
 	// #!/bin/bash
-	// # Created by Scrila Transpiler v0.0.1
+	//
+	// # Native function implementations
+	//
+	// # strToInt(str value) int
+	// strToInt () {
+	// 	local value=$1
+	// 	tmpInt=${value}
+	// }
 	//
 	// # User script
-	// tmpInt="123"
+	//
+	// strToInt "123"
 	// i=${tmpInt}
 }
 
@@ -366,16 +401,18 @@ func ExampleFuncDeclarationWithCall() {
 
 	// Output:
 	// #!/bin/bash
-	// # Created by Scrila Transpiler v0.0.1
 	//
 	// # User script
+	//
 	// # Function without params
+	// # funcWithoutParams() void
 	// funcWithoutParams () {
 	// 	local str1="Test"
 	// 	echo "${str1}"
 	// }
 	//
 	// # Function with params
+	// # funcWithParams(int a, str s) void
 	// funcWithParams () {
 	// 	local a=$1
 	// 	local s=$2
@@ -390,6 +427,7 @@ func ExampleFuncDeclarationWithCall() {
 	// s="abc"
 	// funcWithParams ${i} "${s}"
 	// # Function with return value
+	// # add(int a, int b) int
 	// add () {
 	// 	local a=$1
 	// 	local b=$2
@@ -411,7 +449,7 @@ func TestErrorFuncCallWithWrongTypes(t *testing.T) {
 		}
 		fn("hello");
 	`)
-	expected := fmt.Errorf("test.scri:5:3: fn(): Parameter 'a' type does not match. Expected: IntType, Got: str")
+	expected := fmt.Errorf("test.scri:5:3: fn(): Parameter 'a' type does not match. Expected: IntLiteral, Got: str")
 	if !strings.HasPrefix(err.Error(), expected.Error()) {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
@@ -465,7 +503,7 @@ func TestErrorFuncVoidReturnValUsed(t *testing.T) {
 		}
 		int i = fn();
 	`)
-	expected := fmt.Errorf("test.scri:5:11: Cannot assign a value of type 'VoidType' to a var of type 'IntType'")
+	expected := fmt.Errorf("test.scri:5:11: Cannot assign a value of type 'Void' to a var of type 'IntLiteral'")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
@@ -483,7 +521,7 @@ func TestErrorVoidFnReturnValue(t *testing.T) {
 func TestErrorFuncReturnWrongType(t *testing.T) {
 	initTest()
 	err := transpileTest(`func retInt() int { return "123"; }`)
-	expected := fmt.Errorf("test.scri:1:21: retInt(): Return type does not match with function type. Expected: IntType, Got: str")
+	expected := fmt.Errorf("test.scri:1:21: retInt(): Return type does not match with function type. Expected: IntLiteral, Got: str")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}

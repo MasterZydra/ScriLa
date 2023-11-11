@@ -1,4 +1,4 @@
-package bashTranspiler
+package bashAssembler
 
 import (
 	"fmt"
@@ -36,7 +36,7 @@ func TestErrorWhileWithWrongBinaryExprType(t *testing.T) {
 			printLn("str");
 		}
 	`)
-	expected := fmt.Errorf("test.scri:2:12: Condition is no boolean expression. Got int")
+	expected := fmt.Errorf("test.scri:2:12: Condition is not of type bool. Got IntLiteral")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
@@ -50,7 +50,7 @@ func TestErrorWhileWithWrongVarType(t *testing.T) {
 			printLn("str");
 		}
 	`)
-	expected := fmt.Errorf("test.scri:3:10: Condition is not of type bool. Got IntType")
+	expected := fmt.Errorf("test.scri:3:10: Condition is not of type bool. Got IntLiteral")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
@@ -72,9 +72,9 @@ func ExampleWhile() {
 
 	// Output:
 	// #!/bin/bash
-	// # Created by Scrila Transpiler v0.0.1
 	//
 	// # User script
+	//
 	// while [[ "true" == "true" ]] && [[ "false" == "true" ]]
 	// do
 	// 	echo "true"
@@ -122,7 +122,7 @@ func TestErrorIfWithWrongBinaryExprType(t *testing.T) {
 			printLn("str");
 		}
 	`)
-	expected := fmt.Errorf("test.scri:2:9: Condition is no boolean expression. Got int")
+	expected := fmt.Errorf("test.scri:2:9: Condition is not of type bool. Got IntLiteral")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
@@ -136,7 +136,7 @@ func TestErrorIfWithWrongVarType(t *testing.T) {
 			printLn("str");
 		}
 	`)
-	expected := fmt.Errorf("test.scri:3:7: Condition is not of type bool. Got IntType")
+	expected := fmt.Errorf("test.scri:3:7: Condition is not of type bool. Got IntLiteral")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
@@ -145,7 +145,7 @@ func TestErrorIfWithWrongVarType(t *testing.T) {
 func TestErrorIfWithWrongFuncReturnType(t *testing.T) {
 	initTest()
 	err := transpileTest(`if (strToInt("123")) {}`)
-	expected := fmt.Errorf("test.scri:1:5: Cannot use a value of type 'IntType' as condition")
+	expected := fmt.Errorf("test.scri:1:5: Condition is not of type bool. Got IntLiteral")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
@@ -175,17 +175,20 @@ func ExampleIf() {
 
 	// Output:
 	// #!/bin/bash
-	// # Created by Scrila Transpiler v0.0.1
 	//
 	// # Native function implementations
+	//
+	// # strIsInt(str value) bool
 	// strIsInt () {
-	// 	case $1 in
+	// 	local value=$1
+	// 	case ${value} in
 	// 		''|*[!0-9]*) tmpBool="false" ;;
 	// 		*) tmpBool="true" ;;
 	// 	esac
 	// }
 	//
 	// # User script
+	//
 	// if [[ "true" == "true" ]]
 	// then
 	// 	echo "true"
@@ -206,7 +209,7 @@ func ExampleIf() {
 	// fi
 	// intStr="123"
 	// strIsInt "${intStr}"
-	// if "${tmpBool}"
+	// if [[ "${tmpBool}" == "true" ]]
 	// then
 	// 	:
 	// fi
@@ -252,9 +255,9 @@ func ExampleIfComparisons() {
 
 	// Output:
 	// #!/bin/bash
-	// # Created by Scrila Transpiler v0.0.1
 	//
 	// # User script
+	//
 	// # Integer comparison
 	// i=123
 	// if [[ ${i} -gt 122 ]]

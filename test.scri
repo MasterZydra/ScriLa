@@ -18,26 +18,26 @@ str s = "hello ";
 s += "world";
 printLn(s);
 
-# Declare a object
-obj exampleObj = {
-    x: 30,
-    y: null,
-    z: false,
-    bar: foo,
-    foo: foo,
-};
+# # Declare a object
+# obj exampleObj = {
+#     x: 30,
+#     y: null,
+#     z: false,
+#     bar: foo,
+#     foo: foo,
+# };
 
-# Add a new property to an object
-exampleObj.y = 43;
-printLn(exampleObj.y);
+# # Add a new property to an object
+# exampleObj.y = 43;
+# printLn(exampleObj.y);
 
-# Assign another value to an existing object property
-exampleObj.x = 42;
+# # Assign another value to an existing object property
+# exampleObj.x = 42;
 
-# Get object properties
-int prop = exampleObj.x;
-printLn(prop);
-printLn(exampleObj.x);
+# # Get object properties
+# int prop = exampleObj.x;
+# printLn(prop);
+# printLn(exampleObj.x);
 
 # Native functions
 printLn(foo, 13);

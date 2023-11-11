@@ -1,7 +1,5 @@
 package scrilaAst
 
-import "ScriLa/cmd/scrila/lexer"
-
 type ValueType string
 
 const (
@@ -14,15 +12,15 @@ const (
 	StrValueType      ValueType = "str"
 )
 
-var valueTypeLexerTypeMapping = map[ValueType]lexer.TokenType{
-	BoolValueType: lexer.BoolType,
-	IntValueType:  lexer.IntType,
-	ObjValueType:  lexer.ObjType,
-	StrValueType:  lexer.StrType,
+var nodeTypeValueTypeMapping = map[ValueType]NodeType{
+	BoolValueType: BoolLiteralNode,
+	IntValueType:  IntLiteralNode,
+	ObjValueType:  ObjectLiteralNode,
+	StrValueType:  StrLiteralNode,
 }
 
-func DoTypesMatch(type1 lexer.TokenType, type2 ValueType) bool {
-	value, ok := valueTypeLexerTypeMapping[type2]
+func DoTypesMatch(type1 NodeType, type2 ValueType) bool {
+	value, ok := nodeTypeValueTypeMapping[type2]
 	if !ok {
 		return false
 	}

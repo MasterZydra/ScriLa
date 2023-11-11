@@ -41,7 +41,7 @@ then
 else
 	tmpBool="false"
 fi
-b=${tmpBool}
+b="${tmpBool}"
 ```
 
 

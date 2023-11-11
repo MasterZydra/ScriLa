@@ -9,7 +9,7 @@ const (
 	ProgramNode             NodeType = "Program"
 	VarDeclarationNode      NodeType = "VarDeclaration"
 	FunctionDeclarationNode NodeType = "FunctionDeclaration"
-	IfStatementNode         NodeType = "IfExpr"
+	IfStatementNode         NodeType = "IfStmt"
 	WhileStatementNode      NodeType = "WhileLoop"
 
 	// Expressions
@@ -20,6 +20,8 @@ const (
 	CallExprNode       NodeType = "CallExpr"
 	MemberExprNode     NodeType = "MemberExpr"
 	ReturnExprNode     NodeType = "ReturnExpr"
+	BreakExprNode      NodeType = "BreakExpr"
+	ContinueExprNode   NodeType = "ContinueExpr"
 
 	// Literals
 	PropertyNode      NodeType = "Property"
@@ -27,4 +29,7 @@ const (
 	IdentifierNode    NodeType = "Identifier"
 	IntLiteralNode    NodeType = "IntLiteral"
 	StrLiteralNode    NodeType = "StrLiteral"
+	BoolLiteralNode   NodeType = "BoolLiteral"
+
+	VoidNode NodeType = "Void"
 )

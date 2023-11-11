@@ -1,12 +1,10 @@
 package bashTranspiler
 
 import (
-	"ScriLa/cmd/scrila/lexer"
+	"ScriLa/cmd/scrila/bashAst"
 	"ScriLa/cmd/scrila/scrilaAst"
 	"fmt"
 	"strconv"
-
-	"golang.org/x/exp/slices"
 )
 
 func (self *Transpiler) evalProgram(program scrilaAst.IProgram, env *Environment) (scrilaAst.IRuntimeVal, error) {
@@ -28,136 +26,45 @@ func (self *Transpiler) evalProgram(program scrilaAst.IProgram, env *Environment
 func (self *Transpiler) evalVarDeclaration(varDeclaration scrilaAst.IVarDeclaration, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
-	value, err := self.transpile(varDeclaration.GetValue(), env)
+	_, err := self.transpile(varDeclaration.GetValue(), env)
 	if err != nil {
 		return NewNullVal(), err
 	}
 
-	if varDeclaration.GetValue().GetKind() == scrilaAst.BinaryExprNode && scrilaAst.BinExprReturnsBool(scrilaAst.ExprToBinExpr(varDeclaration.GetValue())) {
-		self.writeLnTranspilat(binCompExpValueToBashIf(value))
+	doMatch, givenType, err := self.exprIsType(varDeclaration.GetValue(), varDeclaration.GetVarType(), env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+	if !doMatch {
+		return NewNullVal(), fmt.Errorf("%s: Cannot assign a value of type '%s' to a var of type '%s'", self.getPos(varDeclaration.GetValue()), givenType, varDeclaration.GetVarType())
 	}
 
-	if self.contextContains(FunctionContext) {
-		self.writeTranspilat("local ")
+	// Same logic in evalAssignment -> merge into one function
+	bashVarType, err := scrilaNodeTypeToBashNodeType(varDeclaration.GetVarType())
+	if err != nil {
+		return NewNullVal(), err
 	}
-	if varDeclaration.GetValue().GetKind() == scrilaAst.ObjectLiteralNode {
-		self.writeLnTranspilat("declare -A " + varDeclaration.GetIdentifier())
-	} else {
-		self.writeTranspilat(varDeclaration.GetIdentifier() + "=")
+	bashStmt, err := self.exprToBashStmt(varDeclaration.GetValue(), env)
+	if err != nil {
+		return NewNullVal(), err
 	}
-
-	switch varDeclaration.GetValue().GetKind() {
-	case scrilaAst.CallExprNode:
-		returnType, err := self.getFuncReturnType(scrilaAst.ExprToCallExpr(varDeclaration.GetValue()), env)
-		if err != nil {
-			return NewNullVal(), err
-		}
-		if returnType != varDeclaration.GetVarType() {
-			return NewNullVal(), fmt.Errorf("%s: Cannot assign a value of type '%s' to a var of type '%s'", self.getPos(varDeclaration.GetValue()), returnType, varDeclaration.GetVarType())
-		}
-
-		varName, err := self.getCallerResultVarName(scrilaAst.ExprToCallExpr(varDeclaration.GetValue()), env)
-		if err != nil {
-			return NewNullVal(), err
-		}
-		switch varDeclaration.GetVarType() {
-		case lexer.StrType:
-			self.writeLnTranspilat(strToBashStr(varName))
-			value = NewStrVal("")
-		case lexer.IntType:
-			self.writeLnTranspilat(varName)
-			value = NewIntVal(1)
-		case lexer.BoolType:
-			self.writeLnTranspilat(strToBashStr(varName))
-			value = NewBoolVal(true)
-		default:
-			return NewNullVal(), fmt.Errorf("%s: Assigning return values is not implemented for variables of type '%s'", self.getPos(varDeclaration), varDeclaration.GetVarType())
-		}
-
-	case scrilaAst.IdentifierNode:
-		symbol := identNodeGetSymbol(varDeclaration.GetValue())
-		if symbol == "null" || scrilaAst.IdentIsBool(scrilaAst.ExprToIdent(varDeclaration.GetValue())) {
-			self.writeLnTranspilat(strToBashStr(symbol))
-		} else if slices.Contains(reservedIdentifiers, symbol) {
-			self.writeLnTranspilat(symbol)
-		} else {
-			valueVarType, err := env.lookupVarType(identNodeGetSymbol(varDeclaration.GetValue()))
-			if err != nil {
-				return NewNullVal(), err
-			}
-			if valueVarType != varDeclaration.GetVarType() {
-				return NewNullVal(), fmt.Errorf("%s: Cannot assign a value of type '%s' to a var of type '%s'", self.getPos(varDeclaration.GetValue()), valueVarType, varDeclaration.GetVarType())
-			}
-			switch varDeclaration.GetVarType() {
-			case lexer.StrType:
-				self.writeLnTranspilat(strToBashStr(identNodeToBashVar(varDeclaration.GetValue())))
-			case lexer.IntType:
-				self.writeLnTranspilat(identNodeToBashVar(varDeclaration.GetValue()))
-			default:
-				return NewNullVal(), fmt.Errorf("%s: Assigning variables is not implemented for variables of type '%s'", self.getPos(varDeclaration), varDeclaration.GetVarType())
-			}
-		}
-	case scrilaAst.BinaryExprNode:
-		switch varDeclaration.GetVarType() {
-		case lexer.StrType:
-			self.writeLnTranspilat(strToBashStr(value.GetTranspilat()))
-		case lexer.IntType:
-			self.writeLnTranspilat(value.GetTranspilat())
-		case lexer.BoolType:
-			if scrilaAst.BinExprReturnsBool(scrilaAst.ExprToBinExpr(varDeclaration.GetValue())) {
-				self.writeLnTranspilat("${tmpBool}")
-			} else {
-				self.writeLnTranspilat(value.GetTranspilat())
-			}
-		default:
-			return NewNullVal(), fmt.Errorf("%s: Assigning binary expressions is not implemented for variables of type '%s'", self.getPos(varDeclaration), varDeclaration.GetVarType())
-		}
-	case scrilaAst.StrLiteralNode:
-		if varDeclaration.GetVarType() != lexer.StrType {
-			return NewNullVal(), fmt.Errorf("%s: Cannot assign a value of type '%s' to a var of type '%s'", self.getPos(varDeclaration.GetValue()), lexer.StrType, varDeclaration.GetVarType())
-		}
-		self.writeLnTranspilat(strToBashStr(value.ToString()))
-	case scrilaAst.IntLiteralNode:
-		if varDeclaration.GetVarType() != lexer.IntType {
-			return NewNullVal(), fmt.Errorf("%s: Cannot assign a value of type '%s' to a var of type '%s'", self.getPos(varDeclaration.GetValue()), lexer.IntType, varDeclaration.GetVarType())
-		}
-		self.writeLnTranspilat(value.ToString())
-	case scrilaAst.ObjectLiteralNode:
-		for _, prop := range scrilaAst.ExprToObjLit(varDeclaration.GetValue()).GetProperties() {
-			self.writeTranspilat(varDeclaration.GetIdentifier() + "[" + strToBashStr(prop.GetKey()) + "]=")
-			value, err := self.transpile(prop.GetValue(), env)
-			if err != nil {
-				return NewNullVal(), err
-			}
-			switch prop.GetValue().GetKind() {
-			case scrilaAst.IntLiteralNode:
-				self.writeLnTranspilat(value.ToString())
-			case scrilaAst.StrLiteralNode:
-				self.writeLnTranspilat(strToBashStr(value.ToString()))
-			case scrilaAst.IdentifierNode:
-				symbol := identNodeGetSymbol(prop.GetValue())
-				if symbol == "null" {
-					self.writeLnTranspilat(strToBashStr(symbol))
-				} else if slices.Contains(reservedIdentifiers, symbol) {
-					self.writeLnTranspilat(symbol)
-				} else {
-					self.writeLnTranspilat(identNodeToBashVar(prop.GetValue()))
-				}
-			default:
-				return NewNullVal(), fmt.Errorf("%s: Assigning object properties of type '%s' is not implemented", self.getPos(varDeclaration), prop.GetValue().GetKind())
-			}
-		}
-	case scrilaAst.MemberExprNode:
-		memberVal, err := self.evalMemberExpr(scrilaAst.ExprToMemberExpr(varDeclaration.GetValue()), env)
-		if err != nil {
-			return NewNullVal(), err
-		}
-		self.writeLnTranspilat(memberVal.GetTranspilat())
-	default:
-		return NewNullVal(), fmt.Errorf("%s: Assigning value of type '%s' is not implemented", self.getPos(varDeclaration), varDeclaration.GetValue().GetKind())
+	// A comparison must be converted into an if statement
+	if bashStmt.GetKind() == bashAst.BinaryCompExprNode {
+		ifStmt := bashAst.NewIfStmt(bashStmt)
+		ifStmt.AppendBody(bashAst.NewBashStmt("tmpBool=\"true\""))
+		elseStmt := bashAst.NewIfStmt(nil)
+		elseStmt.AppendBody(bashAst.NewBashStmt("tmpBool=\"false\""))
+		ifStmt.SetElse(elseStmt)
+		self.appendUserBody(ifStmt)
+		bashStmt = bashAst.NewVarLiteral("tmpBool", bashAst.BoolLiteralNode)
 	}
+	self.appendUserBody(bashAst.NewAssignmentExpr(
+		bashAst.NewVarLiteral(varDeclaration.GetIdentifier(), bashVarType),
+		bashStmt,
+		true,
+	))
 
-	result, err := env.declareVar(varDeclaration.GetIdentifier(), value, varDeclaration.IsConstant(), varDeclaration.GetVarType())
+	result, err := env.declareVar(varDeclaration.GetIdentifier(), varDeclaration.IsConstant(), varDeclaration.GetVarType())
 	if err != nil {
 		return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(varDeclaration), err)
 	}
@@ -167,19 +74,24 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration scrilaAst.IVarDeclarat
 func (self *Transpiler) evalIfStatement(ifStatement scrilaAst.IIfStatement, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
+	// Transpile condition
 	_, err := self.transpile(ifStatement.GetCondition(), env)
 	if err != nil {
 		return NewNullVal(), err
 	}
 
-	self.writeTranspilat("if ")
-	self.pushContext(IfStmtContext)
-
-	// Transpile condition
 	err = self.evalStatementCondition(ifStatement.GetCondition(), env)
 	if err != nil {
 		return NewNullVal(), err
 	}
+
+	bashCond, ok := self.bashStmtStack[ifStatement.GetCondition().GetId()]
+	if !ok {
+		return NewNullVal(), fmt.Errorf("evalIfStatement(): Condition is not stored in stack")
+	}
+
+	self.pushContext(IfStmtContext)
+	self.pushBashContext(bashAst.NewIfStmt(bashCond))
 
 	// Transpile the body line by line
 	err = self.evalStatementBody(ifStatement.GetBody(), env)
@@ -187,30 +99,48 @@ func (self *Transpiler) evalIfStatement(ifStatement scrilaAst.IIfStatement, env 
 		return NewNullVal(), err
 	}
 
-	// Else block
-	self.evalIfStatementElse(ifStatement.GetElse(), env)
-
+	ifStmt := self.currentBashContext()
 	self.popContext()
-	self.writeLnTranspilat(self.indent(0) + "fi")
+	self.popBashContext()
+
+	// Else block
+	if ifStatement.GetElse() != nil {
+		if err = self.evalIfStatementElse(ifStatement.GetElse(), env); err != nil {
+			return NewNullVal(), err
+		}
+		elseBlock, ok := self.bashStmtStack[ifStatement.GetElse().GetId()]
+		if !ok {
+			return NewNullVal(), fmt.Errorf("evalIfStatement(): ElseIf is not stored in stack")
+		}
+		bashAst.StmtToIfStmt(ifStmt).SetElse(bashAst.StmtToIfStmt(elseBlock))
+	}
+
+	self.appendUserBody(ifStmt)
+
 	return NewNullVal(), nil
 }
 
 func (self *Transpiler) evalWhileStatement(whileStatement scrilaAst.IWhileStatement, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
+	// Transpile condition
 	_, err := self.transpile(whileStatement.GetCondition(), env)
 	if err != nil {
 		return NewNullVal(), err
 	}
 
-	self.writeTranspilat("while ")
-	self.pushContext(WhileLoopContext)
-
-	// Transpile condition
 	err = self.evalStatementCondition(whileStatement.GetCondition(), env)
 	if err != nil {
 		return NewNullVal(), err
 	}
+
+	bashCond, ok := self.bashStmtStack[whileStatement.GetCondition().GetId()]
+	if !ok {
+		return NewNullVal(), fmt.Errorf("evalWhileStatement(): Condition is not stored in stack")
+	}
+
+	self.pushContext(WhileLoopContext)
+	self.pushBashContext(bashAst.NewWhileStmt(bashCond))
 
 	// Transpile the body line by line
 	err = self.evalStatementBody(whileStatement.GetBody(), env)
@@ -218,29 +148,39 @@ func (self *Transpiler) evalWhileStatement(whileStatement scrilaAst.IWhileStatem
 		return NewNullVal(), err
 	}
 
+	whileStmt := self.currentBashContext()
 	self.popContext()
-	self.writeLnTranspilat("done")
+	self.popBashContext()
+	self.appendUserBody(whileStmt)
 	return NewNullVal(), nil
 }
 
 func (self *Transpiler) evalIfStatementElse(elseBlock scrilaAst.IIfStatement, env *Environment) error {
+	// TODO Merge with evalIfStatement - Add param "isElse bool"
 	self.printFuncName("")
 
-	if elseBlock == nil {
-		return nil
-	}
-
 	// Else if
+	var bashCond bashAst.IStatement
 	if elseBlock.GetCondition() != nil {
-		self.writeTranspilat("elif ")
 		// Transpile condition
-		err := self.evalStatementCondition(elseBlock.GetCondition(), env)
+		_, err := self.transpile(elseBlock.GetCondition(), env)
 		if err != nil {
 			return err
 		}
-	} else {
-		self.writeLnTranspilat("else")
+		err = self.evalStatementCondition(elseBlock.GetCondition(), env)
+		if err != nil {
+			return err
+		}
+
+		var ok bool
+		bashCond, ok = self.bashStmtStack[elseBlock.GetCondition().GetId()]
+		if !ok {
+			return fmt.Errorf("evalIfStatementElse(): Condition is not stored in stack")
+		}
 	}
+
+	self.pushContext(IfStmtContext)
+	self.pushBashContext(bashAst.NewIfStmt(bashCond))
 
 	// Transpile the body line by line
 	err := self.evalStatementBody(elseBlock.GetBody(), env)
@@ -248,77 +188,57 @@ func (self *Transpiler) evalIfStatementElse(elseBlock scrilaAst.IIfStatement, en
 		return err
 	}
 
-	return self.evalIfStatementElse(elseBlock.GetElse(), env)
+	ifStmt := self.currentBashContext()
+	self.popContext()
+	self.popBashContext()
+
+	if elseBlock.GetElse() != nil {
+		if err = self.evalIfStatementElse(elseBlock.GetElse(), env); err != nil {
+			return err
+		}
+		elseBlock, ok := self.bashStmtStack[elseBlock.GetElse().GetId()]
+		if !ok {
+			return fmt.Errorf("evalIfStatementElse(): ElseIf is not stored in stack")
+		}
+		bashAst.StmtToIfStmt(ifStmt).SetElse(bashAst.StmtToIfStmt(elseBlock))
+	}
+
+	self.bashStmtStack[elseBlock.GetId()] = ifStmt
+
+	return nil
 }
 
 func (self *Transpiler) evalStatementCondition(condition scrilaAst.IExpr, env *Environment) error {
 	self.printFuncName("")
 
+	doMatch, givenType, err := self.exprIsType(condition, scrilaAst.BoolLiteralNode, env)
+	if err != nil {
+		return err
+	}
+	if !doMatch {
+		return fmt.Errorf("%s: Condition is not of type bool. Got %s", self.getPos(condition), givenType)
+	}
+
+	var bashCond bashAst.IStatement
 	switch condition.GetKind() {
-	case scrilaAst.BinaryExprNode:
-		value, err := self.transpile(condition, env)
+	case scrilaAst.BinaryExprNode, scrilaAst.BoolLiteralNode, scrilaAst.CallExprNode, scrilaAst.IdentifierNode:
+		bashCond, err = self.exprToBashStmt(condition, env)
 		if err != nil {
 			return err
-		}
-		if value.GetType() != scrilaAst.BoolValueType {
-			return fmt.Errorf("%s: Condition is no boolean expression. Got %s", self.getPos(condition), value.GetType())
-		}
-		self.writeLnTranspilat(value.GetTranspilat())
-	case scrilaAst.CallExprNode:
-		returnType, err := self.getFuncReturnType(scrilaAst.ExprToCallExpr(condition), env)
-		if err != nil {
-			return err
-		}
-		if returnType != lexer.BoolType {
-			return fmt.Errorf("%s: Cannot use a value of type '%s' as condition", self.getPos(condition), returnType)
-		}
-
-		varName, err := self.getCallerResultVarName(scrilaAst.ExprToCallExpr(condition), env)
-		if err != nil {
-			return err
-		}
-		self.writeLnTranspilat(strToBashStr(varName))
-	case scrilaAst.IdentifierNode:
-		identifier := scrilaAst.ExprToIdent(condition)
-		if scrilaAst.IdentIsBool(identifier) {
-			self.writeLnTranspilat(boolIdentToBashComparison(identifier))
-		} else {
-			valueVarType, err := env.lookupVarType(identNodeGetSymbol(condition))
-			if err != nil {
-				return err
-			}
-
-			if valueVarType != lexer.BoolType {
-				return fmt.Errorf("%s: Condition is not of type bool. Got %s", self.getPos(condition), valueVarType)
-			}
-			self.writeLnTranspilat(varIdentToBashComparison(identifier))
 		}
 	default:
 		return fmt.Errorf("%s: Unsupported type '%s' for condition", self.getPos(condition), condition.GetKind())
 	}
-	switch self.currentContext() {
-	case IfStmtContext:
-		self.writeLnTranspilat(self.indent(1) + "then")
-	case WhileLoopContext:
-		self.writeLnTranspilat(self.indent(1) + "do")
-	default:
-		return fmt.Errorf("%s: Unsupported context '%s' for condition", self.getPos(condition), self.currentContext())
-	}
+
+	self.bashStmtStack[condition.GetId()] = bashCond
 	return nil
 }
 
 func (self *Transpiler) evalStatementBody(body []scrilaAst.IStatement, env *Environment) error {
 	self.printFuncName("")
 
-	// Bash does not support an empty if-/while-body. A fix is to up a ":" inside the body.
-	if len(body) == 0 {
-		self.writeLnTranspilat(self.indent(0) + ":")
-		return nil
-	}
-
 	scope := NewEnvironment(env, self)
 	for _, stmt := range body {
-		self.writeTranspilat(self.indent(0))
 		_, err := self.transpile(stmt, scope)
 		if err != nil {
 			return err
@@ -334,19 +254,21 @@ func (self *Transpiler) evalFunctionDeclaration(funcDeclaration scrilaAst.IFunct
 	scope := NewEnvironment(fn.GetDeclarationEnv(), self)
 
 	self.pushContext(FunctionContext)
+	bashReturnType, err := scrilaNodeTypeToBashNodeType(funcDeclaration.GetReturnType())
+	if err != nil {
+		return NewNullVal(), err
+	}
+	self.currentBashFunc = bashAst.NewFuncDeclaration(funcDeclaration.GetName(), bashReturnType)
+	self.currentFunc = fn
 
-	self.writeLnTranspilat(funcDeclaration.GetName() + " () {")
 	for i, param := range funcDeclaration.GetParameters() {
-		var value scrilaAst.IRuntimeVal
-		switch fn.GetParams()[i].GetParamType() {
-		case lexer.IntType:
-			value = NewIntVal(1)
-		case lexer.StrType:
-			value = NewStrVal("str")
-		default:
-			return NewNullVal(), fmt.Errorf("%s: Unsupported type '%s' for parameter '%s'", self.getPos(funcDeclaration), fn.GetParams()[i].GetParamType(), fn.GetParams()[i].GetName())
+		paramType, err := scrilaNodeTypeToBashNodeType(param.GetParamType())
+		if err != nil {
+			return NewNullVal(), err
 		}
-		_, err := scope.declareVar(fn.GetParams()[i].GetName(), value, false, fn.GetParams()[i].GetParamType())
+		self.currentBashFunc.AppendParams(bashAst.NewFuncParameter(param.GetName(), paramType))
+
+		_, err = scope.declareVar(fn.GetParams()[i].GetName(), false, fn.GetParams()[i].GetParamType())
 		if err != nil {
 			return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(funcDeclaration), err)
 		}
@@ -354,7 +276,6 @@ func (self *Transpiler) evalFunctionDeclaration(funcDeclaration scrilaAst.IFunct
 	}
 
 	// Transpile the function body line by line
-	self.currentFunc = fn
 	var result scrilaAst.IRuntimeVal
 	result = NewNullVal()
 	for _, stmt := range fn.GetBody() {
@@ -366,10 +287,11 @@ func (self *Transpiler) evalFunctionDeclaration(funcDeclaration scrilaAst.IFunct
 		}
 	}
 	self.popContext()
+	self.bashProgram.AppendUserBody(self.currentBashFunc)
+	self.currentBashFunc = nil
 	self.currentFunc = nil
 
-	self.writeLnTranspilat("}\n")
-	_, err := env.declareFunc(funcDeclaration.GetName(), fn)
+	_, err = env.declareFunc(funcDeclaration.GetName(), fn)
 	if err != nil {
 		return result, fmt.Errorf("%s: %s", self.getPos(funcDeclaration), err)
 	}

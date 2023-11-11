@@ -1,7 +1,9 @@
 package main
 
 import (
+	"ScriLa/cmd/scrila/bashAssembler"
 	"ScriLa/cmd/scrila/bashTranspiler"
+	"ScriLa/cmd/scrila/config"
 	"ScriLa/cmd/scrila/lexer"
 	"ScriLa/cmd/scrila/parser"
 	"flag"
@@ -22,30 +24,32 @@ func main() {
 		os.Exit(1)
 	}
 
-	transpile(*filename, *showTokens, *showAST, *showCallStack)
+	config.Filename = *filename
+
+	transpile(*showTokens, *showAST, *showCallStack)
 }
 
-func transpile(filename string, showTokens bool, showAST bool, showCallStack bool) {
+func transpile(showTokens bool, showAST bool, showCallStack bool) {
 	parser := parser.NewParser()
 	transpilerObj := bashTranspiler.NewTranspiler(showCallStack)
 	env := bashTranspiler.NewEnvironment(nil, transpilerObj)
 
-	fileContent, err := os.ReadFile(filename)
+	fileContent, err := os.ReadFile(config.Filename)
 	if err != nil {
-		fmt.Println("Error reading file '" + filename + "':")
+		fmt.Println("Error reading file '" + config.Filename + "':")
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
 	if showTokens {
-		tokens, err := lexer.NewLexer().Tokenize(string(fileContent), filename)
+		tokens, err := lexer.NewLexer().Tokenize(string(fileContent))
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
 		fmt.Printf("Tokens:   %s\n", tokens)
 	}
-	program, err := parser.ProduceAST(string(fileContent), filename)
+	program, err := parser.ProduceAST(string(fileContent))
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -53,7 +57,14 @@ func transpile(filename string, showTokens bool, showAST bool, showCallStack boo
 	if showAST {
 		fmt.Printf("AST:       %s\n", program)
 	}
-	err = transpilerObj.Transpile(program, env, filename)
+	bashProgram, err := transpilerObj.Transpile(program, env)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	assembler := bashAssembler.NewAssembler()
+	err = assembler.Assemble(bashProgram)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

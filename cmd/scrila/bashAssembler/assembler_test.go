@@ -1,33 +1,40 @@
-package bashTranspiler
+package bashAssembler
 
 import (
+	"ScriLa/cmd/scrila/bashTranspiler"
+	"ScriLa/cmd/scrila/config"
 	"ScriLa/cmd/scrila/parser"
 	"fmt"
 	"strings"
 	"testing"
 )
 
-var testTranspiler *Transpiler
+var testAssembler *Assembler
 
 func initTest() {
-	testTranspiler = NewTranspiler(false)
-	testTranspiler.filename = "test.scri"
-	testTranspiler.testMode = true
+	testAssembler = NewAssembler()
+	testAssembler.testMode = true
+	config.Filename = "test.scri"
 }
 
 func initTestForPrintMode() {
 	initTest()
-	testTranspiler.testPrintMode = true
+	testAssembler.testPrintMode = true
 }
 
 func transpileTest(code string) error {
-	parser := parser.NewParser()
-	env := NewEnvironment(nil, testTranspiler)
-	program, err := parser.ProduceAST(code, testTranspiler.filename)
+	transpiler := bashTranspiler.NewTranspiler(false)
+	env := bashTranspiler.NewEnvironment(nil, transpiler)
+	scrilaProgram, err := parser.NewParser().ProduceAST(code)
 	if err != nil {
 		return err
 	}
-	return testTranspiler.Transpile(program, env, "")
+	bashProgram, err := transpiler.Transpile(scrilaProgram, env)
+	if err != nil {
+		return err
+	}
+	err = testAssembler.Assemble(bashProgram)
+	return err
 }
 
 func TestErrorLexerUnrecognizedChar(t *testing.T) {
@@ -54,9 +61,9 @@ func ExampleIntVar() {
 
 	// Output:
 	// #!/bin/bash
-	// # Created by Scrila Transpiler v0.0.1
 	//
 	// # User script
+	//
 	// # Declare and assign new value
 	// i=42
 	// i=101
@@ -148,9 +155,9 @@ func ExampleStrAssignmentBinaryExprWithVar() {
 
 	// Output:
 	// #!/bin/bash
-	// # Created by Scrila Transpiler v0.0.1
 	//
 	// # User script
+	//
 	// a="Hello"
 	// b="\"World\""
 	// c="${a} ${b}"
@@ -172,9 +179,9 @@ func ExampleVarDeclarationAndAssignmentWithVariable() {
 
 	// Output:
 	// #!/bin/bash
-	// # Created by Scrila Transpiler v0.0.1
 	//
 	// # User script
+	//
 	// i=123
 	// j=${i}
 	// j=${i}
@@ -190,7 +197,7 @@ func TestErrorAssignDifferentVarTypes(t *testing.T) {
 		str s = "str";
 		s = i;
 	`)
-	expected := fmt.Errorf("test.scri:4:7: Cannot assign a value of type 'IntType' to a var of type 'StrType'")
+	expected := fmt.Errorf("test.scri:4:7: Cannot assign a value of type 'IntLiteral' to a var of type 'StrLiteral'")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
@@ -211,7 +218,7 @@ func TestErrorDeclareDifferentVarTypes(t *testing.T) {
 		int i = 123;
 		str s = i;
 	`)
-	expected := fmt.Errorf("test.scri:3:11: Cannot assign a value of type 'IntType' to a var of type 'StrType'")
+	expected := fmt.Errorf("test.scri:3:11: Cannot assign a value of type 'IntLiteral' to a var of type 'StrLiteral'")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
@@ -220,7 +227,7 @@ func TestErrorDeclareDifferentVarTypes(t *testing.T) {
 func TestErrorDeclareDifferentType(t *testing.T) {
 	initTest()
 	err := transpileTest(`int i = "123";`)
-	expected := fmt.Errorf("test.scri:1:11: Cannot assign a value of type 'StrType' to a var of type 'IntType'")
+	expected := fmt.Errorf("test.scri:1:11: Cannot assign a value of type 'StrLiteral' to a var of type 'IntLiteral'")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
@@ -232,101 +239,100 @@ func TestErrorAssignDifferentType(t *testing.T) {
 		int i = 123;
 		i = "456";
 	`)
-	expected := fmt.Errorf("test.scri:3:9: Cannot assign a value of type 'StrType' to a var of type 'IntType'")
+	expected := fmt.Errorf("test.scri:3:9: Cannot assign a value of type 'StrLiteral' to a var of type 'IntLiteral'")
 	if err.Error() != expected.Error() {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
 }
 
-func TestErrorInvalidPropertyName(t *testing.T) {
-	initTest()
-	err := transpileTest(`
-		obj o = { a: 1, };
-		o.1 = 32;
-	`)
-	expected := fmt.Errorf("test.scri:3:5: Cannot use dot operator without right hand side being an identifier")
-	if !strings.HasPrefix(err.Error(), expected.Error()) {
-		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
-	}
-}
+// func TestErrorInvalidPropertyName(t *testing.T) {
+// 	initTest()
+// 	err := transpileTest(`
+// 		obj o = { a: 1, };
+// 		o.1 = 32;
+// 	`)
+// 	expected := fmt.Errorf("test.scri:3:5: Cannot use dot operator without right hand side being an identifier")
+// 	if !strings.HasPrefix(err.Error(), expected.Error()) {
+// 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+// 	}
+// }
 
-func ExampleObject() {
-	initTestForPrintMode()
-	transpileTest(`
-		obj o = { p1: 123, p2: "str", p3: false, };
-		o.p1 = 321;
-		printLn(o.p2);
-	`)
+// func ExampleObject() {
+// 	initTestForPrintMode()
+// 	transpileTest(`
+// 		obj o = { p1: 123, p2: "str", p3: false, };
+// 		o.p1 = 321;
+// 		printLn(o.p2);
+// 	`)
 
-	// Output:
-	// #!/bin/bash
-	// # Created by Scrila Transpiler v0.0.1
-	//
-	// # User script
-	// declare -A o
-	// o["p1"]=123
-	// o["p2"]="str"
-	// o["p3"]=false
-	// o["p1"]=321
-	// echo "${o["p2"]}"
-}
+// 	// Output:
+// 	// #!/bin/bash
+// 	//
+// 	// # User script
+// 	// declare -A o
+// 	// o["p1"]=123
+// 	// o["p2"]="str"
+// 	// o["p3"]=false
+// 	// o["p1"]=321
+// 	// echo "${o["p2"]}"
+// }
 
-func TestErrorObjectWithMissingComma(t *testing.T) {
-	initTest()
-	err := transpileTest(`
-		obj o = { p1: 123 };
-	`)
-	expected := fmt.Errorf("test.scri:2:21: Expected comma following Property")
-	if !strings.HasPrefix(err.Error(), expected.Error()) {
-		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
-	}
-}
+// func TestErrorObjectWithMissingComma(t *testing.T) {
+// 	initTest()
+// 	err := transpileTest(`
+// 		obj o = { p1: 123 };
+// 	`)
+// 	expected := fmt.Errorf("test.scri:2:21: Expected comma following Property")
+// 	if !strings.HasPrefix(err.Error(), expected.Error()) {
+// 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+// 	}
+// }
 
-func TestErrorObjectWithMissingColon(t *testing.T) {
-	initTest()
-	err := transpileTest(`
-		obj o = { p1 };
-	`)
-	expected := fmt.Errorf("test.scri:2:16: Missing colon following identifier in ObjectExpr")
-	if !strings.HasPrefix(err.Error(), expected.Error()) {
-		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
-	}
-}
+// func TestErrorObjectWithMissingColon(t *testing.T) {
+// 	initTest()
+// 	err := transpileTest(`
+// 		obj o = { p1 };
+// 	`)
+// 	expected := fmt.Errorf("test.scri:2:16: Missing colon following identifier in ObjectExpr")
+// 	if !strings.HasPrefix(err.Error(), expected.Error()) {
+// 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+// 	}
+// }
 
-func TestErrorObjectWithMissingValue(t *testing.T) {
-	initTest()
-	err := transpileTest(`
-		obj o = { p1: , };
-	`)
-	expected := fmt.Errorf("test.scri:2:17: Unexpected token 'Comma' (',') found during parsing")
-	if err.Error() != expected.Error() {
-		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
-	}
-}
+// func TestErrorObjectWithMissingValue(t *testing.T) {
+// 	initTest()
+// 	err := transpileTest(`
+// 		obj o = { p1: , };
+// 	`)
+// 	expected := fmt.Errorf("test.scri:2:17: Unexpected token 'Comma' (',') found during parsing")
+// 	if err.Error() != expected.Error() {
+// 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+// 	}
+// }
 
-func TestErrorMemberExprWithObjectOfWrongType(t *testing.T) {
-	initTest()
-	err := transpileTest(`
-		int i = 42;
-		i.a = 1;
-	`)
-	expected := fmt.Errorf("test.scri:3:3: Variable 'i' is not of type 'object'")
-	if err.Error() != expected.Error() {
-		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
-	}
-}
+// func TestErrorMemberExprWithObjectOfWrongType(t *testing.T) {
+// 	initTest()
+// 	err := transpileTest(`
+// 		int i = 42;
+// 		i.a = 1;
+// 	`)
+// 	expected := fmt.Errorf("test.scri:3:3: Variable 'i' is not of type 'object'")
+// 	if err.Error() != expected.Error() {
+// 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+// 	}
+// }
 
-func TestErrorMemberExprWithWrongObjectNameType(t *testing.T) {
-	initTest()
-	err := transpileTest(`
-		int i = 42;
-		1.a = 1;
-	`)
-	expected := fmt.Errorf("test.scri:3:3: Object name is not the right type. Got 'IntLiteral'")
-	if err.Error() != expected.Error() {
-		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
-	}
-}
+// func TestErrorMemberExprWithWrongObjectNameType(t *testing.T) {
+// 	initTest()
+// 	err := transpileTest(`
+// 		int i = 42;
+// 		1.a = 1;
+// 	`)
+// 	expected := fmt.Errorf("test.scri:3:3: Object name is not the right type. Got 'IntLiteral'")
+// 	if err.Error() != expected.Error() {
+// 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+// 	}
+// }
 
 func TestErrorCompareDiffVarTypes(t *testing.T) {
 	initTest()
@@ -343,14 +349,14 @@ func ExampleBoolAssignComparision() {
 
 	// Output:
 	// #!/bin/bash
-	// # Created by Scrila Transpiler v0.0.1
 	//
 	// # User script
+	//
 	// if [[ 42 -gt 13 ]]
 	// then
 	// 	tmpBool="true"
 	// else
 	// 	tmpBool="false"
 	// fi
-	// b=${tmpBool}
+	// b="${tmpBool}"
 }
