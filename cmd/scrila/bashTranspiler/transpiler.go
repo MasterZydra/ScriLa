@@ -1,9 +1,10 @@
 package bashTranspiler
 
 import (
+	"ScriLa/cmd/scrila/bashAst"
+	"ScriLa/cmd/scrila/config"
 	"ScriLa/cmd/scrila/scrilaAst"
 	"fmt"
-	"os"
 	"runtime"
 	"strings"
 
@@ -21,25 +22,26 @@ const (
 
 type Transpiler struct {
 	usedNativeFunctions  []string
-	nativeFuncTranspilat string
 	userScriptTranspilat string
 
-	filename       string
-	outputFilename string
-	outputFile     *os.File
+	contexts        []Context
+	bashContexts    []bashAst.IAppendBody
+	currentFunc     IFunctionVal
+	currentBashFunc bashAst.IFuncDeclaration
 
-	testMode      bool
-	testPrintMode bool
-	contexts      []Context
-	currentFunc   IFunctionVal
+	bashStmtStack map[int]bashAst.IStatement
 
 	showCallStack bool
+
+	bashProgram bashAst.IProgram
 }
 
 func NewTranspiler(showCallStack bool) *Transpiler {
 	return &Transpiler{
 		usedNativeFunctions: []string{},
 		contexts:            []Context{NoContext},
+		bashContexts:        []bashAst.IAppendBody{},
+		bashStmtStack:       make(map[int]bashAst.IStatement),
 		showCallStack:       showCallStack,
 	}
 }
@@ -64,51 +66,22 @@ func (self *Transpiler) writeLnToFile(content string) {
 
 func (self *Transpiler) writeToFile(content string) {
 	self.printFuncName("")
-
-	if self.testPrintMode {
-		fmt.Print(content)
-	} else {
-		if self.outputFile != nil {
-			self.outputFile.WriteString(content)
-		}
-	}
+	// fmt.Print(content)
 }
 
 func (self *Transpiler) getPos(astNode scrilaAst.IStatement) string {
-	return fmt.Sprintf("%s:%d:%d", self.filename, astNode.GetLn(), astNode.GetCol())
+	return fmt.Sprintf("%s:%d:%d", config.Filename, astNode.GetLn(), astNode.GetCol())
 }
 
-func (self *Transpiler) Transpile(astNode scrilaAst.IStatement, env *Environment, filename string) error {
-	if !self.testMode {
-		self.filename = filename
-	}
-	if filename != "" {
-		self.outputFilename = filename + ".sh"
-		f, err := os.Create(self.outputFilename)
-		if err != nil {
-			fmt.Println("Something went wrong creating the output file:", err)
-		}
-		defer f.Close()
-		self.outputFile = f
-	}
+func (self *Transpiler) Transpile(astNode scrilaAst.IStatement, env *Environment) (bashAst.IProgram, error) {
+	self.bashProgram = bashAst.NewProgram()
 
 	_, err := self.transpile(astNode, env)
 	if err != nil {
-		return err
+		return self.bashProgram, err
 	}
 
-	self.writeLnToFile("#!/bin/bash")
-	self.writeLnToFile("# Created by Scrila Transpiler v0.0.1\n")
-
-	if self.nativeFuncTranspilat != "" {
-		self.writeLnToFile("# Native function implementations")
-		self.writeToFile(self.nativeFuncTranspilat)
-	}
-
-	self.writeLnToFile("# User script")
-	self.writeLnToFile(self.userScriptTranspilat)
-
-	return nil
+	return self.bashProgram, nil
 }
 
 func (self *Transpiler) transpile(astNode scrilaAst.IStatement, env *Environment) (scrilaAst.IRuntimeVal, error) {
@@ -119,6 +92,9 @@ func (self *Transpiler) transpile(astNode scrilaAst.IStatement, env *Environment
 
 	case scrilaAst.StrLiteralNode:
 		return NewStrVal(scrilaAst.ExprToStrLit(astNode).GetValue()), nil
+
+	case scrilaAst.BoolLiteralNode:
+		return NewBoolVal(scrilaAst.ExprToBoolLit(astNode).GetValue()), nil
 
 	case scrilaAst.IdentifierNode:
 		return self.evalIdentifier(scrilaAst.ExprToIdent(astNode), env)
@@ -143,7 +119,7 @@ func (self *Transpiler) transpile(astNode scrilaAst.IStatement, env *Environment
 
 	// Handle Statements
 	case scrilaAst.CommentNode:
-		self.writeLnTranspilat("# " + scrilaAst.ExprToComment(astNode).GetComment())
+		self.appendUserBody(bashAst.NewComment(scrilaAst.ExprToComment(astNode).GetComment()))
 		return NewNullVal(), nil
 
 	case scrilaAst.ProgramNode:
@@ -162,7 +138,7 @@ func (self *Transpiler) transpile(astNode scrilaAst.IStatement, env *Environment
 		return self.evalFunctionDeclaration(scrilaAst.ExprToFuncDecl(astNode), env)
 
 	default:
-		return NewNullVal(), fmt.Errorf("%s: This AST Node has not been setup for interpretion: %s", self.getPos(astNode), astNode)
+		return NewNullVal(), fmt.Errorf("%s: This AST Node has not been setup for interpretion: %s", self.getPos(astNode), astNode.GetKind())
 	}
 }
 
@@ -174,8 +150,20 @@ func (self *Transpiler) popContext() {
 	self.contexts = self.contexts[:len(self.contexts)-1]
 }
 
+func (self *Transpiler) pushBashContext(context bashAst.IAppendBody) {
+	self.bashContexts = append(self.bashContexts, context)
+}
+
+func (self *Transpiler) popBashContext() {
+	self.bashContexts = self.bashContexts[:len(self.bashContexts)-1]
+}
+
 func (self *Transpiler) currentContext() Context {
 	return self.contexts[len(self.contexts)-1]
+}
+
+func (self *Transpiler) currentBashContext() bashAst.IAppendBody {
+	return self.bashContexts[len(self.bashContexts)-1]
 }
 
 func (self *Transpiler) contextContains(context Context) bool {
@@ -197,5 +185,15 @@ func (self *Transpiler) printFuncName(msg string) {
 		} else {
 			fmt.Printf("%s(): %s\n", funcName, msg)
 		}
+	}
+}
+
+func (self *Transpiler) appendUserBody(stmt bashAst.IStatement) {
+	if len(self.bashContexts) != 0 {
+		self.currentBashContext().AppendBody(stmt)
+	} else if self.currentFunc != nil {
+		self.currentBashFunc.AppendBody(stmt)
+	} else {
+		self.bashProgram.AppendUserBody(stmt)
 	}
 }

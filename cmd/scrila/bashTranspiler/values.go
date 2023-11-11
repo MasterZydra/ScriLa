@@ -1,7 +1,6 @@
 package bashTranspiler
 
 import (
-	"ScriLa/cmd/scrila/lexer"
 	"ScriLa/cmd/scrila/scrilaAst"
 	"fmt"
 )
@@ -212,16 +211,16 @@ type FunctionCall func(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRun
 type INativeFunc interface {
 	scrilaAst.IRuntimeVal
 	GetCall() FunctionCall
-	GetReturnType() lexer.TokenType
+	GetReturnType() scrilaAst.NodeType
 }
 
 type NativeFunc struct {
 	runtimeVal *scrilaAst.RuntimeVal
 	call       FunctionCall
-	returnType lexer.TokenType
+	returnType scrilaAst.NodeType
 }
 
-func NewNativeFunc(function FunctionCall, returnType lexer.TokenType) *NativeFunc {
+func NewNativeFunc(function FunctionCall, returnType scrilaAst.NodeType) *NativeFunc {
 	return &NativeFunc{
 		runtimeVal: scrilaAst.NewRuntimeVal(scrilaAst.NativeFnType),
 		call:       function,
@@ -237,7 +236,7 @@ func (self *NativeFunc) GetCall() FunctionCall {
 	return self.call
 }
 
-func (self *NativeFunc) GetReturnType() lexer.TokenType {
+func (self *NativeFunc) GetReturnType() scrilaAst.NodeType {
 	return self.returnType
 }
 
@@ -261,7 +260,7 @@ type IFunctionVal interface {
 	GetParams() []*scrilaAst.Parameter
 	GetDeclarationEnv() *Environment
 	GetBody() []scrilaAst.IStatement
-	GetReturnType() lexer.TokenType
+	GetReturnType() scrilaAst.NodeType
 }
 
 type FunctionVal struct {
@@ -270,7 +269,7 @@ type FunctionVal struct {
 	params         []*scrilaAst.Parameter
 	declarationEnv *Environment
 	body           []scrilaAst.IStatement
-	returnType     lexer.TokenType
+	returnType     scrilaAst.NodeType
 }
 
 func NewFunctionVal(funcDeclaration scrilaAst.IFunctionDeclaration, env *Environment) *FunctionVal {
@@ -304,7 +303,7 @@ func (self *FunctionVal) GetBody() []scrilaAst.IStatement {
 	return self.body
 }
 
-func (self *FunctionVal) GetReturnType() lexer.TokenType {
+func (self *FunctionVal) GetReturnType() scrilaAst.NodeType {
 	return self.returnType
 }
 

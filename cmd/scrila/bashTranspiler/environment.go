@@ -1,27 +1,25 @@
 package bashTranspiler
 
 import (
-	"ScriLa/cmd/scrila/lexer"
 	"ScriLa/cmd/scrila/scrilaAst"
 	"fmt"
 
 	"golang.org/x/exp/slices"
 )
 
-var reservedIdentifiers = []string{"null", "true", "false", "break", "continue"}
+var reservedIdentifiers = []string{"true", "false", "break", "continue"}
 
 func (self *Transpiler) setupScope(env *Environment) {
 	// Create Default Global Environment
-	env.declareVar("null", NewNullVal(), true, lexer.Identifier)
-	env.declareVar("true", NewBoolVal(true), true, lexer.Bool)
-	env.declareVar("false", NewBoolVal(false), true, lexer.Bool)
-	env.declareVar("break", NewNullVal(), true, lexer.Break)
-	env.declareVar("continue", NewNullVal(), true, lexer.Continue)
+	env.declareVar("true", true, scrilaAst.BoolLiteralNode)
+	env.declareVar("false", true, scrilaAst.BoolLiteralNode)
+	env.declareVar("break", true, scrilaAst.BreakExprNode)
+	env.declareVar("continue", true, scrilaAst.ContinueExprNode)
 
 	// Variables used for internal use
-	env.declareVar("tmpStr", NewStrVal(""), false, lexer.StrType)
-	env.declareVar("tmpInt", NewIntVal(0), false, lexer.IntType)
-	env.declareVar("tmpBool", NewBoolVal(false), false, lexer.BoolType)
+	env.declareVar("tmpStr", false, scrilaAst.StrLiteralNode)
+	env.declareVar("tmpInt", false, scrilaAst.IntLiteralNode)
+	env.declareVar("tmpBool", false, scrilaAst.BoolLiteralNode)
 
 	// Define native builtin methods
 	self.declareNativeFunctions(env)
@@ -30,8 +28,7 @@ func (self *Transpiler) setupScope(env *Environment) {
 type Environment struct {
 	parent    *Environment
 	functions map[string]scrilaAst.IRuntimeVal
-	variables map[string]scrilaAst.IRuntimeVal
-	varTypes  map[string]lexer.TokenType
+	variables map[string]scrilaAst.NodeType
 	constants []string
 }
 
@@ -40,8 +37,7 @@ func NewEnvironment(parentEnv *Environment, transpiler *Transpiler) *Environment
 	env := &Environment{
 		parent:    parentEnv,
 		functions: make(map[string]scrilaAst.IRuntimeVal),
-		variables: make(map[string]scrilaAst.IRuntimeVal),
-		varTypes:  make(map[string]lexer.TokenType),
+		variables: make(map[string]scrilaAst.NodeType),
 		constants: make([]string, 0),
 	}
 
@@ -93,22 +89,22 @@ func (self *Environment) lookupFunc(funcName string) (scrilaAst.IRuntimeVal, err
 	return env.functions[funcName], nil
 }
 
-func (self *Environment) declareVar(varName string, value scrilaAst.IRuntimeVal, isConstant bool, varType lexer.TokenType) (scrilaAst.IRuntimeVal, error) {
+func (self *Environment) declareVar(varName string, isConstant bool, varType scrilaAst.NodeType) (scrilaAst.IRuntimeVal, error) {
 	if _, ok := self.variables[varName]; ok {
 		return NewNullVal(), fmt.Errorf("Cannot declare variable '%s' as it already is defined", varName)
 	}
 
-	self.variables[varName] = value
-	self.varTypes[varName] = varType
+	self.variables[varName] = varType
 
 	if isConstant {
 		self.constants = append(self.constants, varName)
 	}
-	return value, nil
+
+	return scrilaNodeTypeToRuntimeVal(varType)
 }
 
-func (self *Environment) assignVar(varName string, value scrilaAst.IRuntimeVal) (scrilaAst.IRuntimeVal, error) {
-	env, err := self.resolve(varName)
+func (self *Environment) assignVar(varName string) (scrilaAst.IRuntimeVal, error) {
+	_, err := self.resolve(varName)
 	if err != nil {
 		return NewNullVal(), err
 	}
@@ -118,8 +114,8 @@ func (self *Environment) assignVar(varName string, value scrilaAst.IRuntimeVal) 
 		return NewNullVal(), fmt.Errorf("Cannot reassign to variable '%s' as it was declared constant", varName)
 	}
 
-	env.variables[varName] = value
-	return value, nil
+	varType, _ := self.lookupVarType(varName)
+	return scrilaNodeTypeToRuntimeVal(varType)
 }
 
 func (self *Environment) resolve(varName string) (*Environment, error) {
@@ -135,17 +131,18 @@ func (self *Environment) resolve(varName string) (*Environment, error) {
 }
 
 func (self *Environment) lookupVar(varName string) (scrilaAst.IRuntimeVal, error) {
-	env, err := self.resolve(varName)
+	_, err := self.resolve(varName)
 	if err != nil {
 		return NewNullVal(), err
 	}
-	return env.variables[varName], nil
+	varType, _ := self.lookupVarType(varName)
+	return scrilaNodeTypeToRuntimeVal(varType)
 }
 
-func (self *Environment) lookupVarType(varName string) (lexer.TokenType, error) {
+func (self *Environment) lookupVarType(varName string) (scrilaAst.NodeType, error) {
 	env, err := self.resolve(varName)
 	if err != nil {
-		return lexer.EndOfFile, err
+		return "", err
 	}
-	return env.varTypes[varName], nil
+	return env.variables[varName], nil
 }

@@ -1,10 +1,55 @@
 package scrilaAst
 
 import (
-	"ScriLa/cmd/scrila/lexer"
 	"fmt"
-	"strconv"
 )
+
+// BoolLiteral
+
+type IBoolLiteral interface {
+	IExpr
+	GetValue() bool
+}
+
+type BoolLiteral struct {
+	expr  *Expr
+	value bool
+}
+
+func NewBoolLiteral(value bool, ln int, col int) *BoolLiteral {
+	return &BoolLiteral{
+		expr:  NewExpr(BoolLiteralNode, ln, col),
+		value: value,
+	}
+}
+
+func (self *BoolLiteral) GetId() int {
+	return self.expr.GetId()
+}
+
+func (self *BoolLiteral) GetKind() NodeType {
+	return self.expr.GetKind()
+}
+
+func (self *BoolLiteral) GetValue() bool {
+	return self.value
+}
+
+func (self *BoolLiteral) GetLn() int {
+	return self.expr.GetLn()
+}
+
+func (self *BoolLiteral) GetCol() int {
+	return self.expr.GetCol()
+}
+
+func (self *BoolLiteral) GetResult() IRuntimeVal {
+	return self.expr.GetResult()
+}
+
+func (self *BoolLiteral) SetResult(value IRuntimeVal) {
+	self.expr.SetResult(value)
+}
 
 // IntLiteral
 
@@ -18,14 +63,15 @@ type IntLiteral struct {
 	value int64
 }
 
-func NewIntLiteral(token *lexer.Token) (*IntLiteral, error) {
-	intLiteral := &IntLiteral{expr: NewExpr(IntLiteralNode, token.Ln, token.Col)}
-	intValue, err := strconv.ParseInt(token.Value, 10, 64)
-	if err != nil {
-		return intLiteral, err
+func NewIntLiteral(value int64, ln int, col int) *IntLiteral {
+	return &IntLiteral{
+		expr:  NewExpr(IntLiteralNode, ln, col),
+		value: value,
 	}
-	intLiteral.value = intValue
-	return intLiteral, nil
+}
+
+func (self *IntLiteral) GetId() int {
+	return self.expr.GetId()
 }
 
 func (self *IntLiteral) GetKind() NodeType {
@@ -64,11 +110,15 @@ type StrLiteral struct {
 	value string
 }
 
-func NewStrLiteral(token *lexer.Token) *StrLiteral {
+func NewStrLiteral(value string, ln int, col int) *StrLiteral {
 	return &StrLiteral{
-		expr:  NewExpr(StrLiteralNode, token.Ln, token.Col),
-		value: token.Value,
+		expr:  NewExpr(StrLiteralNode, ln, col),
+		value: value,
 	}
+}
+
+func (self *StrLiteral) GetId() int {
+	return self.expr.GetId()
 }
 
 func (self *StrLiteral) GetKind() NodeType {
@@ -119,6 +169,10 @@ func NewProperty(key string, value IExpr, ln int, col int) *Property {
 		key:   key,
 		value: value,
 	}
+}
+
+func (self *Property) GetId() int {
+	return self.expr.GetId()
 }
 
 func (self *Property) GetKind() NodeType {
@@ -172,6 +226,10 @@ func NewObjectLiteral(properties []IProperty) *ObjectLiteral {
 	}
 }
 
+func (self *ObjectLiteral) GetId() int {
+	return self.expr.GetId()
+}
+
 func (self *ObjectLiteral) GetKind() NodeType {
 	return self.expr.GetKind()
 }
@@ -208,11 +266,15 @@ type Identifier struct {
 	symbol string
 }
 
-func NewIdentifier(token *lexer.Token) *Identifier {
+func NewIdentifier(symbol string, ln int, col int) *Identifier {
 	return &Identifier{
-		expr:   NewExpr(IdentifierNode, token.Ln, token.Col),
-		symbol: token.Value,
+		expr:   NewExpr(IdentifierNode, ln, col),
+		symbol: symbol,
 	}
+}
+
+func (self *Identifier) GetId() int {
+	return self.expr.GetId()
 }
 
 func (self *Identifier) GetKind() NodeType {

@@ -6,9 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## v0.1.0-alpha
+
 ### Added
 
 - Added support for assigning the result of a comparison to a bool variable
+- Added helpers that allow to centralize the creation of the Bash AST. That means that the switch statements in the transpiler eval[…] functions could simplified
+
+### Changed
+
+- Move the code generation part from the transpiler into the bash assembler class
+- Changed the runtime environment to not store explicit values. The main purpose is to keep track of the data type of a variable, whether it is a const and whether it is declared
+
+### Removed
+
+- Removed / commented out all examples and tests for objects. The reason is that the objects have a lof issues and they need a revision anyway
 
 ## v0.0.3-alpha
 

@@ -21,6 +21,10 @@ func NewEmptyExpr() *Expr {
 	return NewExpr(ExprNode, 0, 0)
 }
 
+func (self *Expr) GetId() int {
+	return self.statement.GetId()
+}
+
 func (self *Expr) GetKind() NodeType {
 	return self.statement.GetKind()
 }
@@ -65,6 +69,10 @@ func NewAssignmentExpr(assigne IExpr, value IExpr) *AssignmentExpr {
 		assigne: assigne,
 		value:   value,
 	}
+}
+
+func (self *AssignmentExpr) GetId() int {
+	return self.expr.GetId()
 }
 
 func (self *AssignmentExpr) GetKind() NodeType {
@@ -124,6 +132,10 @@ func NewBinaryExpr(left IExpr, right IExpr, operator string, ln int, col int) *B
 	}
 }
 
+func (self *BinaryExpr) GetId() int {
+	return self.expr.GetId()
+}
+
 func (self *BinaryExpr) GetKind() NodeType {
 	return self.expr.GetKind()
 }
@@ -180,6 +192,10 @@ func NewCallExpr(caller IExpr, args []IExpr) *CallExpr {
 		args:   args,
 		caller: caller,
 	}
+}
+
+func (self *CallExpr) GetId() int {
+	return self.expr.GetId()
 }
 
 func (self *CallExpr) GetKind() NodeType {
@@ -243,6 +259,10 @@ func NewMemberExpr(object IExpr, property IExpr, isComputed bool) *MemberExpr {
 	}
 }
 
+func (self *MemberExpr) GetId() int {
+	return self.expr.GetId()
+}
+
 func (self *MemberExpr) GetKind() NodeType {
 	return self.expr.GetKind()
 }
@@ -299,6 +319,10 @@ func NewReturnExpr(value IExpr, isEmpty bool, ln int, col int) *ReturnExpr {
 		value:   value,
 		isEmpty: isEmpty,
 	}
+}
+
+func (self *ReturnExpr) GetId() int {
+	return self.expr.GetId()
 }
 
 func (self *ReturnExpr) GetKind() NodeType {

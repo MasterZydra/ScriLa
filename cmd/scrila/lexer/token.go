@@ -2,6 +2,8 @@ package lexer
 
 import "fmt"
 
+// TODO Move the following two arrays in separate package so that they are delcared once.
+// Now BooleanOps and ComparisonOps exist here and in ScrilaAst
 var BooleanOps = []string{"||", "&&"}
 
 var ComparisonOps = []string{"<", ">", "<=", ">=", "!=", "=="}
@@ -40,6 +42,8 @@ var keywords = map[string]TokenType{
 	"str":      StrType,
 	"void":     VoidType,
 	"while":    While,
+	"true":     Bool,
+	"false":    Bool,
 }
 
 type TokenType string

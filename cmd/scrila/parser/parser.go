@@ -1,9 +1,11 @@
 package parser
 
 import (
+	"ScriLa/cmd/scrila/config"
 	"ScriLa/cmd/scrila/lexer"
 	"ScriLa/cmd/scrila/scrilaAst"
 	"fmt"
+	"strconv"
 
 	"golang.org/x/exp/slices"
 )
@@ -15,21 +17,19 @@ var multiplicitaveOps = []string{"*", "/"} // TODO Modulo %
 var funcReturnTypes = []lexer.TokenType{lexer.BoolType, lexer.VoidType, lexer.IntType, lexer.StrType}
 
 type Parser struct {
-	lexer    *lexer.Lexer
-	tokens   []*lexer.Token
-	filename string
+	lexer  *lexer.Lexer
+	tokens []*lexer.Token
 }
 
 func NewParser() *Parser {
 	return &Parser{lexer: lexer.NewLexer()}
 }
 
-func (self *Parser) ProduceAST(sourceCode string, filename string) (scrilaAst.IProgram, error) {
-	self.filename = filename
+func (self *Parser) ProduceAST(sourceCode string) (scrilaAst.IProgram, error) {
 	program := scrilaAst.NewProgram()
 
 	var err error
-	self.tokens, err = self.lexer.Tokenize(sourceCode, filename)
+	self.tokens, err = self.lexer.Tokenize(sourceCode)
 	if err != nil {
 		return program, err
 	}
@@ -57,7 +57,8 @@ func (self *Parser) parseStatement() (scrilaAst.IStatement, error) {
 	var err error
 	switch self.at().TokenType {
 	case lexer.Comment:
-		return scrilaAst.NewComment(self.eat()), nil
+		commentToken := self.eat()
+		return scrilaAst.NewComment(commentToken.Value, commentToken.Ln, commentToken.Col), nil
 	case lexer.Const, lexer.BoolType, lexer.IntType, lexer.StrType, lexer.ObjType:
 		statement, err = self.parseVarDeclaration()
 		if err != nil {
@@ -70,7 +71,8 @@ func (self *Parser) parseStatement() (scrilaAst.IStatement, error) {
 	case lexer.Function:
 		return self.parseFunctionDeclaration()
 	case lexer.Break, lexer.Continue:
-		statement = scrilaAst.NewIdentifier(self.eat())
+		identToken := self.eat()
+		statement = scrilaAst.NewIdentifier(identToken.Value, identToken.Ln, identToken.Col)
 	case lexer.Return:
 		statement, err = self.parseReturnExpr()
 		if err != nil {
@@ -97,7 +99,10 @@ func (self *Parser) parseVarDeclaration() (scrilaAst.IStatement, error) {
 	if !slices.Contains([]lexer.TokenType{lexer.ObjType, lexer.StrType, lexer.IntType, lexer.BoolType}, self.at().TokenType) {
 		return scrilaAst.NewEmptyStatement(), fmt.Errorf("%s: Variable type '%s' not given or supported", self.getPos(self.at()), self.at().Value)
 	}
-	varType := self.eat().TokenType
+	varType, err := lexerTokenTypeToScrilaNodeType(self.eat().TokenType)
+	if err != nil {
+		return scrilaAst.NewEmptyStatement(), err
+	}
 
 	// TODO Check if type matches with result of parseExpr()
 	token, err := self.expect(lexer.Identifier, "Expected identifier name following [const] [int] keywords")
@@ -281,8 +286,13 @@ func (self *Parser) parseFunctionDeclaration() (scrilaAst.IStatement, error) {
 		body = append(body, statement)
 	}
 
+	scrilaReturnType, err := lexerTokenTypeToScrilaNodeType(returnType.TokenType)
+	if err != nil {
+		return scrilaAst.NewEmptyStatement(), err
+	}
+
 	_, err = self.expect(lexer.CloseBrace, "Closing brace expected inside function declaration")
-	return scrilaAst.NewFunctionDeclaration(name, params, body, returnType.TokenType, funcToken.Ln, funcToken.Col), err
+	return scrilaAst.NewFunctionDeclaration(name, params, body, scrilaReturnType, funcToken.Ln, funcToken.Col), err
 }
 
 func (self *Parser) parseExpr() (scrilaAst.IExpr, error) {
@@ -368,7 +378,7 @@ func (self *Parser) parseBooleanExpr() (scrilaAst.IExpr, error) {
 	}
 
 	// Current token is an boolean operator
-	for slices.Contains(lexer.BooleanOps, self.at().Value) {
+	for slices.Contains(scrilaAst.BooleanOps, self.at().Value) {
 		token := self.eat()
 		right, err := self.parseComparisonExpr()
 		if err != nil {
@@ -387,7 +397,7 @@ func (self *Parser) parseComparisonExpr() (scrilaAst.IExpr, error) {
 	}
 
 	// Current token is an comparison operator
-	for slices.Contains(lexer.ComparisonOps, self.at().Value) {
+	for slices.Contains(scrilaAst.ComparisonOps, self.at().Value) {
 		token := self.eat()
 		right, err := self.parseAdditiveExpr()
 		if err != nil {
@@ -515,7 +525,10 @@ func (self *Parser) parseParametersList() ([]*scrilaAst.Parameter, error) {
 	}
 
 	for self.notEOF() && slices.Contains([]lexer.TokenType{lexer.StrType, lexer.BoolType, lexer.IntType, lexer.ObjType}, self.at().TokenType) {
-		paramType := self.eat().TokenType
+		paramType, err := lexerTokenTypeToScrilaNodeType(self.eat().TokenType)
+		if err != nil {
+			return params, err
+		}
 		ident, err := self.expect(lexer.Identifier, "parseParametersList: Expected identifier following param type")
 		if err != nil {
 			return params, err
@@ -621,17 +634,27 @@ func (self *Parser) parseMemberExpr() (scrilaAst.IExpr, error) {
 func (self *Parser) parsePrimaryExpr() (scrilaAst.IExpr, error) {
 	switch self.at().TokenType {
 	case lexer.Identifier:
-		return scrilaAst.NewIdentifier(self.eat()), nil
+		identToken := self.eat()
+		return scrilaAst.NewIdentifier(identToken.Value, identToken.Ln, identToken.Col), nil
 	case lexer.Int:
-		return scrilaAst.NewIntLiteral(self.eat())
+		intToken := self.eat()
+		intValue, err := strconv.ParseInt(intToken.Value, 10, 64)
+		if err != nil {
+			return scrilaAst.NewEmptyExpr(), err
+		}
+		return scrilaAst.NewIntLiteral(intValue, intToken.Ln, intToken.Col), nil
 	case lexer.Str:
-		return scrilaAst.NewStrLiteral(self.eat()), nil
+		strToken := self.eat()
+		return scrilaAst.NewStrLiteral(strToken.Value, strToken.Ln, strToken.Col), nil
+	case lexer.Bool:
+		boolToken := self.eat()
+		return scrilaAst.NewBoolLiteral(boolToken.Value == "true", boolToken.Ln, boolToken.Col), nil
 	case lexer.OpenParen:
 		// Eat opening paren
 		self.eat()
 		value, err := self.parseExpr()
 		if err != nil {
-			return scrilaAst.NewEmptyExpr(), nil
+			return scrilaAst.NewEmptyExpr(), err
 		}
 		// Eat closing paren
 		_, err = self.expect(lexer.CloseParen, "Unexpexted token found inside parenthesised expression. Expected closing parenthesis")
@@ -660,9 +683,9 @@ func (self *Parser) eat() *lexer.Token {
 }
 
 func (self *Parser) getPos(token *lexer.Token) string {
-	return fmt.Sprintf("%s:%d:%d", self.filename, token.Ln, token.Col)
+	return fmt.Sprintf("%s:%d:%d", config.Filename, token.Ln, token.Col)
 }
 
 func (self *Parser) getPosExpr(expr scrilaAst.IExpr) string {
-	return fmt.Sprintf("%s:%d:%d", self.filename, expr.GetLn(), expr.GetCol())
+	return fmt.Sprintf("%s:%d:%d", config.Filename, expr.GetLn(), expr.GetCol())
 }

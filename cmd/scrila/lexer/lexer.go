@@ -1,6 +1,7 @@
 package lexer
 
 import (
+	"ScriLa/cmd/scrila/config"
 	"fmt"
 	"strings"
 	"unicode"
@@ -25,7 +26,7 @@ func (self *Lexer) init() {
 	self.currCol = 1
 }
 
-func (self *Lexer) Tokenize(sourceCode string, filename string) ([]*Token, error) {
+func (self *Lexer) Tokenize(sourceCode string) ([]*Token, error) {
 	self.init()
 
 	// Split source code into an array of every character
@@ -86,7 +87,7 @@ func (self *Lexer) Tokenize(sourceCode string, filename string) ([]*Token, error
 			continue
 		}
 
-		return self.tokens, fmt.Errorf("%s:%d:%d: Unrecognized character '%s' found", filename, self.currLn, self.currCol, self.at())
+		return self.tokens, fmt.Errorf("%s:%d:%d: Unrecognized character '%s' found", config.Filename, self.currLn, self.currCol, self.at())
 	}
 
 	self.pushToken("EOF", EndOfFile)

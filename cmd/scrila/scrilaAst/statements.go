@@ -1,13 +1,20 @@
 package scrilaAst
 
 import (
-	"ScriLa/cmd/scrila/lexer"
 	"fmt"
 )
+
+var currElemId int = 0
+
+func getNextElemId() int {
+	currElemId++
+	return currElemId
+}
 
 // Statement
 
 type IStatement interface {
+	GetId() int
 	GetKind() NodeType
 	GetLn() int
 	GetCol() int
@@ -16,6 +23,7 @@ type IStatement interface {
 }
 
 type Statement struct {
+	id     int
 	kind   NodeType
 	ln     int
 	col    int
@@ -23,11 +31,15 @@ type Statement struct {
 }
 
 func NewStatement(kind NodeType, ln int, col int) *Statement {
-	return &Statement{kind: kind, ln: ln, col: col}
+	return &Statement{id: getNextElemId(), kind: kind, ln: ln, col: col}
 }
 
 func NewEmptyStatement() *Statement {
 	return NewStatement(StatementNode, 0, 0)
+}
+
+func (self *Statement) GetId() int {
+	return self.id
 }
 
 func (self *Statement) GetKind() NodeType {
@@ -73,6 +85,10 @@ func NewProgram() *Program {
 	}
 }
 
+func (self *Program) GetId() int {
+	return self.statement.GetId()
+}
+
 func (self *Program) GetKind() NodeType {
 	return self.statement.GetKind()
 }
@@ -113,11 +129,15 @@ func (self *Comment) String() string {
 	return fmt.Sprintf("&{%s '%s'}", self.GetKind(), self.GetComment())
 }
 
-func NewComment(token *lexer.Token) *Comment {
+func NewComment(comment string, ln int, col int) *Comment {
 	return &Comment{
-		statement: NewStatement(CommentNode, token.Ln, token.Col),
-		comment:   token.Value,
+		statement: NewStatement(CommentNode, ln, col),
+		comment:   comment,
 	}
+}
+
+func (self *Comment) GetId() int {
+	return self.statement.GetId()
 }
 
 func (self *Comment) GetKind() NodeType {
@@ -148,7 +168,7 @@ func (self *Comment) SetResult(value IRuntimeVal) {
 
 type IVarDeclaration interface {
 	IStatement
-	GetVarType() lexer.TokenType
+	GetVarType() NodeType
 	IsConstant() bool
 	GetIdentifier() string
 	GetValue() IExpr
@@ -156,7 +176,7 @@ type IVarDeclaration interface {
 
 type VarDeclaration struct {
 	statement  *Statement
-	varType    lexer.TokenType
+	varType    NodeType
 	constant   bool
 	identifier string
 	value      IExpr
@@ -166,7 +186,7 @@ func (self *VarDeclaration) String() string {
 	return fmt.Sprintf("&{%s %s %t %s %s}", self.GetKind(), self.GetVarType(), self.IsConstant(), self.GetIdentifier(), self.GetValue())
 }
 
-func NewVarDeclaration(varType lexer.TokenType, constant bool, identifier string, value IExpr, ln int, col int) *VarDeclaration {
+func NewVarDeclaration(varType NodeType, constant bool, identifier string, value IExpr, ln int, col int) *VarDeclaration {
 	return &VarDeclaration{
 		statement:  NewStatement(VarDeclarationNode, ln, col),
 		varType:    varType,
@@ -176,11 +196,15 @@ func NewVarDeclaration(varType lexer.TokenType, constant bool, identifier string
 	}
 }
 
+func (self *VarDeclaration) GetId() int {
+	return self.statement.GetId()
+}
+
 func (self *VarDeclaration) GetKind() NodeType {
 	return self.statement.GetKind()
 }
 
-func (self *VarDeclaration) GetVarType() lexer.TokenType {
+func (self *VarDeclaration) GetVarType() NodeType {
 	return self.varType
 }
 
@@ -216,10 +240,10 @@ func (self *VarDeclaration) SetResult(value IRuntimeVal) {
 
 type Parameter struct {
 	name      string
-	paramType lexer.TokenType
+	paramType NodeType
 }
 
-func NewParameter(name string, paramType lexer.TokenType) *Parameter {
+func NewParameter(name string, paramType NodeType) *Parameter {
 	return &Parameter{
 		name:      name,
 		paramType: paramType,
@@ -230,7 +254,7 @@ func (self *Parameter) GetName() string {
 	return self.name
 }
 
-func (self *Parameter) GetParamType() lexer.TokenType {
+func (self *Parameter) GetParamType() NodeType {
 	return self.paramType
 }
 
@@ -243,7 +267,7 @@ type IFunctionDeclaration interface {
 	GetParameters() []*Parameter
 	GetName() string
 	GetBody() []IStatement
-	GetReturnType() lexer.TokenType
+	GetReturnType() NodeType
 }
 
 type FunctionDeclaration struct {
@@ -251,14 +275,14 @@ type FunctionDeclaration struct {
 	parameters []*Parameter
 	name       string
 	body       []IStatement
-	returnType lexer.TokenType
+	returnType NodeType
 }
 
 func (self *FunctionDeclaration) String() string {
 	return fmt.Sprintf("&{%s %s %s %s}", self.GetKind(), self.GetName(), self.GetParameters(), self.GetBody())
 }
 
-func NewFunctionDeclaration(name string, parameters []*Parameter, body []IStatement, returnType lexer.TokenType, ln int, col int) *FunctionDeclaration {
+func NewFunctionDeclaration(name string, parameters []*Parameter, body []IStatement, returnType NodeType, ln int, col int) *FunctionDeclaration {
 	return &FunctionDeclaration{
 		statement:  NewStatement(FunctionDeclarationNode, ln, col),
 		name:       name,
@@ -266,6 +290,10 @@ func NewFunctionDeclaration(name string, parameters []*Parameter, body []IStatem
 		body:       body,
 		returnType: returnType,
 	}
+}
+
+func (self *FunctionDeclaration) GetId() int {
+	return self.statement.GetId()
 }
 
 func (self *FunctionDeclaration) GetKind() NodeType {
@@ -284,7 +312,7 @@ func (self *FunctionDeclaration) GetBody() []IStatement {
 	return self.body
 }
 
-func (self *FunctionDeclaration) GetReturnType() lexer.TokenType {
+func (self *FunctionDeclaration) GetReturnType() NodeType {
 	return self.returnType
 }
 
@@ -331,6 +359,10 @@ func NewIfStatement(condition IExpr, body []IStatement, elseBlock IIfStatement, 
 		body:      body,
 		elseBlock: elseBlock,
 	}
+}
+
+func (self *IfStatement) GetId() int {
+	return self.statement.GetId()
 }
 
 func (self *IfStatement) GetKind() NodeType {
@@ -389,6 +421,10 @@ func NewWhileStatement(condition IExpr, body []IStatement, ln int, col int) *Whi
 		condition: condition,
 		body:      body,
 	}
+}
+
+func (self *WhileStatement) GetId() int {
+	return self.statement.GetId()
 }
 
 func (self *WhileStatement) GetKind() NodeType {
