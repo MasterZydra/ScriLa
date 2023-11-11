@@ -1,7 +1,7 @@
 package bashTranspiler
 
 import (
-	"ScriLa/cmd/scrila/ast"
+	"ScriLa/cmd/scrila/scrilaAst"
 	"fmt"
 	"os"
 	"runtime"
@@ -74,11 +74,11 @@ func (self *Transpiler) writeToFile(content string) {
 	}
 }
 
-func (self *Transpiler) getPos(astNode ast.IStatement) string {
+func (self *Transpiler) getPos(astNode scrilaAst.IStatement) string {
 	return fmt.Sprintf("%s:%d:%d", self.filename, astNode.GetLn(), astNode.GetCol())
 }
 
-func (self *Transpiler) Transpile(astNode ast.IStatement, env *Environment, filename string) error {
+func (self *Transpiler) Transpile(astNode scrilaAst.IStatement, env *Environment, filename string) error {
 	if !self.testMode {
 		self.filename = filename
 	}
@@ -111,55 +111,55 @@ func (self *Transpiler) Transpile(astNode ast.IStatement, env *Environment, file
 	return nil
 }
 
-func (self *Transpiler) transpile(astNode ast.IStatement, env *Environment) (ast.IRuntimeVal, error) {
+func (self *Transpiler) transpile(astNode scrilaAst.IStatement, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	switch astNode.GetKind() {
 	// Handle Expressions
-	case ast.IntLiteralNode:
-		return NewIntVal(ast.ExprToIntLit(astNode).GetValue()), nil
+	case scrilaAst.IntLiteralNode:
+		return NewIntVal(scrilaAst.ExprToIntLit(astNode).GetValue()), nil
 
-	case ast.StrLiteralNode:
-		return NewStrVal(ast.ExprToStrLit(astNode).GetValue()), nil
+	case scrilaAst.StrLiteralNode:
+		return NewStrVal(scrilaAst.ExprToStrLit(astNode).GetValue()), nil
 
-	case ast.IdentifierNode:
-		return self.evalIdentifier(ast.ExprToIdent(astNode), env)
+	case scrilaAst.IdentifierNode:
+		return self.evalIdentifier(scrilaAst.ExprToIdent(astNode), env)
 
-	case ast.ObjectLiteralNode:
-		return self.evalObjectExpr(ast.ExprToObjLit(astNode), env)
+	case scrilaAst.ObjectLiteralNode:
+		return self.evalObjectExpr(scrilaAst.ExprToObjLit(astNode), env)
 
-	case ast.CallExprNode:
-		return self.evalCallExpr(ast.ExprToCallExpr(astNode), env)
+	case scrilaAst.CallExprNode:
+		return self.evalCallExpr(scrilaAst.ExprToCallExpr(astNode), env)
 
-	case ast.AssignmentExprNode:
-		return self.evalAssignment(ast.ExprToAssignmentExpr(astNode), env)
+	case scrilaAst.AssignmentExprNode:
+		return self.evalAssignment(scrilaAst.ExprToAssignmentExpr(astNode), env)
 
-	case ast.BinaryExprNode:
-		return self.evalBinaryExpr(ast.ExprToBinExpr(astNode), env)
+	case scrilaAst.BinaryExprNode:
+		return self.evalBinaryExpr(scrilaAst.ExprToBinExpr(astNode), env)
 
-	case ast.MemberExprNode:
-		return self.evalMemberExpr(ast.ExprToMemberExpr(astNode), env)
+	case scrilaAst.MemberExprNode:
+		return self.evalMemberExpr(scrilaAst.ExprToMemberExpr(astNode), env)
 
-	case ast.ReturnExprNode:
-		return self.evalReturnExpr(ast.ExprToReturnExpr(astNode), env)
+	case scrilaAst.ReturnExprNode:
+		return self.evalReturnExpr(scrilaAst.ExprToReturnExpr(astNode), env)
 
 	// Handle Statements
-	case ast.CommentNode:
-		self.writeLnTranspilat("# " + ast.ExprToComment(astNode).GetComment())
+	case scrilaAst.CommentNode:
+		self.writeLnTranspilat("# " + scrilaAst.ExprToComment(astNode).GetComment())
 		return NewNullVal(), nil
 
-	case ast.ProgramNode:
-		return self.evalProgram(ast.ExprToProgram(astNode), env)
+	case scrilaAst.ProgramNode:
+		return self.evalProgram(scrilaAst.ExprToProgram(astNode), env)
 
-	case ast.VarDeclarationNode:
-		return self.evalVarDeclaration(ast.ExprToVarDecl(astNode), env)
+	case scrilaAst.VarDeclarationNode:
+		return self.evalVarDeclaration(scrilaAst.ExprToVarDecl(astNode), env)
 
-	case ast.IfStatementNode:
-		return self.evalIfStatement(ast.ExprToIfStmt(astNode), env)
+	case scrilaAst.IfStatementNode:
+		return self.evalIfStatement(scrilaAst.ExprToIfStmt(astNode), env)
 
-	case ast.WhileStatementNode:
-		return self.evalWhileStatement(ast.ExprToWhileStmt(astNode), env)
+	case scrilaAst.WhileStatementNode:
+		return self.evalWhileStatement(scrilaAst.ExprToWhileStmt(astNode), env)
 
-	case ast.FunctionDeclarationNode:
-		return self.evalFunctionDeclaration(ast.ExprToFuncDecl(astNode), env)
+	case scrilaAst.FunctionDeclarationNode:
+		return self.evalFunctionDeclaration(scrilaAst.ExprToFuncDecl(astNode), env)
 
 	default:
 		return NewNullVal(), fmt.Errorf("%s: This AST Node has not been setup for interpretion: %s", self.getPos(astNode), astNode)

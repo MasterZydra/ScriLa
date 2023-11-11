@@ -1,4 +1,4 @@
-package ast
+package scrilaAst
 
 type NodeType string
 

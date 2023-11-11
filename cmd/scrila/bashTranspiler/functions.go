@@ -1,8 +1,8 @@
 package bashTranspiler
 
 import (
-	"ScriLa/cmd/scrila/ast"
 	"ScriLa/cmd/scrila/lexer"
+	"ScriLa/cmd/scrila/scrilaAst"
 	"fmt"
 	"strconv"
 
@@ -19,7 +19,7 @@ func (self *Transpiler) declareNativeFunctions(env *Environment) {
 	env.declareFunc("exec", NewNativeFunc(self.nativeExec, lexer.VoidType))
 }
 
-func (self *Transpiler) nativePrintLn(args []ast.IExpr, env *Environment) (ast.IRuntimeVal, error) {
+func (self *Transpiler) nativePrintLn(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	argStr, err := self.printArgs(args, env)
@@ -30,7 +30,7 @@ func (self *Transpiler) nativePrintLn(args []ast.IExpr, env *Environment) (ast.I
 	return NewNullVal(), nil
 }
 
-func (self *Transpiler) nativePrint(args []ast.IExpr, env *Environment) (ast.IRuntimeVal, error) {
+func (self *Transpiler) nativePrint(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	argStr, err := self.printArgs(args, env)
@@ -41,7 +41,7 @@ func (self *Transpiler) nativePrint(args []ast.IExpr, env *Environment) (ast.IRu
 	return NewNullVal(), nil
 }
 
-func (self *Transpiler) printArgs(args []ast.IExpr, env *Environment) (string, error) {
+func (self *Transpiler) printArgs(args []scrilaAst.IExpr, env *Environment) (string, error) {
 	self.printFuncName("")
 
 	argStr := ""
@@ -54,30 +54,30 @@ func (self *Transpiler) printArgs(args []ast.IExpr, env *Environment) (string, e
 			isFirst = false
 		}
 		switch arg.GetKind() {
-		case ast.CallExprNode:
-			varName, err := self.getCallerResultVarName(ast.ExprToCallExpr(arg), env)
+		case scrilaAst.CallExprNode:
+			varName, err := self.getCallerResultVarName(scrilaAst.ExprToCallExpr(arg), env)
 			if err != nil {
 				return "", err
 			}
 			argStr += varName
-		case ast.IdentifierNode:
+		case scrilaAst.IdentifierNode:
 			if symbol := identNodeGetSymbol(arg); slices.Contains(reservedIdentifiers, symbol) {
 				argStr += symbol
 			} else {
 				argStr += identNodeToBashVar(arg)
 			}
-		case ast.IntLiteralNode:
-			argStr += strconv.Itoa(int(ast.ExprToIntLit(arg).GetValue()))
-		case ast.StrLiteralNode:
-			argStr += ast.ExprToStrLit(arg).GetValue()
-		case ast.BinaryExprNode:
+		case scrilaAst.IntLiteralNode:
+			argStr += strconv.Itoa(int(scrilaAst.ExprToIntLit(arg).GetValue()))
+		case scrilaAst.StrLiteralNode:
+			argStr += scrilaAst.ExprToStrLit(arg).GetValue()
+		case scrilaAst.BinaryExprNode:
 			value, err := self.transpile(arg, env)
 			if err != nil {
 				return "", err
 			}
 			argStr += value.GetTranspilat()
-		case ast.MemberExprNode:
-			memberVal, err := self.evalMemberExpr(ast.ExprToMemberExpr(arg), env)
+		case scrilaAst.MemberExprNode:
+			memberVal, err := self.evalMemberExpr(scrilaAst.ExprToMemberExpr(arg), env)
 			if err != nil {
 				return "", err
 			}
@@ -89,7 +89,7 @@ func (self *Transpiler) printArgs(args []ast.IExpr, env *Environment) (string, e
 	return argStr, nil
 }
 
-func (self *Transpiler) nativeInput(args []ast.IExpr, env *Environment) (ast.IRuntimeVal, error) {
+func (self *Transpiler) nativeInput(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	if len(args) != 1 {
@@ -103,7 +103,7 @@ func (self *Transpiler) nativeInput(args []ast.IExpr, env *Environment) (ast.IRu
 	transpilat := "read -p "
 
 	switch args[0].GetKind() {
-	case ast.IdentifierNode:
+	case scrilaAst.IdentifierNode:
 		varType, err := env.lookupVarType(identNodeGetSymbol(args[0]))
 		if err != nil {
 			return NewNullVal(), err
@@ -113,7 +113,7 @@ func (self *Transpiler) nativeInput(args []ast.IExpr, env *Environment) (ast.IRu
 		}
 
 		transpilat += strToBashStr(identNodeToBashVar(args[0]) + " ")
-	case ast.StrLiteralNode:
+	case scrilaAst.StrLiteralNode:
 		transpilat += strToBashStr(value.ToString() + " ")
 	default:
 		return NewNullVal(), fmt.Errorf("input() - Parameter prompt must be a string or a variable of type string. Got '%s'", args[0].GetKind())
@@ -126,7 +126,7 @@ func (self *Transpiler) nativeInput(args []ast.IExpr, env *Environment) (ast.IRu
 	return result, nil
 }
 
-func (self *Transpiler) nativeSleep(args []ast.IExpr, env *Environment) (ast.IRuntimeVal, error) {
+func (self *Transpiler) nativeSleep(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	if len(args) != 1 {
@@ -139,7 +139,7 @@ func (self *Transpiler) nativeSleep(args []ast.IExpr, env *Environment) (ast.IRu
 
 	transpilat := "sleep "
 	switch args[0].GetKind() {
-	case ast.IdentifierNode:
+	case scrilaAst.IdentifierNode:
 		symbol := identNodeGetSymbol(args[0])
 		varType, err := env.lookupVarType(symbol)
 		if err != nil {
@@ -150,7 +150,7 @@ func (self *Transpiler) nativeSleep(args []ast.IExpr, env *Environment) (ast.IRu
 		}
 
 		transpilat += identNodeToBashVar(args[0]) + "\n"
-	case ast.IntLiteralNode:
+	case scrilaAst.IntLiteralNode:
 		transpilat += value.ToString() + "\n"
 	default:
 		return NewNullVal(), fmt.Errorf("sleep() - Parameter seconds must be an int or a variable of type int. Got '%s'", args[0].GetKind())
@@ -160,7 +160,7 @@ func (self *Transpiler) nativeSleep(args []ast.IExpr, env *Environment) (ast.IRu
 	return result, nil
 }
 
-func (self *Transpiler) nativeStrIsInt(args []ast.IExpr, env *Environment) (ast.IRuntimeVal, error) {
+func (self *Transpiler) nativeStrIsInt(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	// Validate args
@@ -186,7 +186,7 @@ func (self *Transpiler) nativeStrIsInt(args []ast.IExpr, env *Environment) (ast.
 
 	transpilat := "strIsInt "
 	switch args[0].GetKind() {
-	case ast.IdentifierNode:
+	case scrilaAst.IdentifierNode:
 		varType, err := env.lookupVarType(identNodeGetSymbol(args[0]))
 		if err != nil {
 			return NewNullVal(), err
@@ -196,7 +196,7 @@ func (self *Transpiler) nativeStrIsInt(args []ast.IExpr, env *Environment) (ast.
 		}
 
 		transpilat += strToBashStr(identNodeToBashVar(args[0]))
-	case ast.StrLiteralNode:
+	case scrilaAst.StrLiteralNode:
 		transpilat += strToBashStr(value.ToString())
 	default:
 		return NewNullVal(), fmt.Errorf("strIsInt() - Parameter value must be a string or a variable of type string. Got '%s'", args[0].GetKind())
@@ -208,7 +208,7 @@ func (self *Transpiler) nativeStrIsInt(args []ast.IExpr, env *Environment) (ast.
 	return result, nil
 }
 
-func (self *Transpiler) nativeStrToInt(args []ast.IExpr, env *Environment) (ast.IRuntimeVal, error) {
+func (self *Transpiler) nativeStrToInt(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	// Validate args
@@ -222,7 +222,7 @@ func (self *Transpiler) nativeStrToInt(args []ast.IExpr, env *Environment) (ast.
 	// TODO After error handling in ScriLa is thought-out: Add error handling for the case that the value is not an int.
 	transpilat := "tmpInt="
 	switch args[0].GetKind() {
-	case ast.IdentifierNode:
+	case scrilaAst.IdentifierNode:
 		varType, err := env.lookupVarType(identNodeGetSymbol(args[0]))
 		if err != nil {
 			return NewNullVal(), err
@@ -232,7 +232,7 @@ func (self *Transpiler) nativeStrToInt(args []ast.IExpr, env *Environment) (ast.
 		}
 
 		transpilat += strToBashStr(identNodeToBashVar(args[0]))
-	case ast.StrLiteralNode:
+	case scrilaAst.StrLiteralNode:
 		transpilat += strToBashStr(value.ToString())
 	default:
 		return NewNullVal(), fmt.Errorf("strToInt() - Parameter value must be a string or a variable of type string. Got '%s'", args[0].GetKind())
@@ -244,7 +244,7 @@ func (self *Transpiler) nativeStrToInt(args []ast.IExpr, env *Environment) (ast.
 	return result, nil
 }
 
-func (self *Transpiler) nativeExec(args []ast.IExpr, env *Environment) (ast.IRuntimeVal, error) {
+func (self *Transpiler) nativeExec(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
 	// Validate args
@@ -257,7 +257,7 @@ func (self *Transpiler) nativeExec(args []ast.IExpr, env *Environment) (ast.IRun
 	}
 	transpilat := ""
 	switch args[0].GetKind() {
-	case ast.IdentifierNode:
+	case scrilaAst.IdentifierNode:
 		varType, err := env.lookupVarType(identNodeGetSymbol(args[0]))
 		if err != nil {
 			return NewNullVal(), err
@@ -267,7 +267,7 @@ func (self *Transpiler) nativeExec(args []ast.IExpr, env *Environment) (ast.IRun
 		}
 
 		transpilat += identNodeToBashVar(args[0])
-	case ast.StrLiteralNode:
+	case scrilaAst.StrLiteralNode:
 		transpilat += value.ToString()
 	default:
 		return NewNullVal(), fmt.Errorf("exec() - Parameter value must be a string or a variable of type string. Got '%s'", args[0].GetKind())

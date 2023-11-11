@@ -1,31 +1,31 @@
 package bashTranspiler
 
 import (
-	"ScriLa/cmd/scrila/ast"
 	"ScriLa/cmd/scrila/lexer"
+	"ScriLa/cmd/scrila/scrilaAst"
 	"fmt"
 )
 
 // NullVal
 
 type INullVal interface {
-	ast.IRuntimeVal
+	scrilaAst.IRuntimeVal
 	GetValue() string
 }
 
 type NullVal struct {
-	runtimeVal *ast.RuntimeVal
+	runtimeVal *scrilaAst.RuntimeVal
 	value      string
 }
 
 func NewNullVal() *NullVal {
 	return &NullVal{
-		runtimeVal: ast.NewRuntimeVal(ast.NullValueType),
+		runtimeVal: scrilaAst.NewRuntimeVal(scrilaAst.NullValueType),
 		value:      "null",
 	}
 }
 
-func (self *NullVal) GetType() ast.ValueType {
+func (self *NullVal) GetType() scrilaAst.ValueType {
 	return self.runtimeVal.GetType()
 }
 
@@ -48,23 +48,23 @@ func (self *NullVal) ToString() string {
 // IntVal
 
 type IIntVal interface {
-	ast.IRuntimeVal
+	scrilaAst.IRuntimeVal
 	GetValue() int64
 }
 
 type IntVal struct {
-	runtimeVal *ast.RuntimeVal
+	runtimeVal *scrilaAst.RuntimeVal
 	value      int64
 }
 
 func NewIntVal(value int64) *IntVal {
 	return &IntVal{
-		runtimeVal: ast.NewRuntimeVal(ast.IntValueType),
+		runtimeVal: scrilaAst.NewRuntimeVal(scrilaAst.IntValueType),
 		value:      value,
 	}
 }
 
-func (self *IntVal) GetType() ast.ValueType {
+func (self *IntVal) GetType() scrilaAst.ValueType {
 	return self.runtimeVal.GetType()
 }
 
@@ -87,12 +87,12 @@ func (self *IntVal) ToString() string {
 // BoolVal
 
 type IBoolVal interface {
-	ast.IRuntimeVal
+	scrilaAst.IRuntimeVal
 	GetValue() bool
 }
 
 type BoolVal struct {
-	runtimeVal *ast.RuntimeVal
+	runtimeVal *scrilaAst.RuntimeVal
 	value      bool
 }
 
@@ -102,12 +102,12 @@ func (self *BoolVal) String() string {
 
 func NewBoolVal(value bool) *BoolVal {
 	return &BoolVal{
-		runtimeVal: ast.NewRuntimeVal(ast.BoolValueType),
+		runtimeVal: scrilaAst.NewRuntimeVal(scrilaAst.BoolValueType),
 		value:      value,
 	}
 }
 
-func (self *BoolVal) GetType() ast.ValueType {
+func (self *BoolVal) GetType() scrilaAst.ValueType {
 	return self.runtimeVal.GetType()
 }
 
@@ -130,27 +130,27 @@ func (self *BoolVal) ToString() string {
 // ObjVal
 
 type IObjVal interface {
-	ast.IRuntimeVal
-	GetProperties() map[string]ast.IRuntimeVal
+	scrilaAst.IRuntimeVal
+	GetProperties() map[string]scrilaAst.IRuntimeVal
 }
 
 type ObjVal struct {
-	runtimeVal *ast.RuntimeVal
-	properties map[string]ast.IRuntimeVal
+	runtimeVal *scrilaAst.RuntimeVal
+	properties map[string]scrilaAst.IRuntimeVal
 }
 
 func NewObjVal() *ObjVal {
 	return &ObjVal{
-		runtimeVal: ast.NewRuntimeVal(ast.ObjValueType),
-		properties: make(map[string]ast.IRuntimeVal),
+		runtimeVal: scrilaAst.NewRuntimeVal(scrilaAst.ObjValueType),
+		properties: make(map[string]scrilaAst.IRuntimeVal),
 	}
 }
 
-func (self *ObjVal) GetType() ast.ValueType {
+func (self *ObjVal) GetType() scrilaAst.ValueType {
 	return self.runtimeVal.GetType()
 }
 
-func (self *ObjVal) GetProperties() map[string]ast.IRuntimeVal {
+func (self *ObjVal) GetProperties() map[string]scrilaAst.IRuntimeVal {
 	return self.properties
 }
 
@@ -169,23 +169,23 @@ func (self *ObjVal) ToString() string {
 // StrVal
 
 type IStrVal interface {
-	ast.IRuntimeVal
+	scrilaAst.IRuntimeVal
 	GetValue() string
 }
 
 type StrVal struct {
-	runtimeVal *ast.RuntimeVal
+	runtimeVal *scrilaAst.RuntimeVal
 	value      string
 }
 
 func NewStrVal(value string) *StrVal {
 	return &StrVal{
-		runtimeVal: ast.NewRuntimeVal(ast.StrValueType),
+		runtimeVal: scrilaAst.NewRuntimeVal(scrilaAst.StrValueType),
 		value:      value,
 	}
 }
 
-func (self *StrVal) GetType() ast.ValueType {
+func (self *StrVal) GetType() scrilaAst.ValueType {
 	return self.runtimeVal.GetType()
 }
 
@@ -207,29 +207,29 @@ func (self *StrVal) ToString() string {
 
 // NativeFunc
 
-type FunctionCall func(args []ast.IExpr, env *Environment) (ast.IRuntimeVal, error)
+type FunctionCall func(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error)
 
 type INativeFunc interface {
-	ast.IRuntimeVal
+	scrilaAst.IRuntimeVal
 	GetCall() FunctionCall
 	GetReturnType() lexer.TokenType
 }
 
 type NativeFunc struct {
-	runtimeVal *ast.RuntimeVal
+	runtimeVal *scrilaAst.RuntimeVal
 	call       FunctionCall
 	returnType lexer.TokenType
 }
 
 func NewNativeFunc(function FunctionCall, returnType lexer.TokenType) *NativeFunc {
 	return &NativeFunc{
-		runtimeVal: ast.NewRuntimeVal(ast.NativeFnType),
+		runtimeVal: scrilaAst.NewRuntimeVal(scrilaAst.NativeFnType),
 		call:       function,
 		returnType: returnType,
 	}
 }
 
-func (self *NativeFunc) GetType() ast.ValueType {
+func (self *NativeFunc) GetType() scrilaAst.ValueType {
 	return self.runtimeVal.GetType()
 }
 
@@ -256,26 +256,26 @@ func (self *NativeFunc) ToString() string {
 // FunctionVal
 
 type IFunctionVal interface {
-	ast.IRuntimeVal
+	scrilaAst.IRuntimeVal
 	GetName() string
-	GetParams() []*ast.Parameter
+	GetParams() []*scrilaAst.Parameter
 	GetDeclarationEnv() *Environment
-	GetBody() []ast.IStatement
+	GetBody() []scrilaAst.IStatement
 	GetReturnType() lexer.TokenType
 }
 
 type FunctionVal struct {
-	runtimeVal     *ast.RuntimeVal
+	runtimeVal     *scrilaAst.RuntimeVal
 	name           string
-	params         []*ast.Parameter
+	params         []*scrilaAst.Parameter
 	declarationEnv *Environment
-	body           []ast.IStatement
+	body           []scrilaAst.IStatement
 	returnType     lexer.TokenType
 }
 
-func NewFunctionVal(funcDeclaration ast.IFunctionDeclaration, env *Environment) *FunctionVal {
+func NewFunctionVal(funcDeclaration scrilaAst.IFunctionDeclaration, env *Environment) *FunctionVal {
 	return &FunctionVal{
-		runtimeVal:     ast.NewRuntimeVal(ast.FunctionValueType),
+		runtimeVal:     scrilaAst.NewRuntimeVal(scrilaAst.FunctionValueType),
 		name:           funcDeclaration.GetName(),
 		params:         funcDeclaration.GetParameters(),
 		declarationEnv: env,
@@ -284,7 +284,7 @@ func NewFunctionVal(funcDeclaration ast.IFunctionDeclaration, env *Environment) 
 	}
 }
 
-func (self *FunctionVal) GetType() ast.ValueType {
+func (self *FunctionVal) GetType() scrilaAst.ValueType {
 	return self.runtimeVal.GetType()
 }
 
@@ -292,7 +292,7 @@ func (self *FunctionVal) GetName() string {
 	return self.name
 }
 
-func (self *FunctionVal) GetParams() []*ast.Parameter {
+func (self *FunctionVal) GetParams() []*scrilaAst.Parameter {
 	return self.params
 }
 
@@ -300,7 +300,7 @@ func (self *FunctionVal) GetDeclarationEnv() *Environment {
 	return self.declarationEnv
 }
 
-func (self *FunctionVal) GetBody() []ast.IStatement {
+func (self *FunctionVal) GetBody() []scrilaAst.IStatement {
 	return self.body
 }
 

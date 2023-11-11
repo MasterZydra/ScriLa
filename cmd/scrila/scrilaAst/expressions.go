@@ -1,4 +1,4 @@
-package ast
+package scrilaAst
 
 import (
 	"fmt"

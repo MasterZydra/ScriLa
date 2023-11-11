@@ -1,33 +1,35 @@
 package bashTranspiler
 
-import "ScriLa/cmd/scrila/ast"
+import (
+	"ScriLa/cmd/scrila/scrilaAst"
+)
 
-func runtimeToBoolVal(runtimeVal ast.IRuntimeVal) IBoolVal {
+func runtimeToBoolVal(runtimeVal scrilaAst.IRuntimeVal) IBoolVal {
 	var i interface{} = runtimeVal
 	return i.(IBoolVal)
 }
 
-func runtimeToIntVal(runtimeVal ast.IRuntimeVal) IIntVal {
+func runtimeToIntVal(runtimeVal scrilaAst.IRuntimeVal) IIntVal {
 	var i interface{} = runtimeVal
 	return i.(IIntVal)
 }
 
-func runtimeToStrVal(runtimeVal ast.IRuntimeVal) IStrVal {
+func runtimeToStrVal(runtimeVal scrilaAst.IRuntimeVal) IStrVal {
 	var i interface{} = runtimeVal
 	return i.(IStrVal)
 }
 
-func runtimeToObjVal(runtimeVal ast.IRuntimeVal) IObjVal {
+func runtimeToObjVal(runtimeVal scrilaAst.IRuntimeVal) IObjVal {
 	var i interface{} = runtimeVal
 	return i.(IObjVal)
 }
 
-func runtimeToNativeFunc(runtimeVal ast.IRuntimeVal) INativeFunc {
+func runtimeToNativeFunc(runtimeVal scrilaAst.IRuntimeVal) INativeFunc {
 	var i interface{} = runtimeVal
 	return i.(INativeFunc)
 }
 
-func runtimeToFuncVal(runtimeVal ast.IRuntimeVal) IFunctionVal {
+func runtimeToFuncVal(runtimeVal scrilaAst.IRuntimeVal) IFunctionVal {
 	var i interface{} = runtimeVal
 	return i.(IFunctionVal)
 }
