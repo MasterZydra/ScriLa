@@ -1,9 +1,9 @@
 package main
 
 import (
+	"ScriLa/cmd/scrila/bashTranspiler"
 	"ScriLa/cmd/scrila/lexer"
 	"ScriLa/cmd/scrila/parser"
-	"ScriLa/cmd/scrila/transpiler"
 	"flag"
 	"fmt"
 	"os"
@@ -27,8 +27,8 @@ func main() {
 
 func transpile(filename string, showTokens bool, showAST bool, showCallStack bool) {
 	parser := parser.NewParser()
-	transpilerObj := transpiler.NewTranspiler(showCallStack)
-	env := transpiler.NewEnvironment(nil, transpilerObj)
+	transpilerObj := bashTranspiler.NewTranspiler(showCallStack)
+	env := bashTranspiler.NewEnvironment(nil, transpilerObj)
 
 	fileContent, err := os.ReadFile(filename)
 	if err != nil {
