@@ -86,7 +86,7 @@ func (self *Transpiler) evalBinaryExpr(binOp ast.IBinaryExpr, env *Environment) 
 		return NewNullVal(), fmt.Errorf("%s: Right side of binary expression with unsupported type '%s'", self.getPos(binOp.GetRight()), binOp.GetRight().GetKind())
 	}
 
-	if slices.Contains(lexer.ComparisonOps, binOp.GetOperator()) {
+	if ast.BinExprIsComp(binOp) {
 		result, err := self.evalComparisonBinaryExpr(lhs, rhs, binOp.GetOperator())
 		if err != nil {
 			return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(binOp), err)
@@ -282,6 +282,10 @@ func (self *Transpiler) evalAssignment(assignment ast.IAssignmentExpr, env *Envi
 		return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(assignment.GetAssigne()), err)
 	}
 
+	if assignment.GetValue().GetKind() == ast.BinaryExprNode && ast.BinExprReturnsBool(ast.ExprToBinExpr(assignment.GetValue())) {
+		self.writeLnTranspilat(binCompExpValueToBashIf(value))
+	}
+
 	self.writeTranspilat(varName + "=")
 
 	switch assignment.GetValue().GetKind() {
@@ -319,8 +323,14 @@ func (self *Transpiler) evalAssignment(assignment ast.IAssignmentExpr, env *Envi
 		switch varType {
 		case lexer.StrType:
 			self.writeLnTranspilat(strToBashStr(value.GetTranspilat()))
-		case lexer.IntType, lexer.BoolType:
+		case lexer.IntType:
 			self.writeLnTranspilat(value.GetTranspilat())
+		case lexer.BoolType:
+			if ast.BinExprReturnsBool(ast.ExprToBinExpr(assignment.GetValue())) {
+				self.writeLnTranspilat("${tmpBool}")
+			} else {
+				self.writeLnTranspilat(value.GetTranspilat())
+			}
 		default:
 			return NewNullVal(), fmt.Errorf("%s: Assigning binary expressions is not implemented for variables of type '%s'", self.getPos(assignment), varType)
 		}

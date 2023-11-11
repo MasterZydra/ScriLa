@@ -336,3 +336,21 @@ func TestErrorCompareDiffVarTypes(t *testing.T) {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
 }
+
+func ExampleBoolAssignComparision() {
+	initTestForPrintMode()
+	transpileTest(`bool b = 42 > 13;`)
+
+	// Output:
+	// #!/bin/bash
+	// # Created by Scrila Transpiler v0.0.1
+	//
+	// # User script
+	// if [[ 42 -gt 13 ]]
+	// then
+	// 	tmpBool="true"
+	// else
+	// 	tmpBool="false"
+	// fi
+	// b=${tmpBool}
+}

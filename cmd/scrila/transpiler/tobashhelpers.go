@@ -29,3 +29,8 @@ func boolIdentToBashComparison(ident ast.IIdentifier) string {
 func varIdentToBashComparison(ident ast.IIdentifier) string {
 	return fmt.Sprintf("[[ \"%s\" == \"true\" ]]", identNodeToBashVar(ident))
 }
+
+// Return a bash if statement that sets the tmpBool variable
+func binCompExpValueToBashIf(value ast.IRuntimeVal) string {
+	return fmt.Sprintf("if %s\nthen\n\ttmpBool=\"true\"\nelse\n\ttmpBool=\"false\"\nfi", value.GetTranspilat())
+}

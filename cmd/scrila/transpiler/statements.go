@@ -32,6 +32,11 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration ast.IVarDeclaration, e
 	if err != nil {
 		return NewNullVal(), err
 	}
+
+	if varDeclaration.GetValue().GetKind() == ast.BinaryExprNode && ast.BinExprReturnsBool(ast.ExprToBinExpr(varDeclaration.GetValue())) {
+		self.writeLnTranspilat(binCompExpValueToBashIf(value))
+	}
+
 	if self.contextContains(FunctionContext) {
 		self.writeTranspilat("local ")
 	}
@@ -96,8 +101,14 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration ast.IVarDeclaration, e
 		switch varDeclaration.GetVarType() {
 		case lexer.StrType:
 			self.writeLnTranspilat(strToBashStr(value.GetTranspilat()))
-		case lexer.IntType, lexer.BoolType:
+		case lexer.IntType:
 			self.writeLnTranspilat(value.GetTranspilat())
+		case lexer.BoolType:
+			if ast.BinExprReturnsBool(ast.ExprToBinExpr(varDeclaration.GetValue())) {
+				self.writeLnTranspilat("${tmpBool}")
+			} else {
+				self.writeLnTranspilat(value.GetTranspilat())
+			}
 		default:
 			return NewNullVal(), fmt.Errorf("%s: Assigning binary expressions is not implemented for variables of type '%s'", self.getPos(varDeclaration), varDeclaration.GetVarType())
 		}
