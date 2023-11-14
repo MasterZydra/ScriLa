@@ -13,7 +13,7 @@ func (self *Transpiler) evalIdentifier(identifier scrilaAst.IIdentifier, env *En
 
 	if self.contextContains(WhileLoopContext) {
 		if slices.Contains([]string{"break", "continue"}, identifier.GetSymbol()) {
-			self.writeLnTranspilat(identifier.GetSymbol())
+			// TODO break & continue to self.appendUserBody()
 			return NewNullVal(), nil
 		}
 	}
@@ -34,8 +34,8 @@ func (self *Transpiler) evalBinaryExpr(binOp scrilaAst.IBinaryExpr, env *Environ
 		return NewNullVal(), err
 	}
 	bashLhs, err := self.exprToBashStmt(binOp.GetLeft(), env)
-		if err != nil {
-			return NewNullVal(), err
+	if err != nil {
+		return NewNullVal(), err
 	}
 
 	rhs, err := self.transpile(binOp.GetRight(), env)
@@ -43,8 +43,8 @@ func (self *Transpiler) evalBinaryExpr(binOp scrilaAst.IBinaryExpr, env *Environ
 		return NewNullVal(), err
 	}
 	bashRhs, err := self.exprToBashStmt(binOp.GetRight(), env)
-		if err != nil {
-			return NewNullVal(), err
+	if err != nil {
+		return NewNullVal(), err
 	}
 
 	var result scrilaAst.IRuntimeVal = nil
