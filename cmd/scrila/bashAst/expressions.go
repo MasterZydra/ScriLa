@@ -1,5 +1,7 @@
 package bashAst
 
+import "fmt"
+
 // AssignmentExpr
 
 type IAssignmentExpr interface {
@@ -14,6 +16,13 @@ type AssignmentExpr struct {
 	varname       IVarLiteral
 	value         IStatement
 	isDeclaration bool
+}
+
+func (self *AssignmentExpr) String() string {
+	indentDepth++
+	str := fmt.Sprintf("{%s - isDeclaration: %t,\n%svarName: %s\n%svalue: %s}", self.GetKind(), self.IsDeclaration(), indent(), self.GetVarname(), indent(), self.GetValue())
+	indentDepth--
+	return str
 }
 
 func NewAssignmentExpr(varname IVarLiteral, value IStatement, isDeclaration bool) *AssignmentExpr {
@@ -57,6 +66,13 @@ type BinaryOpExpr struct {
 	left     IStatement
 	right    IStatement
 	operator string
+}
+
+func (self *BinaryOpExpr) String() string {
+	indentDepth++
+	str := fmt.Sprintf("{%s - opType: '%s'\n%sleft: %s,\n%soperator: '%s',\n%sright: %s}", self.GetKind(), self.GetOpType(), indent(), self.GetLeft(), indent(), self.GetOperator(), indent(), self.GetRight())
+	indentDepth--
+	return str
 }
 
 func NewBinaryOpExpr(opType NodeType, left IStatement, right IStatement, operator string) *BinaryOpExpr {
@@ -107,6 +123,16 @@ type CallExpr struct {
 	stmt     *Statement
 	funcName string
 	args     []IStatement
+}
+
+func (self *CallExpr) String() string {
+	indentDepth++
+	str := fmt.Sprintf("{%s - funcName: %s,", self.GetKind(), self.GetFuncName())
+	for i, arg := range self.GetArgs() {
+		str += fmt.Sprintf("\n%sarg%d: %s", indent(), i, arg)
+	}
+	indentDepth--
+	return str + "}"
 }
 
 func NewCallExpr(funcName string, args []IStatement) *CallExpr {

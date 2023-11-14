@@ -1,5 +1,7 @@
 package bashAst
 
+import "fmt"
+
 // BoolLiteral
 
 type IBoolLiteral interface {
@@ -10,6 +12,13 @@ type IBoolLiteral interface {
 type BoolLiteral struct {
 	stmt  *Statement
 	value bool
+}
+
+func (self *BoolLiteral) String() string {
+	indentDepth++
+	str := fmt.Sprintf("{%s - value: %t}", self.GetKind(), self.GetValue())
+	indentDepth--
+	return str
 }
 
 func NewBoolLiteral(value bool) *BoolLiteral {
@@ -58,6 +67,13 @@ type VarLiteral struct {
 	stmt    *Statement
 	value   string
 	varType NodeType
+}
+
+func (self *VarLiteral) String() string {
+	indentDepth++
+	str := fmt.Sprintf("{%s - varName: '%s', varType: '%s'}", self.GetKind(), self.GetValue(), self.GetVarType())
+	indentDepth--
+	return str
 }
 
 func NewVarLiteral(name string, varType NodeType) *VarLiteral {

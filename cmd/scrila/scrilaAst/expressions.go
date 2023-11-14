@@ -60,7 +60,10 @@ type AssignmentExpr struct {
 }
 
 func (self *AssignmentExpr) String() string {
-	return fmt.Sprintf("&{%s %s %s}", self.GetKind(), self.GetAssigne(), self.GetValue())
+	indentDepth++
+	str := fmt.Sprintf("{%s - id: %d, varName: '%s',\n%svalue: %s}", self.GetKind(), self.GetId(), self.GetAssigne(), indent(), self.GetValue())
+	indentDepth--
+	return str
 }
 
 func NewAssignmentExpr(assigne IExpr, value IExpr) *AssignmentExpr {
@@ -120,7 +123,10 @@ type BinaryExpr struct {
 }
 
 func (self *BinaryExpr) String() string {
-	return fmt.Sprintf("&{%s %s %s %s}", self.GetKind(), self.GetLeft(), self.GetOperator(), self.GetRight())
+	indentDepth++
+	str := fmt.Sprintf("{%s - id: %d,\n%sleft: %s,\n%soperator: '%s',\n%sright: %s}", self.GetKind(), self.GetId(), indent(), self.GetLeft(), indent(), self.GetOperator(), indent(), self.GetRight())
+	indentDepth--
+	return str
 }
 
 func NewBinaryExpr(left IExpr, right IExpr, operator string, ln int, col int) *BinaryExpr {
@@ -183,7 +189,13 @@ type CallExpr struct {
 }
 
 func (self *CallExpr) String() string {
-	return fmt.Sprintf("&{%s %s %s}", self.GetKind(), self.GetCaller(), self.GetArgs())
+	indentDepth++
+	str := fmt.Sprintf("{%s - id: %d,\n%sfuncName: %s,", self.GetKind(), self.GetId(), indent(), self.GetCaller())
+	for i, arg := range self.GetArgs() {
+		str += fmt.Sprintf("\n%sarg%d: %s", indent(), i, arg)
+	}
+	indentDepth--
+	return str + "}"
 }
 
 func NewCallExpr(caller IExpr, args []IExpr) *CallExpr {
@@ -246,10 +258,6 @@ type MemberExpr struct {
 	isComputed bool
 }
 
-func (self *MemberExpr) String() string {
-	return fmt.Sprintf("&{%s %s %s %t}", self.GetKind(), self.GetObject(), self.GetProperty(), self.IsComputed())
-}
-
 func NewMemberExpr(object IExpr, property IExpr, isComputed bool) *MemberExpr {
 	return &MemberExpr{
 		expr:       NewExpr(MemberExprNode, 0, 0),
@@ -310,7 +318,13 @@ type ReturnExpr struct {
 }
 
 func (self *ReturnExpr) String() string {
-	return fmt.Sprintf("&{%s %s %t}", self.GetKind(), self.GetValue(), self.IsEmpty())
+	indentDepth++
+	str := fmt.Sprintf("{%s - id: %d,", self.GetKind(), self.GetId())
+	if !self.IsEmpty() {
+		str += fmt.Sprintf("\n%svalue: %s", indent(), self.GetValue())
+	}
+	indentDepth--
+	return str + "}"
 }
 
 func NewReturnExpr(value IExpr, isEmpty bool, ln int, col int) *ReturnExpr {

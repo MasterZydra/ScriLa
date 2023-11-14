@@ -1,6 +1,9 @@
 package bashAst
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 func StmtToAssignmentExpr(stmt IStatement) IAssignmentExpr {
 	var i interface{} = stmt
@@ -79,4 +82,27 @@ func TmpVarNameToBashNodeType(tmpVarName string) (NodeType, error) {
 		return ProgramNode, fmt.Errorf("TmpVarNamesToBashNodeType(): VarName '%s' is not in mapping", tmpVarName)
 	}
 	return value, nil
+}
+
+var indentDepth int = 0
+
+func indent() string {
+	return strings.Repeat("  ", indentDepth+1)
+}
+
+func SprintAst(program IProgram) string {
+	astString := ""
+	if len(program.GetNativeBody()) > 0 {
+		astString += "Native body:\n"
+		for _, stmt := range program.GetNativeBody() {
+			astString += fmt.Sprintf("%s%s\n", indent(), stmt)
+		}
+	}
+	if len(program.GetUserBody()) > 0 {
+		astString += "User body:\n"
+		for _, stmt := range program.GetUserBody() {
+			astString += fmt.Sprintf("%s%s\n", indent(), stmt)
+		}
+	}
+	return astString
 }

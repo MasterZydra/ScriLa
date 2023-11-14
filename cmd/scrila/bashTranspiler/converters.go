@@ -6,6 +6,11 @@ import (
 	"fmt"
 )
 
+// Returns the symbol of the given expr of kind Identifier
+func identNodeGetSymbol(expr scrilaAst.IExpr) string {
+	return scrilaAst.ExprToIdent(expr).GetSymbol()
+}
+
 func (self *Transpiler) exprToBashStmt(expr scrilaAst.IExpr, env *Environment) (bashAst.IStatement, error) {
 	switch expr.GetKind() {
 	case scrilaAst.BinaryExprNode:
@@ -48,26 +53,6 @@ func (self *Transpiler) exprToBashStmt(expr scrilaAst.IExpr, env *Environment) (
 	default:
 		return nil, fmt.Errorf("exprToBashStmt: Expr of kind '%s' not implemented", expr.GetKind())
 	}
-}
-
-func runtimeToBoolVal(runtimeVal scrilaAst.IRuntimeVal) IBoolVal {
-	var i interface{} = runtimeVal
-	return i.(IBoolVal)
-}
-
-func runtimeToIntVal(runtimeVal scrilaAst.IRuntimeVal) IIntVal {
-	var i interface{} = runtimeVal
-	return i.(IIntVal)
-}
-
-func runtimeToStrVal(runtimeVal scrilaAst.IRuntimeVal) IStrVal {
-	var i interface{} = runtimeVal
-	return i.(IStrVal)
-}
-
-func runtimeToObjVal(runtimeVal scrilaAst.IRuntimeVal) IObjVal {
-	var i interface{} = runtimeVal
-	return i.(IObjVal)
 }
 
 func runtimeToNativeFunc(runtimeVal scrilaAst.IRuntimeVal) INativeFunc {

@@ -1,14 +1,11 @@
 package scrilaAst
 
 import (
+	"fmt"
+	"strings"
+
 	"golang.org/x/exp/slices"
 )
-
-var bools = []string{"true", "false"}
-
-func IdentIsBool(ident IIdentifier) bool {
-	return slices.Contains(bools, ident.GetSymbol())
-}
 
 var ComparisonOps = []string{"<", ">", "<=", ">=", "!=", "=="}
 
@@ -24,4 +21,18 @@ func BinExprIsBoolOp(binOp IBinaryExpr) bool {
 
 func BinExprReturnsBool(binOp IBinaryExpr) bool {
 	return BinExprIsBoolOp(binOp) || BinExprIsComp(binOp)
+}
+
+var indentDepth int = 0
+
+func indent() string {
+	return strings.Repeat("  ", indentDepth+1)
+}
+
+func SprintAST(program IProgram) string {
+	astString := ""
+	for _, stmt := range program.GetBody() {
+		astString += fmt.Sprintf("%s%s\n", indent(), stmt)
+	}
+	return astString
 }

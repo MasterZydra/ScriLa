@@ -1,5 +1,7 @@
 package bashAst
 
+import "fmt"
+
 type IAppendBody interface {
 	IStatement
 	AppendBody(stmt IStatement)
@@ -27,6 +29,10 @@ type IntStmt struct {
 	value int64
 }
 
+func (self *IntStmt) String() string {
+	return fmt.Sprintf("{%s - value: %d}", self.GetKind(), self.GetValue())
+}
+
 func NewIntStmt(kind NodeType, value int64) *IntStmt {
 	return &IntStmt{
 		stmt:  NewStatement(kind),
@@ -52,6 +58,10 @@ type IStrStmt interface {
 type StrStmt struct {
 	stmt  *Statement
 	value string
+}
+
+func (self *StrStmt) String() string {
+	return fmt.Sprintf("{%s - value: '%s'}", self.GetKind(), self.GetValue())
 }
 
 func NewStrStmt(kind NodeType, value string) *StrStmt {

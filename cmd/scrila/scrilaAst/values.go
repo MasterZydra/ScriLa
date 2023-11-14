@@ -31,14 +31,10 @@ func DoTypesMatch(type1 NodeType, type2 ValueType) bool {
 
 type IRuntimeVal interface {
 	GetType() ValueType
-	ToString() string
-	GetTranspilat() string
-	SetTranspilat(transpilat string)
 }
 
 type RuntimeVal struct {
-	valueType  ValueType
-	transpilat string
+	valueType ValueType
 }
 
 func NewRuntimeVal(valueType ValueType) *RuntimeVal {
@@ -47,12 +43,4 @@ func NewRuntimeVal(valueType ValueType) *RuntimeVal {
 
 func (self *RuntimeVal) GetType() ValueType {
 	return self.valueType
-}
-
-func (self *RuntimeVal) GetTranspilat() string {
-	return self.transpilat
-}
-
-func (self *RuntimeVal) SetTranspilat(transpilat string) {
-	self.transpilat = transpilat
 }

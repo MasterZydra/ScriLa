@@ -4,7 +4,6 @@ import (
 	"ScriLa/cmd/scrila/bashAst"
 	"ScriLa/cmd/scrila/scrilaAst"
 	"fmt"
-	"strconv"
 )
 
 func (self *Transpiler) evalProgram(program scrilaAst.IProgram, env *Environment) (scrilaAst.IRuntimeVal, error) {
@@ -219,15 +218,9 @@ func (self *Transpiler) evalStatementCondition(condition scrilaAst.IExpr, env *E
 		return fmt.Errorf("%s: Condition is not of type bool. Got %s", self.getPos(condition), givenType)
 	}
 
-	var bashCond bashAst.IStatement
-	switch condition.GetKind() {
-	case scrilaAst.BinaryExprNode, scrilaAst.BoolLiteralNode, scrilaAst.CallExprNode, scrilaAst.IdentifierNode:
-		bashCond, err = self.exprToBashStmt(condition, env)
-		if err != nil {
-			return err
-		}
-	default:
-		return fmt.Errorf("%s: Unsupported type '%s' for condition", self.getPos(condition), condition.GetKind())
+	bashCond, err := self.exprToBashStmt(condition, env)
+	if err != nil {
+		return err
 	}
 
 	self.bashStmtStack[condition.GetId()] = bashCond
@@ -272,7 +265,6 @@ func (self *Transpiler) evalFunctionDeclaration(funcDeclaration scrilaAst.IFunct
 		if err != nil {
 			return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(funcDeclaration), err)
 		}
-		self.writeLnTranspilat(self.indent(0) + "local " + param.GetName() + "=$" + strconv.Itoa(i+1))
 	}
 
 	// Transpile the function body line by line
@@ -280,7 +272,6 @@ func (self *Transpiler) evalFunctionDeclaration(funcDeclaration scrilaAst.IFunct
 	result = NewNullVal()
 	for _, stmt := range fn.GetBody() {
 		var err error
-		self.writeTranspilat(self.indent(0))
 		result, err = self.transpile(stmt, scope)
 		if err != nil {
 			return NewNullVal(), err

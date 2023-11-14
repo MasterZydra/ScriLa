@@ -126,7 +126,7 @@ type Comment struct {
 }
 
 func (self *Comment) String() string {
-	return fmt.Sprintf("&{%s '%s'}", self.GetKind(), self.GetComment())
+	return fmt.Sprintf("{%s - id: %d, comment: '%s'}", self.GetKind(), self.GetId(), self.GetComment())
 }
 
 func NewComment(comment string, ln int, col int) *Comment {
@@ -183,7 +183,10 @@ type VarDeclaration struct {
 }
 
 func (self *VarDeclaration) String() string {
-	return fmt.Sprintf("&{%s %s %t %s %s}", self.GetKind(), self.GetVarType(), self.IsConstant(), self.GetIdentifier(), self.GetValue())
+	indentDepth++
+	str := fmt.Sprintf("{%s - id: %d, varName: '%s', varType: '%s', isConstant: %t,\n%svalue: %s}", self.GetKind(), self.GetId(), self.GetIdentifier(), self.GetVarType(), self.IsConstant(), indent(), self.GetValue())
+	indentDepth--
+	return str
 }
 
 func NewVarDeclaration(varType NodeType, constant bool, identifier string, value IExpr, ln int, col int) *VarDeclaration {
@@ -279,7 +282,21 @@ type FunctionDeclaration struct {
 }
 
 func (self *FunctionDeclaration) String() string {
-	return fmt.Sprintf("&{%s %s %s %s}", self.GetKind(), self.GetName(), self.GetParameters(), self.GetBody())
+	indentDepth++
+	str := fmt.Sprintf("{%s - id: %d, name: '%s',", self.GetKind(), self.GetId(), self.GetName())
+	for i, param := range self.GetParameters() {
+		str += fmt.Sprintf("\n%sparam%d: %s", indent(), i, param)
+	}
+	if len(self.GetBody()) > 0 {
+		str += fmt.Sprintf("\n%sbody:", indent())
+		indentDepth++
+		for _, stmt := range self.GetBody() {
+			str += fmt.Sprintf("\n%s%s", indent(), stmt)
+		}
+		indentDepth--
+	}
+	indentDepth--
+	return str + "}"
 }
 
 func NewFunctionDeclaration(name string, parameters []*Parameter, body []IStatement, returnType NodeType, ln int, col int) *FunctionDeclaration {
@@ -349,7 +366,24 @@ type IfStatement struct {
 }
 
 func (self *IfStatement) String() string {
-	return fmt.Sprintf("&{%s %s %s %s}", self.GetKind(), self.GetCondition(), self.GetBody(), self.GetElse())
+	indentDepth++
+	str := fmt.Sprintf("{%s - id: %d,", self.GetKind(), self.GetId())
+	if self.GetCondition() != nil {
+		str += fmt.Sprintf("\n%scondition: %s,", indent(), self.GetCondition())
+	}
+	if len(self.GetBody()) > 0 {
+		str += fmt.Sprintf("\n%sbody:", indent())
+		indentDepth++
+		for _, stmt := range self.GetBody() {
+			str += fmt.Sprintf("\n%s%s", indent(), stmt)
+		}
+		indentDepth--
+	}
+	if self.GetElse() != nil {
+		str += fmt.Sprintf("\n%selse: %s", indent(), self.GetElse())
+	}
+	indentDepth--
+	return str + "}"
 }
 
 func NewIfStatement(condition IExpr, body []IStatement, elseBlock IIfStatement, ln int, col int) *IfStatement {
@@ -412,7 +446,18 @@ type WhileStatement struct {
 }
 
 func (self *WhileStatement) String() string {
-	return fmt.Sprintf("&{%s %s %s}", self.GetKind(), self.GetCondition(), self.GetBody())
+	indentDepth++
+	str := fmt.Sprintf("{%s - id: %d,\n%scondition: %s,}", self.GetKind(), self.GetId(), indent(), self.GetCondition())
+	if len(self.GetBody()) > 0 {
+		str += fmt.Sprintf("\n%sbody:", indent())
+		indentDepth++
+		for _, stmt := range self.GetBody() {
+			str += fmt.Sprintf("\n%s%s", indent(), stmt)
+		}
+		indentDepth--
+	}
+	indentDepth--
+	return str + "}"
 }
 
 func NewWhileStatement(condition IExpr, body []IStatement, ln int, col int) *WhileStatement {

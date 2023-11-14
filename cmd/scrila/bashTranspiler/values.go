@@ -32,18 +32,6 @@ func (self *NullVal) GetValue() string {
 	return self.value
 }
 
-func (self *NullVal) GetTranspilat() string {
-	return self.runtimeVal.GetTranspilat()
-}
-
-func (self *NullVal) SetTranspilat(transpilat string) {
-	self.runtimeVal.SetTranspilat(transpilat)
-}
-
-func (self *NullVal) ToString() string {
-	return self.value
-}
-
 // IntVal
 
 type IIntVal interface {
@@ -69,18 +57,6 @@ func (self *IntVal) GetType() scrilaAst.ValueType {
 
 func (self *IntVal) GetValue() int64 {
 	return self.value
-}
-
-func (self *IntVal) GetTranspilat() string {
-	return self.runtimeVal.GetTranspilat()
-}
-
-func (self *IntVal) SetTranspilat(transpilat string) {
-	self.runtimeVal.SetTranspilat(transpilat)
-}
-
-func (self *IntVal) ToString() string {
-	return fmt.Sprintf("%d", self.value)
 }
 
 // BoolVal
@@ -114,18 +90,6 @@ func (self *BoolVal) GetValue() bool {
 	return self.value
 }
 
-func (self *BoolVal) GetTranspilat() string {
-	return self.runtimeVal.GetTranspilat()
-}
-
-func (self *BoolVal) SetTranspilat(transpilat string) {
-	self.runtimeVal.SetTranspilat(transpilat)
-}
-
-func (self *BoolVal) ToString() string {
-	return fmt.Sprintf("%t", self.value)
-}
-
 // ObjVal
 
 type IObjVal interface {
@@ -153,18 +117,6 @@ func (self *ObjVal) GetProperties() map[string]scrilaAst.IRuntimeVal {
 	return self.properties
 }
 
-func (self *ObjVal) GetTranspilat() string {
-	return self.runtimeVal.GetTranspilat()
-}
-
-func (self *ObjVal) SetTranspilat(transpilat string) {
-	self.runtimeVal.SetTranspilat(transpilat)
-}
-
-func (self *ObjVal) ToString() string {
-	return "ObjVal"
-}
-
 // StrVal
 
 type IStrVal interface {
@@ -189,18 +141,6 @@ func (self *StrVal) GetType() scrilaAst.ValueType {
 }
 
 func (self *StrVal) GetValue() string {
-	return self.value
-}
-
-func (self *StrVal) GetTranspilat() string {
-	return self.runtimeVal.GetTranspilat()
-}
-
-func (self *StrVal) SetTranspilat(transpilat string) {
-	self.runtimeVal.SetTranspilat(transpilat)
-}
-
-func (self *StrVal) ToString() string {
 	return self.value
 }
 
@@ -238,18 +178,6 @@ func (self *NativeFunc) GetCall() FunctionCall {
 
 func (self *NativeFunc) GetReturnType() scrilaAst.NodeType {
 	return self.returnType
-}
-
-func (self *NativeFunc) GetTranspilat() string {
-	return self.runtimeVal.GetTranspilat()
-}
-
-func (self *NativeFunc) SetTranspilat(transpilat string) {
-	self.runtimeVal.SetTranspilat(transpilat)
-}
-
-func (self *NativeFunc) ToString() string {
-	return "NativeFunc"
 }
 
 // FunctionVal
@@ -305,16 +233,4 @@ func (self *FunctionVal) GetBody() []scrilaAst.IStatement {
 
 func (self *FunctionVal) GetReturnType() scrilaAst.NodeType {
 	return self.returnType
-}
-
-func (self *FunctionVal) GetTranspilat() string {
-	return self.runtimeVal.GetTranspilat()
-}
-
-func (self *FunctionVal) SetTranspilat(transpilat string) {
-	self.runtimeVal.SetTranspilat(transpilat)
-}
-
-func (self *FunctionVal) ToString() string {
-	return "FunctionVal"
 }

@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+# Changed
+
+- The "show ..." flags are now stored inside the config
+- Improved the output generated if the "show AST" flags are passed
+
+### Removed
+
+- Removed now unused helper functions or functions e.g. on the IRuntimeVal
+
 ## v0.1.0-alpha
 
 ### Added

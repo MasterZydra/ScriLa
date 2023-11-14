@@ -1,5 +1,7 @@
 package bashAst
 
+import "fmt"
+
 // Statement
 
 type IStatement interface {
@@ -8,6 +10,10 @@ type IStatement interface {
 
 type Statement struct {
 	kind NodeType
+}
+
+func (self *Statement) String() string {
+	return fmt.Sprintf("{%s}", self.GetKind())
 }
 
 func NewStatement(kind NodeType) *Statement {
@@ -55,6 +61,24 @@ type FuncDeclaration struct {
 	params     []IFuncParameter
 	body       []IStatement
 	returnType NodeType
+}
+
+func (self *FuncDeclaration) String() string {
+	indentDepth++
+	str := fmt.Sprintf("{%s - name: '%s', returnType: '%s'", self.GetKind(), self.GetName(), self.GetReturnType())
+	for i, param := range self.GetParams() {
+		str += fmt.Sprintf("\n%sparam%d: %s", indent(), i, param)
+	}
+	if len(self.GetBody()) > 0 {
+		str += fmt.Sprintf("\n%sbody:", indent())
+		indentDepth++
+		for _, stmt := range self.GetBody() {
+			str += fmt.Sprintf("\n%s%s", indent(), stmt)
+		}
+		indentDepth--
+	}
+	indentDepth--
+	return str + "}"
 }
 
 func NewFuncDeclaration(name string, returnType NodeType) *FuncDeclaration {
@@ -134,6 +158,27 @@ type IfStmt struct {
 	condition IStatement
 	body      []IStatement
 	elseBlock IIfStmt
+}
+
+func (self *IfStmt) String() string {
+	indentDepth++
+	str := fmt.Sprintf("{%s", self.GetKind())
+	if self.GetCondition() != nil {
+		str += fmt.Sprintf("\n%scondition: %s,", indent(), self.GetCondition())
+	}
+	if len(self.GetBody()) > 0 {
+		str += fmt.Sprintf("\n%sbody:", indent())
+		indentDepth++
+		for _, stmt := range self.GetBody() {
+			str += fmt.Sprintf("\n%s%s", indent(), stmt)
+		}
+		indentDepth--
+	}
+	if self.GetElse() != nil {
+		str += fmt.Sprintf("\n%selse: %s", indent(), self.GetElse())
+	}
+	indentDepth--
+	return str + "}"
 }
 
 func NewIfStmt(condition IStatement) *IfStmt {

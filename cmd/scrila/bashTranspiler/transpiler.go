@@ -31,42 +31,16 @@ type Transpiler struct {
 
 	bashStmtStack map[int]bashAst.IStatement
 
-	showCallStack bool
-
 	bashProgram bashAst.IProgram
 }
 
-func NewTranspiler(showCallStack bool) *Transpiler {
+func NewTranspiler() *Transpiler {
 	return &Transpiler{
 		usedNativeFunctions: []string{},
 		contexts:            []Context{NoContext},
 		bashContexts:        []bashAst.IAppendBody{},
 		bashStmtStack:       make(map[int]bashAst.IStatement),
-		showCallStack:       showCallStack,
 	}
-}
-
-func (self *Transpiler) writeLnTranspilat(content string) {
-	self.printFuncName("")
-
-	self.writeTranspilat(content + "\n")
-}
-
-func (self *Transpiler) writeTranspilat(content string) {
-	self.printFuncName("")
-
-	self.userScriptTranspilat += content
-}
-
-func (self *Transpiler) writeLnToFile(content string) {
-	self.printFuncName("")
-
-	self.writeToFile(content + "\n")
-}
-
-func (self *Transpiler) writeToFile(content string) {
-	self.printFuncName("")
-	// fmt.Print(content)
 }
 
 func (self *Transpiler) getPos(astNode scrilaAst.IStatement) string {
@@ -111,8 +85,8 @@ func (self *Transpiler) transpile(astNode scrilaAst.IStatement, env *Environment
 	case scrilaAst.BinaryExprNode:
 		return self.evalBinaryExpr(scrilaAst.ExprToBinExpr(astNode), env)
 
-	case scrilaAst.MemberExprNode:
-		return self.evalMemberExpr(scrilaAst.ExprToMemberExpr(astNode), env)
+	// case scrilaAst.MemberExprNode:
+	// 	return self.evalMemberExpr(scrilaAst.ExprToMemberExpr(astNode), env)
 
 	case scrilaAst.ReturnExprNode:
 		return self.evalReturnExpr(scrilaAst.ExprToReturnExpr(astNode), env)
@@ -175,7 +149,7 @@ func (self *Transpiler) indent(offset int) string {
 }
 
 func (self *Transpiler) printFuncName(msg string) {
-	if self.showCallStack {
+	if config.ShowCallStackScrila {
 		pc, _, _, _ := runtime.Caller(1)
 		funcName := runtime.FuncForPC(pc).Name()
 		funcName = strings.Replace(funcName, "ScriLa/cmd/scrila/transpiler.(*Transpiler).", "", -1)

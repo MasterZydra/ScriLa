@@ -16,6 +16,13 @@ type BoolLiteral struct {
 	value bool
 }
 
+func (self *BoolLiteral) String() string {
+	indentDepth++
+	str := fmt.Sprintf("{%s - id: %d, value: %t}", self.GetKind(), self.GetId(), self.GetValue())
+	indentDepth--
+	return str
+}
+
 func NewBoolLiteral(value bool, ln int, col int) *BoolLiteral {
 	return &BoolLiteral{
 		expr:  NewExpr(BoolLiteralNode, ln, col),
@@ -61,6 +68,13 @@ type IIntLiteral interface {
 type IntLiteral struct {
 	expr  *Expr
 	value int64
+}
+
+func (self *IntLiteral) String() string {
+	indentDepth++
+	str := fmt.Sprintf("{%s - id: %d, value: %d}", self.GetKind(), self.GetId(), self.GetValue())
+	indentDepth--
+	return str
 }
 
 func NewIntLiteral(value int64, ln int, col int) *IntLiteral {
@@ -110,6 +124,13 @@ type StrLiteral struct {
 	value string
 }
 
+func (self *StrLiteral) String() string {
+	indentDepth++
+	str := fmt.Sprintf("{%s - id: %d, value: '%s'}", self.GetKind(), self.GetId(), self.GetValue())
+	indentDepth--
+	return str
+}
+
 func NewStrLiteral(value string, ln int, col int) *StrLiteral {
 	return &StrLiteral{
 		expr:  NewExpr(StrLiteralNode, ln, col),
@@ -157,10 +178,6 @@ type Property struct {
 	expr  *Expr
 	key   string
 	value IExpr
-}
-
-func (self *Property) String() string {
-	return fmt.Sprintf("&{%s %s %s}", self.GetKind(), self.GetKey(), self.GetValue())
 }
 
 func NewProperty(key string, value IExpr, ln int, col int) *Property {
@@ -215,10 +232,6 @@ type ObjectLiteral struct {
 	properties []IProperty
 }
 
-func (self *ObjectLiteral) String() string {
-	return fmt.Sprintf("&{%s %s}", self.GetKind(), self.GetProperties())
-}
-
 func NewObjectLiteral(properties []IProperty) *ObjectLiteral {
 	return &ObjectLiteral{
 		expr:       NewExpr(ObjectLiteralNode, 0, 0),
@@ -264,6 +277,13 @@ type IIdentifier interface {
 type Identifier struct {
 	expr   *Expr
 	symbol string
+}
+
+func (self *Identifier) String() string {
+	indentDepth++
+	str := fmt.Sprintf("{%s - id: %d, symbol: '%s'}", self.GetKind(), self.GetId(), self.GetSymbol())
+	indentDepth--
+	return str
 }
 
 func NewIdentifier(symbol string, ln int, col int) *Identifier {

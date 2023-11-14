@@ -2,10 +2,12 @@ package main
 
 import (
 	"ScriLa/cmd/scrila/bashAssembler"
+	"ScriLa/cmd/scrila/bashAst"
 	"ScriLa/cmd/scrila/bashTranspiler"
 	"ScriLa/cmd/scrila/config"
 	"ScriLa/cmd/scrila/lexer"
 	"ScriLa/cmd/scrila/parser"
+	"ScriLa/cmd/scrila/scrilaAst"
 	"flag"
 	"fmt"
 	"os"
@@ -13,8 +15,10 @@ import (
 
 func main() {
 	showTokens := flag.Bool("st", false, "Show tokens")
-	showAST := flag.Bool("sa", false, "Show AST")
-	showCallStack := flag.Bool("sc", false, "Show call stack")
+	showAstScriLa := flag.Bool("sas", false, "Show AST for ScriLa")
+	showAstBash := flag.Bool("sab", false, "Show AST for Bash")
+	showCallStackScrila := flag.Bool("scs", false, "Show call stack for ScriLa")
+	showCallStackBash := flag.Bool("scb", false, "Show call stack for Bash")
 	filename := flag.String("f", "", "Script file")
 	flag.Parse()
 
@@ -25,13 +29,18 @@ func main() {
 	}
 
 	config.Filename = *filename
+	config.ShowTokens = *showTokens
+	config.ShowAstScriLa = *showAstScriLa
+	config.ShowAstBash = *showAstBash
+	config.ShowCallStackScrila = *showCallStackScrila
+	config.ShowCallStackBash = *showCallStackBash
 
-	transpile(*showTokens, *showAST, *showCallStack)
+	transpile()
 }
 
-func transpile(showTokens bool, showAST bool, showCallStack bool) {
+func transpile() {
 	parser := parser.NewParser()
-	transpilerObj := bashTranspiler.NewTranspiler(showCallStack)
+	transpilerObj := bashTranspiler.NewTranspiler()
 	env := bashTranspiler.NewEnvironment(nil, transpilerObj)
 
 	fileContent, err := os.ReadFile(config.Filename)
@@ -41,7 +50,7 @@ func transpile(showTokens bool, showAST bool, showCallStack bool) {
 		os.Exit(1)
 	}
 
-	if showTokens {
+	if config.ShowTokens {
 		tokens, err := lexer.NewLexer().Tokenize(string(fileContent))
 		if err != nil {
 			fmt.Println(err)
@@ -54,15 +63,17 @@ func transpile(showTokens bool, showAST bool, showCallStack bool) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	if showAST {
-		fmt.Printf("AST:       %s\n", program)
+	if config.ShowAstScriLa {
+		fmt.Printf("ScriLa-AST:\n%s\n", scrilaAst.SprintAST(program))
 	}
 	bashProgram, err := transpilerObj.Transpile(program, env)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-
+	if config.ShowAstBash {
+		fmt.Printf("Bash-AST:\n%s\n", bashAst.SprintAst(bashProgram))
+	}
 	assembler := bashAssembler.NewAssembler()
 	err = assembler.Assemble(bashProgram)
 	if err != nil {
