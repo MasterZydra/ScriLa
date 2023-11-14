@@ -23,7 +23,7 @@ func initTestForPrintMode() {
 }
 
 func transpileTest(code string) error {
-	transpiler := bashTranspiler.NewTranspiler(false)
+	transpiler := bashTranspiler.NewTranspiler()
 	env := bashTranspiler.NewEnvironment(nil, transpiler)
 	scrilaProgram, err := parser.NewParser().ProduceAST(code)
 	if err != nil {
