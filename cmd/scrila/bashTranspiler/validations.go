@@ -49,7 +49,7 @@ func (self *Transpiler) exprIsType(expr scrilaAst.IExpr, wantedType scrilaAst.No
 			return true, wantedType, nil
 		}
 
-		givenType, err := bashNodeTypeToScrilaNodeType(binOpExpr.GetOpType())
+		givenType, err := bashNodeTypeToScrilaNodeType(binOpExpr.GetDataType())
 		if err != nil {
 			return false, givenType, err
 		}

@@ -168,7 +168,7 @@ func (self *Comment) SetResult(value IRuntimeVal) {
 
 type IVarDeclaration interface {
 	IStatement
-	GetVarType() NodeType
+	GetDataType() NodeType
 	IsConstant() bool
 	GetIdentifier() string
 	GetValue() IExpr
@@ -184,7 +184,7 @@ type VarDeclaration struct {
 
 func (self *VarDeclaration) String() string {
 	indentDepth++
-	str := fmt.Sprintf("{%s - id: %d, varName: '%s', varType: '%s', isConstant: %t,\n%svalue: %s}", self.GetKind(), self.GetId(), self.GetIdentifier(), self.GetVarType(), self.IsConstant(), indent(), self.GetValue())
+	str := fmt.Sprintf("{%s - id: %d, varName: '%s', varType: '%s', isConstant: %t,\n%svalue: %s}", self.GetKind(), self.GetId(), self.GetIdentifier(), self.GetDataType(), self.IsConstant(), indent(), self.GetValue())
 	indentDepth--
 	return str
 }
@@ -207,7 +207,7 @@ func (self *VarDeclaration) GetKind() NodeType {
 	return self.statement.GetKind()
 }
 
-func (self *VarDeclaration) GetVarType() NodeType {
+func (self *VarDeclaration) GetDataType() NodeType {
 	return self.varType
 }
 

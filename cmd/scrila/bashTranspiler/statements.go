@@ -30,16 +30,16 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration scrilaAst.IVarDeclarat
 		return NewNullVal(), err
 	}
 
-	doMatch, givenType, err := self.exprIsType(varDeclaration.GetValue(), varDeclaration.GetVarType(), env)
+	doMatch, givenType, err := self.exprIsType(varDeclaration.GetValue(), varDeclaration.GetDataType(), env)
 	if err != nil {
 		return NewNullVal(), err
 	}
 	if !doMatch {
-		return NewNullVal(), fmt.Errorf("%s: Cannot assign a value of type '%s' to a var of type '%s'", self.getPos(varDeclaration.GetValue()), givenType, varDeclaration.GetVarType())
+		return NewNullVal(), fmt.Errorf("%s: Cannot assign a value of type '%s' to a var of type '%s'", self.getPos(varDeclaration.GetValue()), givenType, varDeclaration.GetDataType())
 	}
 
 	// Same logic in evalAssignment -> merge into one function
-	bashVarType, err := scrilaNodeTypeToBashNodeType(varDeclaration.GetVarType())
+	bashVarType, err := scrilaNodeTypeToBashNodeType(varDeclaration.GetDataType())
 	if err != nil {
 		return NewNullVal(), err
 	}
@@ -53,7 +53,7 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration scrilaAst.IVarDeclarat
 		true,
 	))
 
-	result, err := env.declareVar(varDeclaration.GetIdentifier(), varDeclaration.IsConstant(), varDeclaration.GetVarType())
+	result, err := env.declareVar(varDeclaration.GetIdentifier(), varDeclaration.IsConstant(), varDeclaration.GetDataType())
 	if err != nil {
 		return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(varDeclaration), err)
 	}

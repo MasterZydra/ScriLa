@@ -44,14 +44,14 @@ func stmtToRhsBashStr(stmt bashAst.IStatement) (string, error) {
 
 	switch stmt.GetKind() {
 	case bashAst.BinaryOpExprNode:
-		switch bashAst.StmtToBinaryOpExpr(stmt).GetOpType() {
+		switch bashAst.StmtToBinaryOpExpr(stmt).GetDataType() {
 		case bashAst.StrLiteralNode:
 			return strToBashStr(bash), nil
 		}
 	case bashAst.BoolLiteralNode, bashAst.StrLiteralNode:
 		return strToBashStr(bash), nil
 	case bashAst.VarLiteralNode:
-		switch varType := bashAst.StmtToVarLiteral(stmt).GetVarType(); varType {
+		switch varType := bashAst.StmtToVarLiteral(stmt).GetDataType(); varType {
 		case bashAst.BoolLiteralNode, bashAst.StrLiteralNode:
 			return strToBashStr(bash), nil
 		}
@@ -78,7 +78,7 @@ func stmtToBashStr(stmt bashAst.IStatement) (string, error) {
 		// e.g.: "hello world"
 		return bashAst.StmtToStrLiteral(stmt).GetValue(), nil
 	case bashAst.VarLiteralNode:
-		switch varType := bashAst.StmtToVarLiteral(stmt).GetVarType(); varType {
+		switch varType := bashAst.StmtToVarLiteral(stmt).GetDataType(); varType {
 		case bashAst.BoolLiteralNode, bashAst.StrLiteralNode:
 			// e.g.: "${var}"
 			return strToBashVar(bashAst.StmtToVarLiteral(stmt).GetValue()), nil
@@ -104,14 +104,14 @@ func binCompToBashStr(binOp bashAst.IBinaryOpExpr) (string, error) {
 	}
 
 	// https://devmanual.gentoo.org/tools-reference/bash/index.html
-	switch binOp.GetOpType() {
+	switch binOp.GetDataType() {
 	case bashAst.BoolLiteralNode, bashAst.StrLiteralNode:
 		return fmt.Sprintf("[[ %s %s %s ]]", strToBashStr(lhs), binOp.GetOperator(), strToBashStr(rhs)), nil
 	case bashAst.IntLiteralNode:
 		opMapping := map[string]string{">": "-gt", "<": "-lt", ">=": "-ge", "<=": "-le", "==": "-eq", "!=": "-ne"}
 		return fmt.Sprintf("[[ %s %s %s ]]", lhs, opMapping[binOp.GetOperator()], rhs), nil
 	default:
-		return "", fmt.Errorf("binCompToBashStr(): Kind '%s' is not implemented", binOp.GetOpType())
+		return "", fmt.Errorf("binCompToBashStr(): Kind '%s' is not implemented", binOp.GetDataType())
 	}
 }
 
@@ -125,7 +125,7 @@ func binOpToBashStr(binOp bashAst.IBinaryOpExpr) (string, error) {
 		return "", err
 	}
 
-	switch binOp.GetOpType() {
+	switch binOp.GetDataType() {
 	case bashAst.BoolLiteralNode:
 		return fmt.Sprintf("%s %s %s", strToBashBoolComparison(lhs), binOp.GetOperator(), strToBashBoolComparison(rhs)), nil
 	case bashAst.IntLiteralNode:
@@ -138,7 +138,7 @@ func binOpToBashStr(binOp bashAst.IBinaryOpExpr) (string, error) {
 			return "", fmt.Errorf("binOpToBashStr(): String operations '%s' is not implemented", binOp.GetOperator())
 		}
 	default:
-		return "", fmt.Errorf("binOpToBashStr(): Kind '%s' is not implemented", binOp.GetOpType())
+		return "", fmt.Errorf("binOpToBashStr(): Kind '%s' is not implemented", binOp.GetDataType())
 	}
 }
 

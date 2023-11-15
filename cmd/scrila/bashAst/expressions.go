@@ -54,7 +54,7 @@ func (self *AssignmentExpr) IsDeclaration() bool {
 
 type IBinaryOpExpr interface {
 	IStatement
-	GetOpType() NodeType
+	GetDataType() NodeType
 	GetLeft() IStatement
 	GetRight() IStatement
 	GetOperator() string
@@ -70,7 +70,7 @@ type BinaryOpExpr struct {
 
 func (self *BinaryOpExpr) String() string {
 	indentDepth++
-	str := fmt.Sprintf("{%s - opType: '%s'\n%sleft: %s,\n%soperator: '%s',\n%sright: %s}", self.GetKind(), self.GetOpType(), indent(), self.GetLeft(), indent(), self.GetOperator(), indent(), self.GetRight())
+	str := fmt.Sprintf("{%s - opType: '%s'\n%sleft: %s,\n%soperator: '%s',\n%sright: %s}", self.GetKind(), self.GetDataType(), indent(), self.GetLeft(), indent(), self.GetOperator(), indent(), self.GetRight())
 	indentDepth--
 	return str
 }
@@ -95,7 +95,7 @@ func (self *BinaryOpExpr) GetKind() NodeType {
 	return self.stmt.GetKind()
 }
 
-func (self *BinaryOpExpr) GetOpType() NodeType {
+func (self *BinaryOpExpr) GetDataType() NodeType {
 	return self.opType
 }
 

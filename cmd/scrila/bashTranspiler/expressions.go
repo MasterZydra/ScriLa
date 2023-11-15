@@ -427,7 +427,7 @@ func (self *Transpiler) evalReturnExpr(returnExpr scrilaAst.IReturnExpr, env *En
 		return NewNullVal(), err
 	}
 
-	if resultValue.GetKind() != bashAst.VarLiteralNode || bashAst.StmtToVarLiteral(resultValue).GetVarType() != resultVarType {
+	if resultValue.GetKind() != bashAst.VarLiteralNode || bashAst.StmtToVarLiteral(resultValue).GetDataType() != resultVarType {
 	self.appendUserBody(bashAst.NewAssignmentExpr(
 		bashAst.NewVarLiteral(resultVarName, resultVarType),
 		resultValue,

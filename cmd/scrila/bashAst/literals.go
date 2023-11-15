@@ -60,7 +60,7 @@ func NewStrLiteral(value string) *StrStmt {
 
 type IVarLiteral interface {
 	IStrStmt
-	GetVarType() NodeType
+	GetDataType() NodeType
 }
 
 type VarLiteral struct {
@@ -71,7 +71,7 @@ type VarLiteral struct {
 
 func (self *VarLiteral) String() string {
 	indentDepth++
-	str := fmt.Sprintf("{%s - varName: '%s', varType: '%s'}", self.GetKind(), self.GetValue(), self.GetVarType())
+	str := fmt.Sprintf("{%s - varName: '%s', varType: '%s'}", self.GetKind(), self.GetValue(), self.GetDataType())
 	indentDepth--
 	return str
 }
@@ -92,6 +92,6 @@ func (self *VarLiteral) GetValue() string {
 	return self.value
 }
 
-func (self *VarLiteral) GetVarType() NodeType {
+func (self *VarLiteral) GetDataType() NodeType {
 	return self.varType
 }
