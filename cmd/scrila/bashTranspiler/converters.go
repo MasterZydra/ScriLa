@@ -18,7 +18,8 @@ func (self *Transpiler) exprToRhsBashStmt(expr scrilaAst.IExpr, env *Environment
 	}
 
 	// A comparison must be converted into an if statement
-	if bashStmt.GetKind() == bashAst.BinaryCompExprNode {
+	if bashStmt.GetKind() == bashAst.BinaryCompExprNode ||
+		(bashStmt.GetKind() == bashAst.BinaryOpExprNode && bashAst.StmtToBinaryOpExpr(bashStmt).GetDataType() == bashAst.BoolLiteralNode) {
 		ifStmt := bashAst.NewIfStmt(bashStmt)
 		ifStmt.AppendBody(bashAst.NewBashStmt("tmpBool=\"true\""))
 		elseStmt := bashAst.NewIfStmt(nil)

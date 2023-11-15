@@ -356,7 +356,8 @@ func ExampleBoolAssignComparision() {
 	initTestForPrintMode()
 	transpileTest(`
 		bool b = 42 > 13;
-		
+		bool b1 = true && false;
+
 		func b(bool b) bool {
 			return 42 > 13;
 		}
@@ -376,6 +377,13 @@ func ExampleBoolAssignComparision() {
 	// 	tmpBool="false"
 	// fi
 	// b="${tmpBool}"
+	// if [[ "true" == "true" ]] && [[ "false" == "true" ]]
+	// then
+	// 	tmpBool="true"
+	// else
+	// 	tmpBool="false"
+	// fi
+	// b1="${tmpBool}"
 	// # b(bool b) bool
 	// b () {
 	// 	local b=$1
