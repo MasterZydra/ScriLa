@@ -43,19 +43,9 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration scrilaAst.IVarDeclarat
 	if err != nil {
 		return NewNullVal(), err
 	}
-	bashStmt, err := self.exprToBashStmt(varDeclaration.GetValue(), env)
+	bashStmt, err := self.exprToRhsBashStmt(varDeclaration.GetValue(), env)
 	if err != nil {
 		return NewNullVal(), err
-	}
-	// A comparison must be converted into an if statement
-	if bashStmt.GetKind() == bashAst.BinaryCompExprNode {
-		ifStmt := bashAst.NewIfStmt(bashStmt)
-		ifStmt.AppendBody(bashAst.NewBashStmt("tmpBool=\"true\""))
-		elseStmt := bashAst.NewIfStmt(nil)
-		elseStmt.AppendBody(bashAst.NewBashStmt("tmpBool=\"false\""))
-		ifStmt.SetElse(elseStmt)
-		self.appendUserBody(ifStmt)
-		bashStmt = bashAst.NewVarLiteral("tmpBool", bashAst.BoolLiteralNode)
 	}
 	self.appendUserBody(bashAst.NewAssignmentExpr(
 		bashAst.NewVarLiteral(varDeclaration.GetIdentifier(), bashVarType),

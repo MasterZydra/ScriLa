@@ -345,7 +345,15 @@ func TestErrorCompareDiffVarTypes(t *testing.T) {
 
 func ExampleBoolAssignComparision() {
 	initTestForPrintMode()
-	transpileTest(`bool b = 42 > 13;`)
+	transpileTest(`
+		bool b = 42 > 13;
+		
+		func b(bool b) bool {
+			return 42 > 13;
+		}
+
+		b = b(42 > 13);
+	`)
 
 	// Output:
 	// #!/bin/bash
@@ -358,5 +366,25 @@ func ExampleBoolAssignComparision() {
 	// else
 	// 	tmpBool="false"
 	// fi
+	// b="${tmpBool}"
+	// # b(bool b) bool
+	// b () {
+	// 	local b=$1
+	// 	if [[ 42 -gt 13 ]]
+	// 	then
+	// 		tmpBool="true"
+	// 	else
+	// 		tmpBool="false"
+	// 	fi
+	// 	return
+	// }
+	//
+	// if [[ 42 -gt 13 ]]
+	// then
+	// 	tmpBool="true"
+	// else
+	// 	tmpBool="false"
+	// fi
+	// b "${tmpBool}"
 	// b="${tmpBool}"
 }

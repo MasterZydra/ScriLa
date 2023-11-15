@@ -10,6 +10,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - The "show ..." flags are now stored inside the config
 - Improved the output generated if the "show AST" flags are passed
+- Moved logic to replace a binary comparison into an if-statement in helper function to remove code duplication
+
+### Fixed
+
+- Fixed invalid Bash code if a binary comparison was used as function argument
 
 ### Removed
 

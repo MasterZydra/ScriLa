@@ -11,6 +11,26 @@ func identNodeGetSymbol(expr scrilaAst.IExpr) string {
 	return scrilaAst.ExprToIdent(expr).GetSymbol()
 }
 
+func (self *Transpiler) exprToRhsBashStmt(expr scrilaAst.IExpr, env *Environment) (bashAst.IStatement, error) {
+	bashStmt, err := self.exprToBashStmt(expr, env)
+	if err != nil {
+		return nil, err
+	}
+
+	// A comparison must be converted into an if statement
+	if bashStmt.GetKind() == bashAst.BinaryCompExprNode {
+		ifStmt := bashAst.NewIfStmt(bashStmt)
+		ifStmt.AppendBody(bashAst.NewBashStmt("tmpBool=\"true\""))
+		elseStmt := bashAst.NewIfStmt(nil)
+		elseStmt.AppendBody(bashAst.NewBashStmt("tmpBool=\"false\""))
+		ifStmt.SetElse(elseStmt)
+		self.appendUserBody(ifStmt)
+		bashStmt = bashAst.NewVarLiteral("tmpBool", bashAst.BoolLiteralNode)
+	}
+
+	return bashStmt, nil
+}
+
 func (self *Transpiler) exprToBashStmt(expr scrilaAst.IExpr, env *Environment) (bashAst.IStatement, error) {
 	switch expr.GetKind() {
 	case scrilaAst.BinaryExprNode:
@@ -92,6 +112,7 @@ func bashNodeTypeToScrilaNodeType(nodeType bashAst.NodeType) (scrilaAst.NodeType
 var scrilaNodeTypeToRuntimeValMapping = map[scrilaAst.NodeType]scrilaAst.IRuntimeVal{
 	scrilaAst.BoolLiteralNode: NewBoolVal(true),
 	scrilaAst.IntLiteralNode:  NewIntVal(1),
+	scrilaAst.VoidNode:        NewNullVal(),
 	scrilaAst.StrLiteralNode:  NewStrVal("str"),
 }
 

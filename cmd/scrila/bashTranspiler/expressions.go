@@ -166,19 +166,9 @@ func (self *Transpiler) evalAssignment(assignment scrilaAst.IAssignmentExpr, env
 	if err != nil {
 		return NewNullVal(), err
 	}
-	bashStmt, err := self.exprToBashStmt(assignment.GetValue(), env)
+	bashStmt, err := self.exprToRhsBashStmt(assignment.GetValue(), env)
 	if err != nil {
 		return NewNullVal(), err
-	}
-	// A comparison must be converted into an if statement
-	if bashStmt.GetKind() == bashAst.BinaryCompExprNode {
-		ifStmt := bashAst.NewIfStmt(bashStmt)
-		ifStmt.AppendBody(bashAst.NewBashStmt("tmpBool=\"true\""))
-		elseStmt := bashAst.NewIfStmt(nil)
-		elseStmt.AppendBody(bashAst.NewBashStmt("tmpBool=\"false\""))
-		ifStmt.SetElse(elseStmt)
-		self.appendUserBody(ifStmt)
-		bashStmt = bashAst.NewVarLiteral("tmpBool", bashAst.BoolLiteralNode)
 	}
 	self.appendUserBody(bashAst.NewAssignmentExpr(
 		bashAst.NewVarLiteral(varName, bashVarType),
@@ -340,7 +330,7 @@ func (self *Transpiler) evalCallExpr(call scrilaAst.ICallExpr, env *Environment)
 		}
 		args = append(args, evalArg)
 
-		bashStmt, err := self.exprToBashStmt(arg, env)
+		bashStmt, err := self.exprToRhsBashStmt(arg, env)
 		if err != nil {
 			return NewNullVal(), err
 		}
@@ -364,7 +354,6 @@ func (self *Transpiler) evalCallExpr(call scrilaAst.ICallExpr, env *Environment)
 		return result, nil
 
 	case scrilaAst.FunctionValueType:
-		var result scrilaAst.IRuntimeVal
 		fn := runtimeToFuncVal(caller)
 
 		if len(fn.GetParams()) != len(args) {
@@ -377,31 +366,12 @@ func (self *Transpiler) evalCallExpr(call scrilaAst.ICallExpr, env *Environment)
 			if !scrilaAst.DoTypesMatch(param.GetParamType(), args[i].GetType()) {
 				return NewNullVal(), fmt.Errorf("%s: %s(): Parameter '%s' type does not match. Expected: %s, Got: %s", self.getPos(call), fn.GetName(), param.GetName(), param.GetParamType(), args[i].GetType())
 			}
-			switch call.GetArgs()[i].GetKind() {
-			case scrilaAst.IntLiteralNode, scrilaAst.StrLiteralNode:
-				result, err = scrilaNodeTypeToRuntimeVal(call.GetArgs()[i].GetKind())
-				if err != nil {
-					return NewNullVal(), err
-				}
-			case scrilaAst.IdentifierNode:
-				result, err = scrilaNodeTypeToRuntimeVal(param.GetParamType())
-				if err != nil {
-					return NewNullVal(), err
-				}
-			case scrilaAst.CallExprNode:
-				resultVarType, err := self.getFuncReturnType(scrilaAst.ExprToCallExpr(call.GetArgs()[i]), env)
-				if err != nil {
-					return NewNullVal(), err
-				}
-				result, err = scrilaNodeTypeToRuntimeVal(resultVarType)
-				if err != nil {
-					return NewNullVal(), err
-				}
-			default:
-				return NewNullVal(), fmt.Errorf("%s: %s(): Parameter type '%s' is not supported", self.getPos(call), fn.GetName(), call.GetArgs()[i].GetKind())
-			}
 		}
 
+		result, err := scrilaNodeTypeToRuntimeVal(fn.GetReturnType())
+				if err != nil {
+					return NewNullVal(), err
+			}
 		return result, nil
 
 	default:
@@ -442,7 +412,7 @@ func (self *Transpiler) evalReturnExpr(returnExpr scrilaAst.IReturnExpr, env *En
 		return NewNullVal(), fmt.Errorf("%s: %s(): Return type does not match with function type. Expected: %s, Got: %s", self.getPos(returnExpr), self.currentFunc.GetName(), self.currentFunc.GetReturnType(), value.GetType())
 	}
 
-	resultValue, err := self.exprToBashStmt(returnExpr.GetValue(), env)
+	resultValue, err := self.exprToRhsBashStmt(returnExpr.GetValue(), env)
 	if err != nil {
 		return NewNullVal(), err
 	}
@@ -457,11 +427,13 @@ func (self *Transpiler) evalReturnExpr(returnExpr scrilaAst.IReturnExpr, env *En
 		return NewNullVal(), err
 	}
 
+	if resultValue.GetKind() != bashAst.VarLiteralNode || bashAst.StmtToVarLiteral(resultValue).GetVarType() != resultVarType {
 	self.appendUserBody(bashAst.NewAssignmentExpr(
 		bashAst.NewVarLiteral(resultVarName, resultVarType),
 		resultValue,
 		false,
 	))
+	}
 	self.appendUserBody(bashAst.NewReturnExpr())
 	return value, nil
 }
