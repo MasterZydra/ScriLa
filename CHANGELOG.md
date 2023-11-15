@@ -6,7 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
-# Changed
+### Added
+
+- Added output of the error message to tests that should pass and generate Bash code
+
+### Changed
 
 - The "show ..." flags are now stored inside the config
 - Improved the output generated if the "show AST" flags are passed

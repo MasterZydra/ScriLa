@@ -27,13 +27,22 @@ func transpileTest(code string) error {
 	env := bashTranspiler.NewEnvironment(nil, transpiler)
 	scrilaProgram, err := parser.NewParser().ProduceAST(code)
 	if err != nil {
+		if testAssembler.testPrintMode {
+			fmt.Println(err)
+		}
 		return err
 	}
 	bashProgram, err := transpiler.Transpile(scrilaProgram, env)
 	if err != nil {
+		if testAssembler.testPrintMode {
+			fmt.Println(err)
+		}
 		return err
 	}
 	err = testAssembler.Assemble(bashProgram)
+	if testAssembler.testPrintMode && err != nil {
+		fmt.Println(err)
+	}
 	return err
 }
 
