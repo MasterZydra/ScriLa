@@ -42,6 +42,8 @@ func (self *Transpiler) exprToBashStmt(expr scrilaAst.IExpr, env *Environment) (
 		return binaryBashStmt, nil
 	case scrilaAst.BoolLiteralNode:
 		return bashAst.NewBoolLiteral(scrilaAst.ExprToBoolLit(expr).GetValue()), nil
+	case scrilaAst.BreakExprNode:
+		return bashAst.NewBreakExpr(), nil
 	case scrilaAst.CallExprNode:
 		returnVarName, err := self.getCallerResultVarName(scrilaAst.ExprToCallExpr(expr), env)
 		if err != nil {
@@ -56,6 +58,8 @@ func (self *Transpiler) exprToBashStmt(expr scrilaAst.IExpr, env *Environment) (
 			return nil, err
 		}
 		return bashAst.NewVarLiteral(returnVarName, bashReturnType), nil
+	case scrilaAst.ContinueExprNode:
+		return bashAst.NewContinueExpr(), nil
 	case scrilaAst.IdentifierNode:
 		varName := identNodeGetSymbol(expr)
 		scrilaVarType, err := env.lookupVarType(varName)

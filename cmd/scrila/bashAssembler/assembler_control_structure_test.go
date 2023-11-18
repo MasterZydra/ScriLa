@@ -61,12 +61,14 @@ func ExampleWhile() {
 	transpileTest(`
 		while (true && false) {
 			printLn("true");
+			break;
 		}
 		while (true || false) {
 		}
 		bool b = true;
 		while (b) {
 			printLn("true");
+			continue;
 		}
 	`)
 
@@ -78,6 +80,7 @@ func ExampleWhile() {
 	// while [[ "true" == "true" ]] && [[ "false" == "true" ]]
 	// do
 	// 	echo "true"
+	// 	break
 	// done
 	// while [[ "true" == "true" ]] || [[ "false" == "true" ]]
 	// do
@@ -87,7 +90,26 @@ func ExampleWhile() {
 	// while [[ "${b}" == "true" ]]
 	// do
 	// 	echo "true"
+	// 	continue
 	// done
+}
+
+func TestErrorContinueOutsideOfWhile(t *testing.T) {
+	initTest()
+	err := transpileTest(`continue;`)
+	expected := fmt.Errorf("test.scri:1:1: 'ContinueExpr' is only allowed inside a while loop")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorBreakOutsideOfWhile(t *testing.T) {
+	initTest()
+	err := transpileTest(`break;`)
+	expected := fmt.Errorf("test.scri:1:1: 'BreakExpr' is only allowed inside a while loop")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
 }
 
 // -------- If --------

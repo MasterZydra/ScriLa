@@ -13,6 +13,10 @@ type Expr struct {
 	statement *Statement
 }
 
+func (self *Expr) String() string {
+	return fmt.Sprintf("{%s - id: %d}", self.GetKind(), self.GetId())
+}
+
 func NewExpr(kind NodeType, ln int, col int) *Expr {
 	return &Expr{statement: NewStatement(kind, ln, col)}
 }
@@ -174,6 +178,16 @@ func (self *BinaryExpr) SetResult(value IRuntimeVal) {
 	self.expr.SetResult(value)
 }
 
+// BreakExpr
+
+type IBreakExpr interface {
+	IExpr
+}
+
+func NewBreakExpr(ln int, col int) *Expr {
+	return NewExpr(BreakExprNode, ln, col)
+}
+
 // CallExpr
 
 type ICallExpr interface {
@@ -236,6 +250,16 @@ func (self *CallExpr) GetResult() IRuntimeVal {
 
 func (self *CallExpr) SetResult(value IRuntimeVal) {
 	self.expr.SetResult(value)
+}
+
+// ContinueExpr
+
+type IContinueExpr interface {
+	IExpr
+}
+
+func NewContinueExpr(ln int, col int) *Expr {
+	return NewExpr(ContinueExprNode, ln, col)
 }
 
 // MemberExpr

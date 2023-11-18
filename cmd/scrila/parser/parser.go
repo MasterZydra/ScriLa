@@ -70,9 +70,12 @@ func (self *Parser) parseStatement() (scrilaAst.IStatement, error) {
 		return self.parserWhileStatement()
 	case lexer.Function:
 		return self.parseFunctionDeclaration()
-	case lexer.Break, lexer.Continue:
-		identToken := self.eat()
-		statement = scrilaAst.NewIdentifier(identToken.Value, identToken.Ln, identToken.Col)
+	case lexer.Break:
+		breakToken := self.eat()
+		statement = scrilaAst.NewBreakExpr(breakToken.Ln, breakToken.Col)
+	case lexer.Continue:
+		continueToken := self.eat()
+		statement = scrilaAst.NewContinueExpr(continueToken.Ln, continueToken.Col)
 	case lexer.Return:
 		statement, err = self.parseReturnExpr()
 		if err != nil {

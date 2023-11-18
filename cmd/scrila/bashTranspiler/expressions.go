@@ -11,13 +11,6 @@ import (
 func (self *Transpiler) evalIdentifier(identifier scrilaAst.IIdentifier, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName(identifier.GetSymbol())
 
-	if self.contextContains(WhileLoopContext) {
-		if slices.Contains([]string{"break", "continue"}, identifier.GetSymbol()) {
-			// TODO break & continue to self.appendUserBody()
-			return NewNullVal(), nil
-		}
-	}
-
 	return env.lookupVar(identifier.GetSymbol())
 }
 
@@ -369,14 +362,28 @@ func (self *Transpiler) evalCallExpr(call scrilaAst.ICallExpr, env *Environment)
 		}
 
 		result, err := scrilaNodeTypeToRuntimeVal(fn.GetReturnType())
-				if err != nil {
-					return NewNullVal(), err
-			}
+		if err != nil {
+			return NewNullVal(), err
+		}
 		return result, nil
 
 	default:
 		return NewNullVal(), fmt.Errorf("%s: Cannot call value that is not a function: %s", self.getPos(call), caller)
 	}
+}
+
+func (self *Transpiler) evalWhileExitKeywords(expr scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
+	if !self.contextContains(WhileLoopContext) {
+		return NewNullVal(), fmt.Errorf("%s: '%s' is only allowed inside a while loop", self.getPos(expr), expr.GetKind())
+	}
+
+	bashStmt, err := self.exprToBashStmt(expr, env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+	self.appendUserBody(bashStmt)
+
+	return NewNullVal(), nil
 }
 
 func (self *Transpiler) evalReturnExpr(returnExpr scrilaAst.IReturnExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
@@ -428,11 +435,11 @@ func (self *Transpiler) evalReturnExpr(returnExpr scrilaAst.IReturnExpr, env *En
 	}
 
 	if resultValue.GetKind() != bashAst.VarLiteralNode || bashAst.StmtToVarLiteral(resultValue).GetDataType() != resultVarType {
-	self.appendUserBody(bashAst.NewAssignmentExpr(
-		bashAst.NewVarLiteral(resultVarName, resultVarType),
-		resultValue,
-		false,
-	))
+		self.appendUserBody(bashAst.NewAssignmentExpr(
+			bashAst.NewVarLiteral(resultVarName, resultVarType),
+			resultValue,
+			false,
+		))
 	}
 	self.appendUserBody(bashAst.NewReturnExpr())
 	return value, nil

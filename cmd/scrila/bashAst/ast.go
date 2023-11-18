@@ -15,7 +15,9 @@ const (
 	AssignmentExprNode NodeType = "AssignmentExpr"
 	BinaryCompExprNode NodeType = "BinaryCompExpr"
 	BinaryOpExprNode   NodeType = "BinaryOpExpr"
+	BreakExprNode      NodeType = "BreakExprNode"
 	CallExprNode       NodeType = "CallExpr"
+	ContinueExprNode   NodeType = "ContinueExpr"
 	ReturnExprNode     NodeType = "ReturnExpr"
 
 	// Literals

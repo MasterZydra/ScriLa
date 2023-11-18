@@ -21,6 +21,11 @@ func (self *Assembler) evalAssignmentExpr(assignment bashAst.IAssignmentExpr) er
 	return nil
 }
 
+func (self *Assembler) evalBreakExpr(breakExpr bashAst.IStatement) error {
+	self.writeLnWithTabsToFile("break")
+	return nil
+}
+
 func (self *Assembler) evalCallExpr(callExpr bashAst.ICallExpr) error {
 	// Check for native ScriLa functions that do not exist as Batch function
 	if fn, ok := self.nativeScrilaFuncs[callExpr.GetFuncName()]; ok {
@@ -38,6 +43,11 @@ func (self *Assembler) evalCallExpr(callExpr bashAst.ICallExpr) error {
 		self.writeToFile(fmt.Sprintf(" %s", bash))
 	}
 	self.writeLnToFile("")
+	return nil
+}
+
+func (self *Assembler) evalContinueExpr(continueExpr bashAst.IStatement) error {
+	self.writeLnWithTabsToFile("continue")
 	return nil
 }
 

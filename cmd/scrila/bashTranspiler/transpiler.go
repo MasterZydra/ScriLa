@@ -91,6 +91,9 @@ func (self *Transpiler) transpile(astNode scrilaAst.IStatement, env *Environment
 	case scrilaAst.ReturnExprNode:
 		return self.evalReturnExpr(scrilaAst.ExprToReturnExpr(astNode), env)
 
+	case scrilaAst.BreakExprNode, scrilaAst.ContinueExprNode:
+		return self.evalWhileExitKeywords(astNode, env)
+
 	// Handle Statements
 	case scrilaAst.CommentNode:
 		self.appendUserBody(bashAst.NewComment(scrilaAst.ExprToComment(astNode).GetComment()))

@@ -111,6 +111,12 @@ func (self *BinaryOpExpr) GetOperator() string {
 	return self.operator
 }
 
+// BreakExpr
+
+func NewBreakExpr() *Statement {
+	return NewStatement(BreakExprNode)
+}
+
 // CallExpr
 
 type ICallExpr interface {
@@ -153,6 +159,12 @@ func (self *CallExpr) GetFuncName() string {
 
 func (self *CallExpr) GetArgs() []IStatement {
 	return self.args
+}
+
+// ContinueExpr
+
+func NewContinueExpr() *Statement {
+	return NewStatement(ContinueExprNode)
 }
 
 // ReturnExpr
