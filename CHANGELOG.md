@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## v0.1.1-alpha
+
 ### Added
 
 - Added output of the error message to tests that should pass and generate Bash code
