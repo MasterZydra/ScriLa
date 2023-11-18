@@ -397,6 +397,13 @@ func ExampleFuncDeclarationWithCall() {
 		}
 		int sum = add(i, 321);
 		printLn(add(123, 321));
+
+		# Functions without body
+		func emptyBody() void {
+		}
+		func emptyBodyJustComment() void {
+			# Do smth
+		}
 	`)
 
 	// Output:
@@ -439,6 +446,17 @@ func ExampleFuncDeclarationWithCall() {
 	// sum=${tmpInt}
 	// add 123 321
 	// echo "${tmpInt}"
+	// # Functions without body
+	// # emptyBody() void
+	// emptyBody () {
+	// 	:
+	// }
+	//
+	// # emptyBodyJustComment() void
+	// emptyBodyJustComment () {
+	// 	# Do smth
+	// 	:
+	// }
 }
 
 func TestErrorFuncCallWithWrongTypes(t *testing.T) {

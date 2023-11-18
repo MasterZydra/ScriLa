@@ -6,16 +6,22 @@ import (
 )
 
 func (self *Assembler) assembleBody(stmts []bashAst.IStatement) error {
-	// Empty functions/if blocks/while blocks are not allowed in Bash
-	if len(stmts) == 0 {
-		self.writeLnWithTabsToFile(":")
-		return nil
-	}
-
+	isBodyEmpty := true
 	for _, stmt := range stmts {
+		// The body of if/while/function with just Bash comment still counts as empty
+		// and throws an error if it is executed.
+		if stmt.GetKind() != bashAst.CommentNode {
+			isBodyEmpty = false
+		}
+
 		if err := self.assemble(stmt); err != nil {
 			return err
 		}
+	}
+	// Empty functions/if blocks/while blocks are not allowed in Bash
+	if isBodyEmpty {
+		self.writeLnWithTabsToFile(":")
+		return nil
 	}
 	return nil
 }

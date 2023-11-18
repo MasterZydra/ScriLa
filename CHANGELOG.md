@@ -19,8 +19,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 
 - Fixed invalid Bash code if a binary comparison was used as function argument
-- Fixed invalid bash code if a binary boolean operation was used as function argument or assignment
+- Fixed invalid Bash code if a binary boolean operation was used as function argument or assignment
 - Fixed transpilation for the "break" and "continue" keyword #4
+- Fixed invalid Bash code if the body of if/while/function was just a comment
 
 ### Removed
 

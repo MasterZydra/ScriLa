@@ -62,13 +62,13 @@ func ExampleWhile() {
 		while (true && false) {
 			printLn("true");
 			break;
+			continue;
 		}
 		while (true || false) {
 		}
 		bool b = true;
 		while (b) {
-			printLn("true");
-			continue;
+			# Do smth
 		}
 	`)
 
@@ -81,6 +81,7 @@ func ExampleWhile() {
 	// do
 	// 	echo "true"
 	// 	break
+	// 	continue
 	// done
 	// while [[ "true" == "true" ]] || [[ "false" == "true" ]]
 	// do
@@ -89,8 +90,8 @@ func ExampleWhile() {
 	// b="true"
 	// while [[ "${b}" == "true" ]]
 	// do
-	// 	echo "true"
-	// 	continue
+	// 	# Do smth
+	// 	:
 	// done
 }
 
@@ -188,7 +189,7 @@ func ExampleIf() {
 		}
 		bool b = true;
 		if (b) {
-			printLn("true");
+			# Do smth
 		}
 		str intStr = "123";
 		if (strIsInt(intStr)) {
@@ -227,7 +228,8 @@ func ExampleIf() {
 	// b="true"
 	// if [[ "${b}" == "true" ]]
 	// then
-	// 	echo "true"
+	// 	# Do smth
+	// 	:
 	// fi
 	// intStr="123"
 	// strIsInt "${intStr}"
