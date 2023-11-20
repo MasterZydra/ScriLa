@@ -27,7 +27,7 @@ func (self *Assembler) assembleBody(stmts []bashAst.IStatement) error {
 }
 
 func stmtToBashConditionStr(stmt bashAst.IStatement) (string, error) {
-	bash, err := stmtToBashStr(stmt)
+	bash, err := stmtToRhsBashStr(stmt)
 	if err != nil {
 		return "", err
 	}
@@ -100,11 +100,11 @@ func stmtToBashStr(stmt bashAst.IStatement) (string, error) {
 }
 
 func binCompToBashStr(binOp bashAst.IBinaryOpExpr) (string, error) {
-	lhs, err := stmtToBashStr(binOp.GetLeft())
+	lhs, err := stmtToRhsBashStr(binOp.GetLeft())
 	if err != nil {
 		return "", err
 	}
-	rhs, err := stmtToBashStr(binOp.GetRight())
+	rhs, err := stmtToRhsBashStr(binOp.GetRight())
 	if err != nil {
 		return "", err
 	}
@@ -112,7 +112,7 @@ func binCompToBashStr(binOp bashAst.IBinaryOpExpr) (string, error) {
 	// https://devmanual.gentoo.org/tools-reference/bash/index.html
 	switch binOp.GetDataType() {
 	case bashAst.BoolLiteralNode, bashAst.StrLiteralNode:
-		return fmt.Sprintf("[[ %s %s %s ]]", strToBashStr(lhs), binOp.GetOperator(), strToBashStr(rhs)), nil
+		return fmt.Sprintf("[[ %s %s %s ]]", lhs, binOp.GetOperator(), rhs), nil
 	case bashAst.IntLiteralNode:
 		opMapping := map[string]string{">": "-gt", "<": "-lt", ">=": "-ge", "<=": "-le", "==": "-eq", "!=": "-ne"}
 		return fmt.Sprintf("[[ %s %s %s ]]", lhs, opMapping[binOp.GetOperator()], rhs), nil
@@ -133,7 +133,13 @@ func binOpToBashStr(binOp bashAst.IBinaryOpExpr) (string, error) {
 
 	switch binOp.GetDataType() {
 	case bashAst.BoolLiteralNode:
-		return fmt.Sprintf("%s %s %s", strToBashBoolComparison(lhs), binOp.GetOperator(), strToBashBoolComparison(rhs)), nil
+		if binOp.GetLeft().GetKind() == bashAst.BoolLiteralNode {
+			lhs = strToBashBoolComparison(strToBashStr(lhs))
+		}
+		if binOp.GetRight().GetKind() == bashAst.BoolLiteralNode {
+			rhs = strToBashBoolComparison(strToBashStr(rhs))
+		}
+		return fmt.Sprintf("%s %s %s", lhs, binOp.GetOperator(), rhs), nil
 	case bashAst.IntLiteralNode:
 		return fmt.Sprintf("$((%s %s %s))", lhs, binOp.GetOperator(), rhs), nil
 	case bashAst.StrLiteralNode:
@@ -150,7 +156,7 @@ func binOpToBashStr(binOp bashAst.IBinaryOpExpr) (string, error) {
 
 // Return a bash comparision to represent a bool (true|false)
 func strToBashBoolComparison(value string) string {
-	return fmt.Sprintf("[[ %s == \"true\" ]]", strToBashStr(value))
+	return fmt.Sprintf("[[ %s == \"true\" ]]", value)
 }
 
 // Returns the given string wrapped in double quotes

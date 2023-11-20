@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Added native function `exit`
 
+### Fixed
+
+- Fixed invalid Bash code if a binary comparision has a binary operation on one side
+
 ## v0.1.1-alpha
 
 ### Added

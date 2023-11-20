@@ -275,6 +275,9 @@ func ExampleIfComparisons() {
 		}
 		if (s != "str") {
 		}
+		# Combined comparisions
+		if ( s== "true" || s== "false") {}
+		if ( s== "true" || true) {}
 	`)
 
 	// Output:
@@ -326,4 +329,14 @@ func ExampleIfComparisons() {
 	// then
 	// 	:
 	// fi
+	// # Combined comparisions
+	// if [[ "${s}" == "true" ]] || [[ "${s}" == "false" ]]
+	// then
+	// 	:
+	// fi
+	// if [[ "${s}" == "true" ]] || [[ "true" == "true" ]]
+	// then
+	// 	:
+	// fi
+
 }
