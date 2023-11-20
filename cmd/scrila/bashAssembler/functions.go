@@ -9,10 +9,20 @@ type nativeScrilaFunc func(args []bashAst.IStatement) error
 
 func (self *Assembler) registerNativeScrilaFuncs() {
 	self.nativeScrilaFuncs = map[string]nativeScrilaFunc{
+		"exit":    self.nativeFnExit,
 		"print":   self.nativeFnPrint,
 		"printLn": self.nativeFnPrintLn,
 		"sleep":   self.nativeFnSleep,
 	}
+}
+
+func (self *Assembler) nativeFnExit(args []bashAst.IStatement) error {
+	bash, err := stmtToBashStr(args[0])
+	if err != nil {
+		return err
+	}
+	self.writeLnWithTabsToFile(fmt.Sprintf("exit %s", bash))
+	return nil
 }
 
 func (self *Assembler) nativeFnPrint(args []bashAst.IStatement) error {

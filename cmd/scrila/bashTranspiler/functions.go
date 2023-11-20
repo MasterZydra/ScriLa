@@ -16,6 +16,7 @@ func (self *Transpiler) declareNativeFunctions(env *Environment) {
 	env.declareFunc("strIsInt", NewNativeFunc(self.nativeStrIsInt, scrilaAst.BoolLiteralNode))
 	env.declareFunc("strToInt", NewNativeFunc(self.nativeStrToInt, scrilaAst.IntLiteralNode))
 	env.declareFunc("exec", NewNativeFunc(self.nativeExec, scrilaAst.VoidNode))
+	env.declareFunc("exit", NewNativeFunc(self.nativeExit, scrilaAst.VoidNode))
 }
 
 func (self *Transpiler) nativePrintLn(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
@@ -154,6 +155,25 @@ func (self *Transpiler) nativeExec(args []scrilaAst.IExpr, env *Environment) (sc
 		funcDecl.AppendParams(bashAst.NewFuncParameter("command", bashAst.StrLiteralNode))
 		funcDecl.AppendBody(bashAst.NewBashStmt("${command}"))
 		self.bashProgram.AppendNativeBody(funcDecl)
+	}
+
+	return NewNullVal(), nil
+}
+
+func (self *Transpiler) nativeExit(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
+	self.printFuncName("")
+
+	// Validate args
+	if len(args) != 1 {
+		return NewNullVal(), fmt.Errorf("Expected syntax: exit(int code)")
+	}
+
+	doMatch, givenType, err := self.exprIsType(args[0], scrilaAst.IntLiteralNode, env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+	if !doMatch {
+		return NewNullVal(), fmt.Errorf("exit() - Parameter value must be a int or a variable of type int. Got '%s'", givenType)
 	}
 
 	return NewNullVal(), nil

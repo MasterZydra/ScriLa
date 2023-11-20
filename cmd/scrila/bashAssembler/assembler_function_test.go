@@ -52,6 +52,44 @@ func ExampleExec() {
 	// exec "${cmd}"
 }
 
+// -------- Native function "Exit" --------
+
+func TestErrorExitWithoutValue(t *testing.T) {
+	initTest()
+	err := transpileTest(`exit();`)
+	expected := fmt.Errorf("test.scri:1:1: Expected syntax: exit(int code)")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorExitWithWrongArgType(t *testing.T) {
+	initTest()
+	err := transpileTest(`exit("123");`)
+	expected := fmt.Errorf("test.scri:1:1: exit() - Parameter value must be a int or a variable of type int. Got 'StrLiteral'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func ExampleExit() {
+	initTestForPrintMode()
+	transpileTest(`
+		exit(0);
+		int code = 1;
+		exit(code);
+	`)
+
+	// Output:
+	// #!/bin/bash
+	//
+	// # User script
+	//
+	// exit 0
+	// code=1
+	// exit ${code}
+}
+
 // -------- Native function "Input" --------
 
 func TestErrorInputFuncCallWithWrongParamVarType(t *testing.T) {

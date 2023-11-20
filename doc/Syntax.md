@@ -14,6 +14,7 @@
   - [While](#while)
 - [Native functions](#native-functions)
   - [Exec](#exec)
+  - [Exit](#exit)
   - [Input](#input)
   - [Print](#print)
   - [Sleep](#sleep)
@@ -219,6 +220,22 @@ exec("touch test.txt");
 
 str cmd = "touch test.txt";
 exec(cmd);
+```
+
+[Back to top](#syntax)
+
+## Exit
+The native function `exit` exits the current script with a status code.
+
+**Syntax**  
+```Python
+exit(int code) void
+```
+
+**Example**  
+```Python
+exit(0); # Success
+exit(1); # Error
 ```
 
 [Back to top](#syntax)
