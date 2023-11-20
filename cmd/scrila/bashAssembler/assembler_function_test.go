@@ -257,6 +257,57 @@ func ExampleSleep() {
 	// sleep ${i}
 }
 
+// -------- Native function "StrIsBool" --------
+
+func TestErrorStrIsBoolWithoutValue(t *testing.T) {
+	initTest()
+	err := transpileTest(`strIsBool();`)
+	expected := fmt.Errorf("test.scri:1:1: Expected syntax: strIsBool(str value)")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorStrIsBoolWithWrongArgType(t *testing.T) {
+	initTest()
+	err := transpileTest(`strIsBool(123);`)
+	expected := fmt.Errorf("test.scri:1:1: strIsBool() - Parameter value must be a string or a variable of type string. Got 'IntLiteral'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func ExampleStrIsBool() {
+	initTestForPrintMode()
+	transpileTest(`
+		bool b = strIsBool("10");
+		b = strIsBool("true");
+	`)
+
+	// Output:
+	// #!/bin/bash
+	//
+	// # Native function implementations
+	//
+	// # strIsBool(str value) bool
+	// strIsBool () {
+	// 	local value=$1
+	// 	if [[ "${value}" == "true" ]] || [[ "${value}" == "false" ]]
+	// 	then
+	// 		tmpBool="true"
+	// 	else
+	// 		tmpBool="false"
+	// 	fi
+	// }
+	//
+	// # User script
+	//
+	// strIsInt "10"
+	// b="${tmpBool}"
+	// strIsInt "str"
+	// b="${tmpBool}"
+}
+
 // -------- Native function "StrIsInt" --------
 
 func TestErrorStrIsIntWithoutValue(t *testing.T) {

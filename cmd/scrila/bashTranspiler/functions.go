@@ -9,14 +9,15 @@ import (
 )
 
 func (self *Transpiler) declareNativeFunctions(env *Environment) {
+	env.declareFunc("exec", NewNativeFunc(self.nativeExec, scrilaAst.VoidNode))
+	env.declareFunc("exit", NewNativeFunc(self.nativeExit, scrilaAst.VoidNode))
 	env.declareFunc("input", NewNativeFunc(self.nativeInput, scrilaAst.StrLiteralNode))
 	env.declareFunc("print", NewNativeFunc(self.nativePrintLn, scrilaAst.VoidNode))
 	env.declareFunc("printLn", NewNativeFunc(self.nativePrintLn, scrilaAst.VoidNode))
 	env.declareFunc("sleep", NewNativeFunc(self.nativeSleep, scrilaAst.VoidNode))
+	env.declareFunc("strIsBool", NewNativeFunc(self.nativeStrIsBool, scrilaAst.BoolLiteralNode))
 	env.declareFunc("strIsInt", NewNativeFunc(self.nativeStrIsInt, scrilaAst.BoolLiteralNode))
 	env.declareFunc("strToInt", NewNativeFunc(self.nativeStrToInt, scrilaAst.IntLiteralNode))
-	env.declareFunc("exec", NewNativeFunc(self.nativeExec, scrilaAst.VoidNode))
-	env.declareFunc("exit", NewNativeFunc(self.nativeExit, scrilaAst.VoidNode))
 }
 
 func (self *Transpiler) nativePrintLn(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
@@ -69,6 +70,43 @@ func (self *Transpiler) nativeSleep(args []scrilaAst.IExpr, env *Environment) (s
 	}
 
 	return NewNullVal(), nil
+}
+
+func (self *Transpiler) nativeStrIsBool(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
+	self.printFuncName("")
+
+	// Validate args
+	if len(args) != 1 {
+		return NewNullVal(), fmt.Errorf("Expected syntax: strIsBool(str value)")
+	}
+
+	doMatch, givenType, err := self.exprIsType(args[0], scrilaAst.StrLiteralNode, env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+	if !doMatch {
+		return NewNullVal(), fmt.Errorf("strIsBool() - Parameter value must be a string or a variable of type string. Got '%s'", givenType)
+	}
+
+	// Add bash code for strIsBool to "usedNativeFunctions"
+	if !slices.Contains(self.usedNativeFunctions, "strIsBool") {
+		self.usedNativeFunctions = append(self.usedNativeFunctions, "strIsBool")
+		funcDecl := bashAst.NewFuncDeclaration("strIsBool", bashAst.BoolLiteralNode)
+		funcDecl.AppendParams(bashAst.NewFuncParameter("value", bashAst.StrLiteralNode))
+		cond := bashAst.NewBinaryOpExpr(
+			bashAst.BoolLiteralNode,
+			bashAst.NewBinaryCompExpr(bashAst.BoolLiteralNode, bashAst.NewVarLiteral("value", bashAst.StrLiteralNode), bashAst.NewStrLiteral("true"), "=="),
+			bashAst.NewBinaryCompExpr(bashAst.BoolLiteralNode, bashAst.NewVarLiteral("value", bashAst.StrLiteralNode), bashAst.NewStrLiteral("false"), "=="),
+			"||")
+		ifStmt := bashAst.NewIfStmt(cond)
+		ifStmt.AppendBody(bashAst.NewBashStmt("tmpBool=\"true\""))
+		elseStmt := bashAst.NewIfStmt(nil)
+		elseStmt.AppendBody(bashAst.NewBashStmt("tmpBool=\"false\""))
+		ifStmt.SetElse(elseStmt)
+		funcDecl.AppendBody(ifStmt)
+		self.bashProgram.AppendNativeBody(funcDecl)
+	}
+	return NewBoolVal(true), nil
 }
 
 func (self *Transpiler) nativeStrIsInt(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {

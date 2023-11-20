@@ -18,6 +18,7 @@
   - [Input](#input)
   - [Print](#print)
   - [Sleep](#sleep)
+  - [StrIsBool](#strisbool)
   - [StrIsInt](#strisint)
   - [StrToInt](#strtoint)
 - [User defined functions](#user-defined-functions)
@@ -292,6 +293,20 @@ sleep(10);
 ```
 
 [Back to top](#syntax)
+
+## StrIsBool
+The native function `strIsBool` checks if the given string is a bool so that it could be converted to a string e.g. with `strToBool`.
+
+**Syntax**  
+```Python
+strIsBool(str value) bool
+```
+
+**Example**  
+```Python
+strIsBool("true"); # true
+strIsBool("str"); # false
+```
 
 ## StrIsInt
 The native function `strIsInt` checks if the given string is a number so that it could be converted to a string e.g. with `strToInt`.
