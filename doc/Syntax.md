@@ -2,7 +2,7 @@
 
 **Content**  
 - [Variables](#variables)
-  - [Bool variables](#bool-variables)
+  - [Boolean variables](#boolean-variables)
   - [Integer variables](#integer-variables)
   - [String variables](#string-variables)
 - [Comparisons](#comparisons)
@@ -20,6 +20,7 @@
   - [Sleep](#sleep)
   - [StrIsBool](#strisbool)
   - [StrIsInt](#strisint)
+  - [StrToBool](#strtobool)
   - [StrToInt](#strtoint)
 - [User defined functions](#user-defined-functions)
   - [Without parameters](#without-parameters)
@@ -31,7 +32,7 @@ A variable can store a specified type of value e.g. `int`, `string`, `bool`. Thi
 
 [Back to top](#syntax)
 
-## Bool variables
+## Boolean variables
 A boolean variable can only store the values `true` and `false`.
 
 **Example**  
@@ -65,12 +66,12 @@ s += "World";
 [Back to top](#syntax)
 
 # Comparisons
-Two values can be compared with a bool as return value. This way the result of the comparison can be used in a condition of an `if` or `while` control structure.
+Two values can be compared with a boolean as return value. This way the result of the comparison can be used in a condition of an `if` or `while` control structure.
 
 [Back to top](#syntax)
 
 ## Comparing Booleans
-The comparison of bool values allows the equal and unequal operation.
+The comparison of boolean values allows the equal and unequal operation.
 
 **Example**  
 ```Python
@@ -295,7 +296,7 @@ sleep(10);
 [Back to top](#syntax)
 
 ## StrIsBool
-The native function `strIsBool` checks if the given string is a bool so that it could be converted to a string e.g. with `strToBool`.
+The native function `strIsBool` checks if the given string is a boolean so that it could be converted to a string e.g. with `strToBool`.
 
 **Syntax**  
 ```Python
@@ -320,6 +321,24 @@ strIsInt(str value) bool
 ```Python
 strIsInt("123"); # true
 strIsInt("str"); # false
+```
+
+[Back to top](#syntax)
+
+## StrToBool
+The native function `strToBool` takes a given string and tries to convert it into a boolean value.
+
+**Syntax**  
+```Python
+strToBool(str value) bool
+```
+
+**Example**  
+```Python
+str s = "123";
+bool b1 = strToBool(s); # b = false
+bool b2 = strTobool("true") # b = true
+bool b3 = strTobool("false") # b = false
 ```
 
 [Back to top](#syntax)

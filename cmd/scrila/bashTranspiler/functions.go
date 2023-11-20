@@ -17,6 +17,7 @@ func (self *Transpiler) declareNativeFunctions(env *Environment) {
 	env.declareFunc("sleep", NewNativeFunc(self.nativeSleep, scrilaAst.VoidNode))
 	env.declareFunc("strIsBool", NewNativeFunc(self.nativeStrIsBool, scrilaAst.BoolLiteralNode))
 	env.declareFunc("strIsInt", NewNativeFunc(self.nativeStrIsInt, scrilaAst.BoolLiteralNode))
+	env.declareFunc("strToBool", NewNativeFunc(self.nativeStrToBool, scrilaAst.BoolLiteralNode))
 	env.declareFunc("strToInt", NewNativeFunc(self.nativeStrToInt, scrilaAst.IntLiteralNode))
 }
 
@@ -135,6 +136,39 @@ func (self *Transpiler) nativeStrIsInt(args []scrilaAst.IExpr, env *Environment)
 		funcDecl.AppendBody(bashAst.NewBashStmt("\t''|*[!0-9]*) tmpBool=\"false\" ;;"))
 		funcDecl.AppendBody(bashAst.NewBashStmt("\t*) tmpBool=\"true\" ;;"))
 		funcDecl.AppendBody(bashAst.NewBashStmt("esac"))
+		self.bashProgram.AppendNativeBody(funcDecl)
+	}
+	return NewBoolVal(true), nil
+}
+
+func (self *Transpiler) nativeStrToBool(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
+	self.printFuncName("")
+
+	// Validate args
+	if len(args) != 1 {
+		return NewNullVal(), fmt.Errorf("Expected syntax: strToBool(str value)")
+	}
+
+	doMatch, givenType, err := self.exprIsType(args[0], scrilaAst.StrLiteralNode, env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+	if !doMatch {
+		return NewNullVal(), fmt.Errorf("strToBool() - Parameter value must be a string or a variable of type string. Got '%s'", givenType)
+	}
+
+	// Add bash code for strToBool to "usedNativeFunctions"
+	if !slices.Contains(self.usedNativeFunctions, "strToBool") {
+		self.usedNativeFunctions = append(self.usedNativeFunctions, "strToBool")
+		funcDecl := bashAst.NewFuncDeclaration("strToBool", bashAst.BoolLiteralNode)
+		funcDecl.AppendParams(bashAst.NewFuncParameter("value", bashAst.StrLiteralNode))
+		cond := bashAst.NewBinaryCompExpr(bashAst.BoolLiteralNode, bashAst.NewVarLiteral("value", bashAst.StrLiteralNode), bashAst.NewStrLiteral("true"), "==")
+		ifStmt := bashAst.NewIfStmt(cond)
+		ifStmt.AppendBody(bashAst.NewBashStmt("tmpBool=\"true\""))
+		elseStmt := bashAst.NewIfStmt(nil)
+		elseStmt.AppendBody(bashAst.NewBashStmt("tmpBool=\"false\""))
+		ifStmt.SetElse(elseStmt)
+		funcDecl.AppendBody(ifStmt)
 		self.bashProgram.AppendNativeBody(funcDecl)
 	}
 	return NewBoolVal(true), nil

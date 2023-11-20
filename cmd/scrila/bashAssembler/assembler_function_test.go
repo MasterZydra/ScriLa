@@ -302,9 +302,9 @@ func ExampleStrIsBool() {
 	//
 	// # User script
 	//
-	// strIsInt "10"
+	// strIsBool "10"
 	// b="${tmpBool}"
-	// strIsInt "str"
+	// strIsBool "true"
 	// b="${tmpBool}"
 }
 
@@ -355,6 +355,57 @@ func ExampleStrIsInt() {
 	// b="${tmpBool}"
 	// strIsInt "str"
 	// b="${tmpBool}"
+}
+
+// -------- Native function "StrToBool" --------
+
+func TestErrorStrToBoolWithoutValue(t *testing.T) {
+	initTest()
+	err := transpileTest(`strToBool();`)
+	expected := fmt.Errorf("test.scri:1:1: Expected syntax: strToBool(str value)")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorStrToBoolWithWrongArgType(t *testing.T) {
+	initTest()
+	err := transpileTest(`strToBool(123);`)
+	expected := fmt.Errorf("test.scri:1:1: strToBool() - Parameter value must be a string or a variable of type string. Got 'IntLiteral'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func ExampleStrToBool() {
+	initTestForPrintMode()
+	transpileTest(`
+		bool b1 = strToBool("true");
+		bool b2 = strToBool("false");
+	`)
+
+	// Output:
+	// #!/bin/bash
+	//
+	// # Native function implementations
+	//
+	// # strToBool(str value) bool
+	// strToBool () {
+	// 	local value=$1
+	// 	if [[ "${value}" == "true" ]]
+	// 	then
+	// 		tmpBool="true"
+	// 	else
+	// 		tmpBool="false"
+	// 	fi
+	// }
+	//
+	// # User script
+	//
+	// strToBool "true"
+	// b1="${tmpBool}"
+	// strToBool "false"
+	// b2="${tmpBool}"
 }
 
 // -------- Native function "StrToInt" --------
