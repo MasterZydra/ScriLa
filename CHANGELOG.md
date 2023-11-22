@@ -6,11 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## v0.1.2-alpha
+
 ### Added
 
 - Added native function `exit`
 - Added native function `strIsBool`
 - Added native function `strToBool`
+
+### Changed
+
+- Changed release pipeline to zip the executables and name each of them "scrila"
 
 ### Fixed
 

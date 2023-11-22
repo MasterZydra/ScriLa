@@ -24,15 +24,40 @@ jobs:
     - name: Compile
       run: |
         # Windows
-        GOOS=windows GOARCH=amd64 go build -o bin/scrila-amd64.exe ./cmd/scrila/main.go
-        GOOS=windows GOARCH=386 go build -o bin/scrila-386.exe ./cmd/scrila/main.go
+        GOOS=windows GOARCH=amd64 go build -o bin/scrila.exe ./cmd/scrila/main.go
+        cd bin
+        zip scrila-amd64-windows.zip scrila.exe
+        rm scrila.exe
+        cd ..
+
+        GOOS=windows GOARCH=386 go build -o bin/scrila.exe ./cmd/scrila/main.go
+        cd bin
+        zip scrila-386-windows.zip scrila.exe
+        rm scrila.exe
+        cd ..
 
         # macOS
-        GOOS=darwin GOARCH=amd64 go build -o bin/scrila-amd64-darwin ./cmd/scrila/main.go
+        GOOS=darwin GOARCH=amd64 go build -o bin/scrila ./cmd/scrila/main.go
+        cd bin
+        chmod +x scrila
+        zip scrila-amd64-macOS.zip scrila
+        rm scrila
+        cd ..
 
         # Linux
-        GOOS=linux GOARCH=amd64 go build -o bin/scrila-amd64-linux ./cmd/scrila/main.go
-        GOOS=linux GOARCH=386 go build -o bin/scrila-386-linux ./cmd/scrila/main.go
+        GOOS=linux GOARCH=amd64 go build -o bin/scrila ./cmd/scrila/main.go
+        cd bin
+        chmod +x scrila
+        zip scrila-amd64-linux.zip scrila
+        rm scrila
+        cd ..
+
+        GOOS=linux GOARCH=386 go build -o bin/scrila ./cmd/scrila/main.go
+        cd bin
+        chmod +x scrila
+        zip scrila-386-linux.zip scrila
+        rm scrila
+        cd ..
 
     - uses: "marvinpinto/action-automatic-releases@latest"
       with:
