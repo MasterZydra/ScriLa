@@ -64,12 +64,12 @@ const (
 	Colon        TokenType = "Colon"
 	Dot          TokenType = "Dot"
 	Equals       TokenType = "Equals"
-	OpenBrace    TokenType = "OpenBrace"  // {
-	CloseBrace   TokenType = "CloseBrace" // }
-	OpenBracket  TokenType = "OpenBrace"  // [
-	CloseBracket TokenType = "CloseBrace" // ]
-	OpenParen    TokenType = "OpenParen"  // (
-	CloseParen   TokenType = "CloseParen" // )
+	OpenBrace    TokenType = "OpenBrace"    // {
+	CloseBrace   TokenType = "CloseBrace"   // }
+	OpenBracket  TokenType = "OpenBracket"  // [
+	CloseBracket TokenType = "CloseBracket" // ]
+	OpenParen    TokenType = "OpenParen"    // (
+	CloseParen   TokenType = "CloseParen"   // )
 	EndOfFile    TokenType = "EOF"
 	// Variables
 	Identifier TokenType = "Identifier"

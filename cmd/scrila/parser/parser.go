@@ -179,7 +179,7 @@ func (self *Parser) parseIfStatement(isElse bool) (scrilaAst.IStatement, error) 
 
 	body := make([]scrilaAst.IStatement, 0)
 
-	for self.notEOF() && self.at().TokenType != lexer.CloseBracket {
+	for self.notEOF() && self.at().TokenType != lexer.CloseBrace {
 		statement, err := self.parseStatement()
 		if err != nil {
 			return scrilaAst.NewEmptyStatement(), err
@@ -232,7 +232,7 @@ func (self *Parser) parserWhileStatement() (scrilaAst.IStatement, error) {
 
 	body := make([]scrilaAst.IStatement, 0)
 
-	for self.notEOF() && self.at().TokenType != lexer.CloseBracket {
+	for self.notEOF() && self.at().TokenType != lexer.CloseBrace {
 		statement, err := self.parseStatement()
 		if err != nil {
 			return scrilaAst.NewEmptyStatement(), err
@@ -281,7 +281,7 @@ func (self *Parser) parseFunctionDeclaration() (scrilaAst.IStatement, error) {
 
 	body := make([]scrilaAst.IStatement, 0)
 
-	for self.notEOF() && self.at().TokenType != lexer.CloseBracket {
+	for self.notEOF() && self.at().TokenType != lexer.CloseBrace {
 		statement, err := self.parseStatement()
 		if err != nil {
 			return scrilaAst.NewEmptyStatement(), err
