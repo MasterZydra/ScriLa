@@ -1,5 +1,12 @@
 package scrilaAst
 
+import (
+	"fmt"
+	"strings"
+
+	"golang.org/x/exp/slices"
+)
+
 func ExprToProgram(expr IExpr) IProgram {
 	var i interface{} = expr
 	return i.(IProgram)
@@ -61,6 +68,11 @@ func ExprToMemberExpr(expr IExpr) IMemberExpr {
 	return memberExpr
 }
 
+func ExprToArray(expr IExpr) IArray {
+	var i interface{} = expr
+	return i.(IArray)
+}
+
 func ExprToBoolLit(expr IExpr) IBoolLiteral {
 	var i interface{} = expr
 	return i.(IBoolLiteral)
@@ -79,4 +91,57 @@ func ExprToStrLit(expr IExpr) IStrLiteral {
 func ExprToObjLit(expr IExpr) IObjectLiteral {
 	var i interface{} = expr
 	return i.(IObjectLiteral)
+}
+
+var dataTypeToArrayMapping = map[NodeType]NodeType{
+	BoolLiteralNode: BoolArrayNode,
+	IntLiteralNode:  IntArrayNode,
+	StrLiteralNode:  StrArrayNode,
+}
+
+func DataTypeToArrayType(dataType NodeType) (NodeType, error) {
+	value, ok := dataTypeToArrayMapping[dataType]
+	if !ok {
+		return ProgramNode, fmt.Errorf("DataTypeToArray(): Type '%s' is not in mapping", dataType)
+	}
+	return value, nil
+}
+
+func ArrayTypeToDataType(arrayType NodeType) (NodeType, error) {
+	for k, v := range dataTypeToArrayMapping {
+		if v == arrayType {
+			return k, nil
+		}
+	}
+	return "", fmt.Errorf("ArrayTypeToDataType(): Type '%s' is not in mapping", arrayType)
+}
+
+var ComparisonOps = []string{"<", ">", "<=", ">=", "!=", "=="}
+
+func BinExprIsComp(binOp IBinaryExpr) bool {
+	return slices.Contains(ComparisonOps, binOp.GetOperator())
+}
+
+var BooleanOps = []string{"||", "&&"}
+
+func BinExprIsBoolOp(binOp IBinaryExpr) bool {
+	return slices.Contains(BooleanOps, binOp.GetOperator())
+}
+
+func BinExprReturnsBool(binOp IBinaryExpr) bool {
+	return BinExprIsBoolOp(binOp) || BinExprIsComp(binOp)
+}
+
+var indentDepth int = 0
+
+func indent() string {
+	return strings.Repeat("  ", indentDepth+1)
+}
+
+func SprintAST(program IProgram) string {
+	astString := ""
+	for _, stmt := range program.GetBody() {
+		astString += fmt.Sprintf("%s%s\n", indent(), stmt)
+	}
+	return astString
 }

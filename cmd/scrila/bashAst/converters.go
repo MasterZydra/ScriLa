@@ -5,6 +5,11 @@ import (
 	"strings"
 )
 
+func StmtToArray(stmt IStatement) IArray {
+	var i interface{} = stmt
+	return i.(IArray)
+}
+
 func StmtToAssignmentExpr(stmt IStatement) IAssignmentExpr {
 	var i interface{} = stmt
 	return i.(IAssignmentExpr)

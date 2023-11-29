@@ -405,3 +405,47 @@ func ExampleBoolAssignComparision() {
 	// b "${tmpBool}"
 	// b="${tmpBool}"
 }
+
+// Array
+
+func TestErrorArrayAssignWrongArrayVarType(t *testing.T) {
+	initTest()
+	err := transpileTest(`int[] i = ["str"];`)
+	expected := fmt.Errorf("test.scri:1:11: Cannot assign a value of type 'StrLiteral' to a var of type 'IntArray'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func ExampleArray() {
+	initTestForPrintMode()
+	transpileTest(`
+		# Declare
+		# Empty array
+		int[] i1 = [];
+		# Array with value
+		int[] i2 = [42];
+
+		# Assign
+		# Empty array
+		i1 = [];
+		# Array with value
+		i2 = [42];
+	`)
+
+	// Output:
+	// #!/bin/bash
+	//
+	// # User script
+	//
+	// # Declare
+	// # Empty array
+	// i1=()
+	// # Array with value
+	// i2=(42)
+	// # Assign
+	// # Empty array
+	// i1=()
+	// # Array with value
+	// i2=(42)
+}

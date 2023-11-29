@@ -57,5 +57,34 @@ func (self *Transpiler) exprIsType(expr scrilaAst.IExpr, wantedType scrilaAst.No
 		return givenType == wantedType, givenType, nil
 	}
 
+	// Check array data type
+	if givenType == scrilaAst.ArrayLiteralNode {
+		array, ok := self.bashStmtStack[expr.GetId()]
+		if !ok {
+			return false, givenType, fmt.Errorf("exprIsType(): Array is not stored in stack")
+		}
+		bashArray := bashAst.StmtToArray(array)
+
+		scrilaWantedDataType, err := scrilaAst.ArrayTypeToDataType(wantedType)
+		if err != nil {
+			return false, givenType, err
+		}
+
+		if bashArray.GetDataType() == bashAst.VoidNode {
+			bashDataType, err := scrilaNodeTypeToBashNodeType(scrilaWantedDataType)
+			if err != nil {
+				return false, givenType, err
+			}
+			bashArray.SetDataType(bashDataType)
+			return true, wantedType, nil
+		}
+
+		arrayDataType, err := bashNodeTypeToScrilaNodeType(bashArray.GetDataType())
+		if err != nil {
+			return false, givenType, err
+		}
+		return scrilaWantedDataType == arrayDataType, arrayDataType, nil
+	}
+
 	return false, givenType, nil
 }

@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Added support for declaring and assigning arrays #5
+
 ### Fixed
 
 - Fixed token types for braces and brackets so that they are not the same

@@ -8,6 +8,50 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+func (self *Transpiler) evalArray(array scrilaAst.IArray, env *Environment) (scrilaAst.IRuntimeVal, error) {
+	bashArray := bashAst.NewArray()
+
+	if len(array.GetValues()) == 0 {
+		bashArray.SetDataType(bashAst.VoidNode)
+	}
+
+	for i, value := range array.GetValues() {
+		if i == 0 {
+			// Get the data type of the first element and set it as array data type
+			_, givenType, err := self.exprIsType(value, scrilaAst.NodeType(scrilaAst.NullValueType), env)
+			if err != nil {
+				return NewNullVal(), err
+			}
+
+			bashDataType, err := scrilaNodeTypeToBashNodeType(givenType)
+			if err != nil {
+				return NewNullVal(), err
+			}
+			bashArray.SetDataType(bashDataType)
+		}
+
+		// Check if the data types of the elements match with the array data type
+		scrilaDataType, err := bashNodeTypeToScrilaNodeType(bashArray.GetDataType())
+		if err != nil {
+			return NewNullVal(), err
+		}
+		doMatch, givenType, err := self.exprIsType(value, scrilaDataType, env)
+		if !doMatch {
+			return NewNullVal(), fmt.Errorf("%s: An array can only keep one data type. Wanted '%s'. Got '%s'", self.getPos(value), scrilaDataType, givenType)
+		}
+
+		bashStmt, err := self.exprToBashStmt(value, env)
+		if err != nil {
+			return NewNullVal(), err
+		}
+		bashArray.AddValue(bashStmt)
+	}
+
+	self.bashStmtStack[array.GetId()] = bashArray
+
+	return NewNullVal(), nil
+}
+
 func (self *Transpiler) evalIdentifier(identifier scrilaAst.IIdentifier, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName(identifier.GetSymbol())
 

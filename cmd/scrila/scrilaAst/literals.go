@@ -4,6 +4,65 @@ import (
 	"fmt"
 )
 
+// Array
+
+type IArray interface {
+	IExpr
+	AddValue(value IExpr)
+	GetValues() []IExpr
+}
+
+type Array struct {
+	expr   *Expr
+	values []IExpr
+}
+
+func (self *Array) String() string {
+	indentDepth++
+	str := fmt.Sprintf("{%s - id: %d", self.GetKind(), self.GetId())
+	for i, val := range self.values {
+		str += fmt.Sprintf("\n%s%d: %s", indent(), i, val)
+	}
+	indentDepth--
+	return str + "}"
+}
+
+func NewArray(ln int, col int) *Array {
+	return &Array{expr: NewExpr(ArrayLiteralNode, ln, col)}
+}
+
+func (self *Array) AddValue(value IExpr) {
+	self.values = append(self.values, value)
+}
+
+func (self *Array) GetId() int {
+	return self.expr.GetId()
+}
+
+func (self *Array) GetKind() NodeType {
+	return self.expr.GetKind()
+}
+
+func (self *Array) GetValues() []IExpr {
+	return self.values
+}
+
+func (self *Array) GetLn() int {
+	return self.expr.GetLn()
+}
+
+func (self *Array) GetCol() int {
+	return self.expr.GetCol()
+}
+
+func (self *Array) GetResult() IRuntimeVal {
+	return self.expr.GetResult()
+}
+
+func (self *Array) SetResult(value IRuntimeVal) {
+	self.expr.SetResult(value)
+}
+
 // BoolLiteral
 
 type IBoolLiteral interface {

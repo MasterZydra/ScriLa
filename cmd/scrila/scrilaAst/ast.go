@@ -27,9 +27,14 @@ const (
 	PropertyNode      NodeType = "Property"
 	ObjectLiteralNode NodeType = "ObjectLiteral"
 	IdentifierNode    NodeType = "Identifier"
-	IntLiteralNode    NodeType = "IntLiteral"
-	StrLiteralNode    NodeType = "StrLiteral"
-	BoolLiteralNode   NodeType = "BoolLiteral"
+	ArrayLiteralNode  NodeType = "Array"
+	IntLiteralNode    NodeType = "IntLiteral"  // Also data type
+	StrLiteralNode    NodeType = "StrLiteral"  // Also data type
+	BoolLiteralNode   NodeType = "BoolLiteral" // Also data type
 
-	VoidNode NodeType = "Void"
+	// Data types
+	VoidNode      NodeType = "Void"
+	BoolArrayNode NodeType = "BoolArray"
+	IntArrayNode  NodeType = "IntArray"
+	StrArrayNode  NodeType = "StrArray"
 )

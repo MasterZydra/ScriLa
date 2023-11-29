@@ -21,10 +21,11 @@ const (
 	ReturnExprNode     NodeType = "ReturnExpr"
 
 	// Literals
-	BoolLiteralNode NodeType = "BoolLiteral"
-	IntLiteralNode  NodeType = "IntLiteral"
-	StrLiteralNode  NodeType = "StrLiteral"
-	VarLiteralNode  NodeType = "VarLiteral"
+	ArrayLiteralNode NodeType = "Array"
+	BoolLiteralNode  NodeType = "BoolLiteral"
+	IntLiteralNode   NodeType = "IntLiteral"
+	StrLiteralNode   NodeType = "StrLiteral"
+	VarLiteralNode   NodeType = "VarLiteral"
 
 	VoidNode NodeType = "Void"
 )

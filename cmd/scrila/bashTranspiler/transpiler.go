@@ -61,6 +61,9 @@ func (self *Transpiler) Transpile(astNode scrilaAst.IStatement, env *Environment
 func (self *Transpiler) transpile(astNode scrilaAst.IStatement, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	switch astNode.GetKind() {
 	// Handle Expressions
+	case scrilaAst.ArrayLiteralNode:
+		return self.evalArray(scrilaAst.ExprToArray(astNode), env)
+
 	case scrilaAst.IntLiteralNode:
 		return NewIntVal(scrilaAst.ExprToIntLit(astNode).GetValue()), nil
 

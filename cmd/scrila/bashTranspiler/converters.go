@@ -34,6 +34,12 @@ func (self *Transpiler) exprToRhsBashStmt(expr scrilaAst.IExpr, env *Environment
 
 func (self *Transpiler) exprToBashStmt(expr scrilaAst.IExpr, env *Environment) (bashAst.IStatement, error) {
 	switch expr.GetKind() {
+	case scrilaAst.ArrayLiteralNode:
+		bashArray, ok := self.bashStmtStack[expr.GetId()]
+		if !ok {
+			return nil, fmt.Errorf("exprToBashStmt(): Array is not stored in stack")
+		}
+		return bashArray, nil
 	case scrilaAst.BinaryExprNode:
 		binaryBashStmt, ok := self.bashStmtStack[expr.GetId()]
 		if !ok {
@@ -91,8 +97,11 @@ func runtimeToFuncVal(runtimeVal scrilaAst.IRuntimeVal) IFunctionVal {
 }
 
 var scrilaNodeTypeToBashNodeTypeMapping = map[scrilaAst.NodeType]bashAst.NodeType{
+	scrilaAst.BoolArrayNode:   bashAst.ArrayLiteralNode,
 	scrilaAst.BoolLiteralNode: bashAst.BoolLiteralNode,
+	scrilaAst.IntArrayNode:    bashAst.ArrayLiteralNode,
 	scrilaAst.IntLiteralNode:  bashAst.IntLiteralNode,
+	scrilaAst.StrArrayNode:    bashAst.ArrayLiteralNode,
 	scrilaAst.StrLiteralNode:  bashAst.StrLiteralNode,
 	scrilaAst.VoidNode:        bashAst.VoidNode,
 }
@@ -116,6 +125,7 @@ func bashNodeTypeToScrilaNodeType(nodeType bashAst.NodeType) (scrilaAst.NodeType
 
 var scrilaNodeTypeToRuntimeValMapping = map[scrilaAst.NodeType]scrilaAst.IRuntimeVal{
 	scrilaAst.BoolLiteralNode: NewBoolVal(true),
+	scrilaAst.IntArrayNode:    NewIntVal(1),
 	scrilaAst.IntLiteralNode:  NewIntVal(1),
 	scrilaAst.VoidNode:        NewNullVal(),
 	scrilaAst.StrLiteralNode:  NewStrVal("str"),

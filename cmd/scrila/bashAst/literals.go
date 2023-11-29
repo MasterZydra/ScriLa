@@ -2,6 +2,56 @@ package bashAst
 
 import "fmt"
 
+// Array
+
+type IArray interface {
+	IStatement
+	AddValue(value IStatement)
+	GetValues() []IStatement
+	GetDataType() NodeType
+	SetDataType(dataType NodeType)
+}
+
+type Array struct {
+	stmt     *Statement
+	values   []IStatement
+	dataType NodeType
+}
+
+func (self *Array) String() string {
+	indentDepth++
+	str := fmt.Sprintf("{%s - dataType: %s", self.GetKind(), self.GetDataType())
+	for i, val := range self.values {
+		str += fmt.Sprintf("\n%s%d: %s", indent(), i, val)
+	}
+	indentDepth--
+	return str + "}"
+}
+
+func NewArray() *Array {
+	return &Array{stmt: NewStatement(ArrayLiteralNode)}
+}
+
+func (self *Array) AddValue(value IStatement) {
+	self.values = append(self.values, value)
+}
+
+func (self *Array) GetKind() NodeType {
+	return self.stmt.GetKind()
+}
+
+func (self *Array) GetValues() []IStatement {
+	return self.values
+}
+
+func (self *Array) GetDataType() NodeType {
+	return self.dataType
+}
+
+func (self *Array) SetDataType(dataType NodeType) {
+	self.dataType = dataType
+}
+
 // BoolLiteral
 
 type IBoolLiteral interface {

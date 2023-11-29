@@ -68,6 +68,9 @@ func stmtToRhsBashStr(stmt bashAst.IStatement) (string, error) {
 // Returns the bash equivalent for the given stmt e.g. without wrapping in double quotes
 func stmtToBashStr(stmt bashAst.IStatement) (string, error) {
 	switch stmt.GetKind() {
+	case bashAst.ArrayLiteralNode:
+		// e.g.: ("apple" "orange")
+		return arrayToBashStr(bashAst.StmtToArray(stmt))
 	case bashAst.BoolLiteralNode:
 		// e.g.: "true"
 		return boolToBashStr(bashAst.StmtToBoolLiteral(stmt).GetValue()), nil
@@ -162,6 +165,21 @@ func strToBashBoolComparison(value string) string {
 // Returns the given string wrapped in double quotes
 func strToBashStr(value string) string {
 	return fmt.Sprintf("\"%s\"", value)
+}
+
+func arrayToBashStr(array bashAst.IArray) (string, error) {
+	arrayContent := ""
+	for i, value := range array.GetValues() {
+		bash, err := stmtToRhsBashStr(value)
+		if err != nil {
+			return "", err
+		}
+		if i > 0 {
+			arrayContent += " "
+		}
+		arrayContent += bash
+	}
+	return fmt.Sprintf("(%s)", arrayContent), nil
 }
 
 // Returns the string "true" or "false" wrapped in double quotes
