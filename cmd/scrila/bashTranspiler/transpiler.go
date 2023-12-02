@@ -24,10 +24,12 @@ type Transpiler struct {
 	usedNativeFunctions  []string
 	userScriptTranspilat string
 
-	contexts        []Context
-	bashContexts    []bashAst.IAppendBody
-	currentFunc     IFunctionVal
-	currentBashFunc bashAst.IFuncDeclaration
+	contexts          []Context
+	bashContexts      []bashAst.IAppendBody
+	currentFunc       IFunctionVal
+	currentBashFunc   bashAst.IFuncDeclaration
+	callArgIndexStack []int
+	lastWrittenIndex  int
 
 	bashStmtStack map[int]bashAst.IStatement
 
@@ -40,6 +42,7 @@ func NewTranspiler() *Transpiler {
 		contexts:            []Context{NoContext},
 		bashContexts:        []bashAst.IAppendBody{},
 		bashStmtStack:       make(map[int]bashAst.IStatement),
+		callArgIndexStack:   []int{},
 	}
 }
 
@@ -136,6 +139,35 @@ func (self *Transpiler) contextContains(context Context) bool {
 
 func (self *Transpiler) indent(offset int) string {
 	return strings.Repeat("\t", len(self.contexts)-1-offset)
+}
+
+func (self *Transpiler) pushCallArgIndex() {
+	self.callArgIndexStack = append(self.callArgIndexStack, 1)
+}
+
+func (self *Transpiler) popCallArgIndex() {
+	self.callArgIndexStack = self.callArgIndexStack[:len(self.callArgIndexStack)-1]
+}
+
+func (self *Transpiler) currentCallArgIndex() int {
+	if len(self.callArgIndexStack) > 0 {
+		return self.callArgIndexStack[len(self.callArgIndexStack)-1]
+	}
+	return 1
+}
+
+func (self *Transpiler) incCallArgIndex() {
+	if len(self.callArgIndexStack) > 0 {
+		self.callArgIndexStack[len(self.callArgIndexStack)-1] += 1
+	}
+}
+
+func (self *Transpiler) setCallArgIndex() {
+	if self.lastWrittenIndex == self.currentCallArgIndex() {
+		return
+	}
+	self.lastWrittenIndex = self.currentCallArgIndex()
+	self.appendUserBody(bashAst.NewBashStmt(fmt.Sprintf("tmpInts[0]=%d", self.currentCallArgIndex())))
 }
 
 func (self *Transpiler) printFuncName(msg string) {

@@ -85,20 +85,6 @@ func StmtToWhileStmt(stmt IStatement) IWhileStmt {
 	return i.(IWhileStmt)
 }
 
-var tmpVarNameToBashNodeTypeMapping = map[string]NodeType{
-	"tmpBools[0]": BoolLiteralNode,
-	"tmpInts[0]":  IntLiteralNode,
-	"tmpStrs[0]":  StrLiteralNode,
-}
-
-func TmpVarNameToBashNodeType(tmpVarName string) (NodeType, error) {
-	value, ok := tmpVarNameToBashNodeTypeMapping[tmpVarName]
-	if !ok {
-		return ProgramNode, fmt.Errorf("TmpVarNamesToBashNodeType(): VarName '%s' is not in mapping", tmpVarName)
-	}
-	return value, nil
-}
-
 var indentDepth int = 0
 
 func indent() string {

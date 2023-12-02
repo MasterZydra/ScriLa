@@ -62,6 +62,8 @@ The bash transpilat for a ScriLa function uses a temporary variable of type arra
 | int         | `$tmpInts` |
 | string      | `$tmpStrs` |  
 
+The index of the array is dynamic so that it can be set from outside of the function. This allows passing multiple function calls as arguments for a function call.
+
 **Example:**  
 ```Python
 # ScriLa
@@ -76,10 +78,12 @@ int result = add(13, 42);
 add () {
 	local a=$1
 	local b=$2
-	tmpInts[0]=$((${a} + ${b}))
+	tmpInts[${tmpInts[0]}]=$((${a} + ${b}))
 	return
 }
 
+tmpInts[0]=1
 add 13 42
-result=${tmpInts[0]}
+result=${tmpInts[1]}
+
 ``` 

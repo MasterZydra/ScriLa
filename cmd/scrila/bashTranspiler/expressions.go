@@ -379,7 +379,7 @@ func (self *Transpiler) getCallerResultVarName(call scrilaAst.ICallExpr, env *En
 		return "", fmt.Errorf("%s: Func '%s' does not have a return value", self.getPos(call.GetCaller()), identNodeGetSymbol(call.GetCaller()))
 	}
 
-	resultVarName, err := scrilaNodeTypeToTmpVarName(returnType)
+	resultVarName, err := self.scrilaNodeTypeToTmpVarName(returnType)
 	if err != nil {
 		return "", err
 	}
@@ -397,6 +397,7 @@ func (self *Transpiler) evalCallExpr(call scrilaAst.ICallExpr, env *Environment)
 
 	bashArgs := make([]bashAst.IStatement, 0)
 
+	self.pushCallArgIndex()
 	var args []scrilaAst.IRuntimeVal
 	for _, arg := range call.GetArgs() {
 		evalArg, err := self.transpile(arg, env)
@@ -411,22 +412,25 @@ func (self *Transpiler) evalCallExpr(call scrilaAst.ICallExpr, env *Environment)
 		}
 		bashArgs = append(bashArgs, bashStmt)
 	}
+	self.popCallArgIndex()
 
 	caller, err := env.lookupFunc(funcName)
 	if err != nil {
 		return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(call), err)
 	}
 
+	var result scrilaAst.IRuntimeVal
 	switch caller.GetType() {
 	case scrilaAst.NativeFnType:
-		result, err := runtimeToNativeFunc(caller).GetCall()(call.GetArgs(), env)
+		result, err = runtimeToNativeFunc(caller).GetCall()(call.GetArgs(), env)
 		if err != nil {
 			return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(call), err)
 		}
 
+		if result.GetType() != scrilaAst.NullValueType {
+			self.setCallArgIndex()
+		}
 		self.appendUserBody(bashAst.NewCallExpr(funcName, bashArgs))
-
-		return result, nil
 
 	case scrilaAst.FunctionValueType:
 		fn := runtimeToFuncVal(caller)
@@ -435,6 +439,14 @@ func (self *Transpiler) evalCallExpr(call scrilaAst.ICallExpr, env *Environment)
 			return NewNullVal(), fmt.Errorf("%s: %s(): The amount of passed parameters does not match with the function declaration. Expected: %d, Got: %d", self.getPos(call), fn.GetName(), len(fn.GetParams()), len(args))
 		}
 
+		result, err = scrilaNodeTypeToRuntimeVal(fn.GetReturnType())
+		if err != nil {
+			return NewNullVal(), err
+		}
+
+		if result.GetType() != scrilaAst.NullValueType {
+			self.setCallArgIndex()
+		}
 		self.appendUserBody(bashAst.NewCallExpr(funcName, bashArgs))
 
 		for i, param := range fn.GetParams() {
@@ -443,15 +455,12 @@ func (self *Transpiler) evalCallExpr(call scrilaAst.ICallExpr, env *Environment)
 			}
 		}
 
-		result, err := scrilaNodeTypeToRuntimeVal(fn.GetReturnType())
-		if err != nil {
-			return NewNullVal(), err
-		}
-		return result, nil
-
 	default:
 		return NewNullVal(), fmt.Errorf("%s: Cannot call value that is not a function: %s", self.getPos(call), caller)
 	}
+
+	self.incCallArgIndex()
+	return result, nil
 }
 
 func (self *Transpiler) evalWhileExitKeywords(expr scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
@@ -506,7 +515,7 @@ func (self *Transpiler) evalReturnExpr(returnExpr scrilaAst.IReturnExpr, env *En
 		return NewNullVal(), err
 	}
 
-	resultVarName, err := scrilaNodeTypeToTmpVarName(self.currentFunc.GetReturnType())
+	resultVarName, err := self.scrilaNodeTypeToDynTmpVarName(self.currentFunc.GetReturnType())
 	if err != nil {
 		return NewNullVal(), err
 	}

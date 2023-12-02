@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed
 
 - Replaced temporary variables `tmpInt`, `tmpBool` and `tmpStr` with arrays of same type: `tmpInts`, `tmpBools`, `tmpStrs`
+- Changed temporary variables array index from always 0 to a dynamic index. This allows multiple functions calls as arguments
 
 ### Fixed
 

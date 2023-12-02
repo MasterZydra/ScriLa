@@ -20,13 +20,21 @@ func (self *Transpiler) exprToRhsBashStmt(expr scrilaAst.IExpr, env *Environment
 	// A comparison must be converted into an if statement
 	if bashStmt.GetKind() == bashAst.BinaryCompExprNode ||
 		(bashStmt.GetKind() == bashAst.BinaryOpExprNode && bashAst.StmtToBinaryOpExpr(bashStmt).GetDataType() == bashAst.BoolLiteralNode) {
+		varname := fmt.Sprintf("tmpBools[%d]", self.currentCallArgIndex())
+		if self.contextContains(FunctionContext) {
+			varname = "tmpBools[${tmpInts[0]}]"
+		}
 		ifStmt := bashAst.NewIfStmt(bashStmt)
-		ifStmt.AppendBody(bashAst.NewBashStmt("tmpBools[0]=\"true\""))
+		ifStmt.AppendBody(bashAst.NewBashStmt(fmt.Sprintf("%s=\"true\"", varname)))
 		elseStmt := bashAst.NewIfStmt(nil)
-		elseStmt.AppendBody(bashAst.NewBashStmt("tmpBools[0]=\"false\""))
+		elseStmt.AppendBody(bashAst.NewBashStmt(fmt.Sprintf("%s=\"false\"", varname)))
 		ifStmt.SetElse(elseStmt)
 		self.appendUserBody(ifStmt)
-		bashStmt = bashAst.NewVarLiteral("tmpBools[0]", bashAst.BoolLiteralNode)
+		bashStmt = bashAst.NewVarLiteral(varname, bashAst.BoolLiteralNode)
+		if len(self.callArgIndexStack) > 0 {
+			self.incCallArgIndex()
+			self.setCallArgIndex()
+		}
 	}
 
 	return bashStmt, nil
@@ -136,15 +144,27 @@ func scrilaNodeTypeToRuntimeVal(nodeType scrilaAst.NodeType) (scrilaAst.IRuntime
 }
 
 var scrilaNodeTypeToTmpVarNameMapping = map[scrilaAst.NodeType]string{
-	scrilaAst.BoolLiteralNode: "tmpBools[0]",
-	scrilaAst.IntLiteralNode:  "tmpInts[0]",
-	scrilaAst.StrLiteralNode:  "tmpStrs[0]",
+	scrilaAst.BoolLiteralNode: "tmpBools",
+	scrilaAst.IntLiteralNode:  "tmpInts",
+	scrilaAst.StrLiteralNode:  "tmpStrs",
 }
 
-func scrilaNodeTypeToTmpVarName(nodeType scrilaAst.NodeType) (string, error) {
+func (self *Transpiler) scrilaNodeTypeToTmpVarName(nodeType scrilaAst.NodeType) (string, error) {
 	value, ok := scrilaNodeTypeToTmpVarNameMapping[nodeType]
 	if !ok {
 		return "", fmt.Errorf("scrilaNodeTypeToTmpVarName(): Node type '%s' is not in mapping", nodeType)
 	}
-	return value, nil
+	index := self.currentCallArgIndex() - 1
+	if index == 0 {
+		index = 1
+	}
+	return fmt.Sprintf("%s[%d]", value, index), nil
+}
+
+func (self *Transpiler) scrilaNodeTypeToDynTmpVarName(nodeType scrilaAst.NodeType) (string, error) {
+	value, ok := scrilaNodeTypeToTmpVarNameMapping[nodeType]
+	if !ok {
+		return "", fmt.Errorf("scrilaNodeTypeToDynTmpVarName(): Node type '%s' is not in mapping", nodeType)
+	}
+	return fmt.Sprintf("%s[${tmpInts[0]}]", value), nil
 }
