@@ -10,6 +10,11 @@ func StmtToArray(stmt IStatement) IArray {
 	return i.(IArray)
 }
 
+func StmtToArrayAssignmentExpr(stmt IStatement) IArrayAssignmentExpr {
+	var i interface{} = stmt
+	return i.(IArrayAssignmentExpr)
+}
+
 func StmtToAssignmentExpr(stmt IStatement) IAssignmentExpr {
 	var i interface{} = stmt
 	return i.(IAssignmentExpr)
@@ -53,6 +58,11 @@ func StmtToIfStmt(stmt IStatement) IIfStmt {
 func StmtToIntLiteral(stmt IStatement) IIntLiteral {
 	var i interface{} = stmt
 	return i.(IIntLiteral)
+}
+
+func StmtToMemberExpr(stmt IStatement) IMemberExpr {
+	var i interface{} = stmt
+	return i.(IMemberExpr)
 }
 
 func StmtToProgram(stmt IStatement) IProgram {

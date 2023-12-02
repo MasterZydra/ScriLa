@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 
 - Added support for declaring and assigning arrays #5
+- Added support for assigning and adding values to arrays #5
 
 ### Fixed
 

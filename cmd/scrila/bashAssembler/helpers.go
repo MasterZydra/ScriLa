@@ -80,6 +80,9 @@ func stmtToBashStr(stmt bashAst.IStatement) (string, error) {
 	case bashAst.BinaryOpExprNode:
 		// e.g.: $((1 + 2))
 		return binOpToBashStr(bashAst.StmtToBinaryOpExpr(stmt))
+	case bashAst.MemberExprNode:
+		// e.g.: arr[42]
+		return memberExprToBashStr(bashAst.StmtToMemberExpr(stmt))
 	case bashAst.IntLiteralNode:
 		// e.g.: 42
 		return fmt.Sprintf("%d", bashAst.StmtToIntLiteral(stmt).GetValue()), nil
@@ -88,18 +91,29 @@ func stmtToBashStr(stmt bashAst.IStatement) (string, error) {
 		return bashAst.StmtToStrLiteral(stmt).GetValue(), nil
 	case bashAst.VarLiteralNode:
 		switch varType := bashAst.StmtToVarLiteral(stmt).GetDataType(); varType {
-		case bashAst.BoolLiteralNode, bashAst.StrLiteralNode:
-			// e.g.: "${var}"
-			return strToBashVar(bashAst.StmtToVarLiteral(stmt).GetValue()), nil
-		case bashAst.IntLiteralNode:
+		case bashAst.ArrayLiteralNode:
+			// e.g.: "${var[@]}"
+			return strToBashVar(fmt.Sprintf("%s[@]", bashAst.StmtToVarLiteral(stmt).GetValue())), nil
+		case bashAst.BoolLiteralNode, bashAst.IntLiteralNode, bashAst.StrLiteralNode:
 			// e.g.: ${var}
 			return strToBashVar(bashAst.StmtToVarLiteral(stmt).GetValue()), nil
 		default:
 			return "", fmt.Errorf("stmtToBashStr(): Var type '%s' is not implemented", varType)
 		}
+	case bashAst.VoidNode:
+		return "", nil
 	default:
 		return "", fmt.Errorf("stmtToBashStr(): Kind '%s' is not implemented", stmt.GetKind())
 	}
+}
+
+func memberExprToBashStr(memberExpr bashAst.IMemberExpr) (string, error) {
+	index, err := stmtToRhsBashStr(memberExpr.GetIndex())
+	if err != nil {
+		return "", err
+	}
+
+	return strToBashVar(fmt.Sprintf("%s[%s]", memberExpr.GetVarname().GetValue(), index)), nil
 }
 
 func binCompToBashStr(binOp bashAst.IBinaryOpExpr) (string, error) {

@@ -37,6 +37,26 @@ func (self *Transpiler) exprIsType(expr scrilaAst.IExpr, wantedType scrilaAst.No
 		return givenType == wantedType, givenType, nil
 	}
 
+	// Check if the return type of a member expression matches with the wanted type
+	if givenType == scrilaAst.MemberExprNode {
+		bashStmt, ok := self.bashStmtStack[expr.GetId()]
+		if !ok {
+			return false, givenType, fmt.Errorf("exprIsType(): MemberExpr is not stored in stack")
+		}
+		memberExpr := bashAst.StmtToMemberExpr(bashStmt)
+		varType, err := env.lookupVarType(memberExpr.GetVarname().GetValue())
+		if err != nil {
+			return false, givenType, err
+		}
+
+		varType, err = scrilaAst.ArrayTypeToDataType(varType)
+		if err != nil {
+			return false, givenType, err
+		}
+
+		return varType == wantedType, varType, nil
+	}
+
 	// Check if the return type of a binary expression matches with the wanted type
 	if givenType == scrilaAst.BinaryExprNode {
 		bashStmt, ok := self.bashStmtStack[expr.GetId()]

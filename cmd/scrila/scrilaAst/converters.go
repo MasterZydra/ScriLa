@@ -93,6 +93,29 @@ func ExprToObjLit(expr IExpr) IObjectLiteral {
 	return i.(IObjectLiteral)
 }
 
+var valueTypeToArrayMapping = map[ValueType]ValueType{
+	BoolValueType: BoolArrayValueType,
+	IntValueType:  IntArrayValueType,
+	StrValueType:  StrArrayValueType,
+}
+
+func ValueTypeToArrayType(valueType ValueType) (ValueType, error) {
+	value, ok := valueTypeToArrayMapping[valueType]
+	if !ok {
+		return NullValueType, fmt.Errorf("ValueTypeToArray(): Type '%s' is not in mapping", valueType)
+	}
+	return value, nil
+}
+
+func ArrayTypeToValueType(arrayType ValueType) (ValueType, error) {
+	for k, v := range valueTypeToArrayMapping {
+		if v == arrayType {
+			return k, nil
+		}
+	}
+	return "", fmt.Errorf("ArrayTypeToValueType(): Type '%s' is not in mapping", arrayType)
+}
+
 var dataTypeToArrayMapping = map[NodeType]NodeType{
 	BoolLiteralNode: BoolArrayNode,
 	IntLiteralNode:  IntArrayNode,

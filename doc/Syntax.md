@@ -2,6 +2,7 @@
 
 **Content**  
 - [Variables](#variables)
+  - [Array variables](#array-variables)
   - [Boolean variables](#boolean-variables)
   - [Integer variables](#integer-variables)
   - [String variables](#string-variables)
@@ -29,6 +30,24 @@
 
 # Variables
 A variable can store a specified type of value e.g. `int`, `string`, `bool`. This type cannot be changed later in the program.
+
+[Back to top](#syntax)
+
+## Array variables
+An array can be declared from every base data type e.g. `int`, `string`, `bool`.
+
+**Syntax**  
+```Python
+dataType[] variableName = value;
+```
+
+**Example**  
+```Python
+str[] strs = [];       # Empty string array
+int[] ints = [43, 44]; # Integer array with values
+ints[0] = 42;          # Change value at index 0 to 42
+ints[] = 45;           # Append array with new value 45
+```
 
 [Back to top](#syntax)
 

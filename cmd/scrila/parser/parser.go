@@ -608,10 +608,16 @@ func (self *Parser) parseMemberExpr() (scrilaAst.IExpr, error) {
 
 	for self.at().TokenType == lexer.OpenBracket {
 		self.eat()
-		// This allows chaining: obj[computedValue] e.g. obj1[obj2[getBar()]]
-		property, err := self.parseExpr()
-		if err != nil {
-			return scrilaAst.NewEmptyExpr(), err
+
+		isEmpty := self.at().TokenType == lexer.CloseBracket
+		var property scrilaAst.IExpr = scrilaAst.NewEmptyExpr()
+
+		if !isEmpty {
+			// This allows chaining: obj[computedValue] e.g. obj1[obj2[getBar()]]
+			property, err = self.parseExpr()
+			if err != nil {
+				return scrilaAst.NewEmptyExpr(), err
+			}
 		}
 
 		_, err = self.expect(lexer.CloseBracket, "Missing closing bracket in computed value")
@@ -619,7 +625,7 @@ func (self *Parser) parseMemberExpr() (scrilaAst.IExpr, error) {
 			return scrilaAst.NewEmptyExpr(), err
 		}
 
-		object = scrilaAst.NewMemberExpr(object, property, true)
+		object = scrilaAst.NewMemberExpr(object, property, isEmpty)
 	}
 
 	return object, nil

@@ -3,20 +3,26 @@ package scrilaAst
 type ValueType string
 
 const (
-	BoolValueType     ValueType = "bool"
-	FunctionValueType ValueType = "function"
-	IntValueType      ValueType = "int"
-	NativeFnType      ValueType = "native-func"
-	NullValueType     ValueType = "null"
-	ObjValueType      ValueType = "obj"
-	StrValueType      ValueType = "str"
+	BoolArrayValueType ValueType = "bool-array"
+	BoolValueType      ValueType = "bool"
+	FunctionValueType  ValueType = "function"
+	IntArrayValueType  ValueType = "int-array"
+	IntValueType       ValueType = "int"
+	NativeFnType       ValueType = "native-func"
+	NullValueType      ValueType = "null"
+	ObjValueType       ValueType = "obj"
+	StrArrayValueType  ValueType = "str-array"
+	StrValueType       ValueType = "str"
 )
 
 var nodeTypeValueTypeMapping = map[ValueType]NodeType{
-	BoolValueType: BoolLiteralNode,
-	IntValueType:  IntLiteralNode,
-	ObjValueType:  ObjectLiteralNode,
-	StrValueType:  StrLiteralNode,
+	BoolArrayValueType: BoolLiteralNode,
+	BoolValueType:      BoolLiteralNode,
+	IntArrayValueType:  IntLiteralNode,
+	IntValueType:       IntLiteralNode,
+	ObjValueType:       ObjectLiteralNode,
+	StrArrayValueType:  StrLiteralNode,
+	StrValueType:       StrLiteralNode,
 }
 
 func DoTypesMatch(type1 NodeType, type2 ValueType) bool {

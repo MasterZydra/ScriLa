@@ -5,6 +5,36 @@ import (
 	"fmt"
 )
 
+func (self *Assembler) evalArrayAssignmentExpr(assignment bashAst.IArrayAssignmentExpr) error {
+	// e.g.: array[42]="value"
+	index, err := stmtToRhsBashStr(assignment.GetIndex())
+	if err != nil {
+		return err
+	}
+	value, err := stmtToRhsBashStr(assignment.GetValue())
+	if err != nil {
+		return err
+	}
+
+	if index == "" {
+		// Append array
+		format := "%s+=(%s)"
+		if assignment.IsDeclaration() && self.isFuncContext {
+			format = "local " + format
+		}
+		self.writeLnWithTabsToFile(fmt.Sprintf(format, assignment.GetVarname().GetValue(), value))
+	} else {
+		// Overwrite value at index
+		format := "%s[%s]=%s"
+		if assignment.IsDeclaration() && self.isFuncContext {
+			format = "local " + format
+		}
+		self.writeLnWithTabsToFile(fmt.Sprintf(format, assignment.GetVarname().GetValue(), index, value))
+	}
+
+	return nil
+}
+
 func (self *Assembler) evalAssignmentExpr(assignment bashAst.IAssignmentExpr) error {
 	// e.g.: solution=42
 	bash, err := stmtToRhsBashStr(assignment.GetValue())

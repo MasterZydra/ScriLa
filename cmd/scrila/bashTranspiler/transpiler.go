@@ -63,37 +63,26 @@ func (self *Transpiler) transpile(astNode scrilaAst.IStatement, env *Environment
 	// Handle Expressions
 	case scrilaAst.ArrayLiteralNode:
 		return self.evalArray(scrilaAst.ExprToArray(astNode), env)
-
 	case scrilaAst.IntLiteralNode:
 		return NewIntVal(scrilaAst.ExprToIntLit(astNode).GetValue()), nil
-
 	case scrilaAst.StrLiteralNode:
 		return NewStrVal(scrilaAst.ExprToStrLit(astNode).GetValue()), nil
-
 	case scrilaAst.BoolLiteralNode:
 		return NewBoolVal(scrilaAst.ExprToBoolLit(astNode).GetValue()), nil
-
 	case scrilaAst.IdentifierNode:
 		return self.evalIdentifier(scrilaAst.ExprToIdent(astNode), env)
-
 	case scrilaAst.ObjectLiteralNode:
 		return self.evalObjectExpr(scrilaAst.ExprToObjLit(astNode), env)
-
 	case scrilaAst.CallExprNode:
 		return self.evalCallExpr(scrilaAst.ExprToCallExpr(astNode), env)
-
 	case scrilaAst.AssignmentExprNode:
 		return self.evalAssignment(scrilaAst.ExprToAssignmentExpr(astNode), env)
-
 	case scrilaAst.BinaryExprNode:
 		return self.evalBinaryExpr(scrilaAst.ExprToBinExpr(astNode), env)
-
-	// case scrilaAst.MemberExprNode:
-	// 	return self.evalMemberExpr(scrilaAst.ExprToMemberExpr(astNode), env)
-
+	case scrilaAst.MemberExprNode:
+		return self.evalMemberExpr(scrilaAst.ExprToMemberExpr(astNode), env)
 	case scrilaAst.ReturnExprNode:
 		return self.evalReturnExpr(scrilaAst.ExprToReturnExpr(astNode), env)
-
 	case scrilaAst.BreakExprNode, scrilaAst.ContinueExprNode:
 		return self.evalWhileExitKeywords(astNode, env)
 
@@ -101,19 +90,14 @@ func (self *Transpiler) transpile(astNode scrilaAst.IStatement, env *Environment
 	case scrilaAst.CommentNode:
 		self.appendUserBody(bashAst.NewComment(scrilaAst.ExprToComment(astNode).GetComment()))
 		return NewNullVal(), nil
-
 	case scrilaAst.ProgramNode:
 		return self.evalProgram(scrilaAst.ExprToProgram(astNode), env)
-
 	case scrilaAst.VarDeclarationNode:
 		return self.evalVarDeclaration(scrilaAst.ExprToVarDecl(astNode), env)
-
 	case scrilaAst.IfStatementNode:
 		return self.evalIfStatement(scrilaAst.ExprToIfStmt(astNode), env)
-
 	case scrilaAst.WhileStatementNode:
 		return self.evalWhileStatement(scrilaAst.ExprToWhileStmt(astNode), env)
-
 	case scrilaAst.FunctionDeclarationNode:
 		return self.evalFunctionDeclaration(scrilaAst.ExprToFuncDecl(astNode), env)
 

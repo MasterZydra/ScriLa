@@ -417,6 +417,30 @@ func TestErrorArrayAssignWrongArrayVarType(t *testing.T) {
 	}
 }
 
+func TestErrorArrayAppendWrongDataType(t *testing.T) {
+	initTest()
+	err := transpileTest(`
+		int[] i = [42];
+		i[] = "str";
+	`)
+	expected := fmt.Errorf("test.scri:3:11: Cannot assign a value of type 'StrLiteral' to array of type 'int-array'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorArrayIndexWrongDataType(t *testing.T) {
+	initTest()
+	err := transpileTest(`
+		int[] i = [42];
+		i["str"] = 43;
+	`)
+	expected := fmt.Errorf("test.scri:3:7: Array index is not the right type. Wanted 'IntLiteral'. Got 'StrLiteral'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
 func ExampleArray() {
 	initTestForPrintMode()
 	transpileTest(`
@@ -431,6 +455,19 @@ func ExampleArray() {
 		i1 = [];
 		# Array with value
 		i2 = [42];
+
+		# Change
+		i1[0] = 31;
+		int one = 1;
+		i2[one] = i2[0] + one;
+
+		# Append
+		i1[] = 32;
+		int i44 = 44;
+		i2[] = i44;
+
+		# Print
+		printLn(i1, i1[0]);
 	`)
 
 	// Output:
@@ -448,4 +485,14 @@ func ExampleArray() {
 	// i1=()
 	// # Array with value
 	// i2=(42)
+	// # Change
+	// i1[0]=31
+	// one=1
+	// i2[${one}]=$((${i2[0]} + ${one}))
+	// # Append
+	// i1+=(32)
+	// i44=44
+	// i2+=(${i44})
+	// # Print
+	// echo "${i1[@]} ${i1[0]}"
 }

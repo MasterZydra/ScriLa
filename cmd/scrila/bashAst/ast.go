@@ -12,13 +12,15 @@ const (
 	WhileStmtNode       NodeType = "WhileStmt"
 
 	// Expressions
-	AssignmentExprNode NodeType = "AssignmentExpr"
-	BinaryCompExprNode NodeType = "BinaryCompExpr"
-	BinaryOpExprNode   NodeType = "BinaryOpExpr"
-	BreakExprNode      NodeType = "BreakExprNode"
-	CallExprNode       NodeType = "CallExpr"
-	ContinueExprNode   NodeType = "ContinueExpr"
-	ReturnExprNode     NodeType = "ReturnExpr"
+	ArrayAssignmentExprNode NodeType = "ArrayAssignementExpr"
+	AssignmentExprNode      NodeType = "AssignmentExpr"
+	BinaryCompExprNode      NodeType = "BinaryCompExpr"
+	BinaryOpExprNode        NodeType = "BinaryOpExpr"
+	BreakExprNode           NodeType = "BreakExprNode"
+	CallExprNode            NodeType = "CallExpr"
+	ContinueExprNode        NodeType = "ContinueExpr"
+	MemberExprNode          NodeType = "MemberExpr"
+	ReturnExprNode          NodeType = "ReturnExpr"
 
 	// Literals
 	ArrayLiteralNode NodeType = "Array"

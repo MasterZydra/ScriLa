@@ -272,22 +272,29 @@ type IMemberExpr interface {
 	IExpr
 	GetObject() IExpr
 	GetProperty() IExpr
-	IsComputed() bool
+	IsEmpty() bool
 }
 
 type MemberExpr struct {
-	expr       *Expr
-	object     IExpr
-	property   IExpr
-	isComputed bool
+	expr     *Expr
+	object   IExpr
+	property IExpr
+	isEmpty  bool
 }
 
-func NewMemberExpr(object IExpr, property IExpr, isComputed bool) *MemberExpr {
+func (self *MemberExpr) String() string {
+	indentDepth++
+	str := fmt.Sprintf("{%s - id: %d, isEmpty: %t,\n%sobject: %s,\n%sproperty: %s}", self.GetKind(), self.GetId(), self.IsEmpty(), indent(), self.GetObject(), indent(), self.GetProperty())
+	indentDepth--
+	return str
+}
+
+func NewMemberExpr(object IExpr, property IExpr, isEmpty bool) *MemberExpr {
 	return &MemberExpr{
-		expr:       NewExpr(MemberExprNode, 0, 0),
-		object:     object,
-		property:   property,
-		isComputed: isComputed,
+		expr:     NewExpr(MemberExprNode, 0, 0),
+		object:   object,
+		property: property,
+		isEmpty:  isEmpty,
 	}
 }
 
@@ -307,8 +314,8 @@ func (self *MemberExpr) GetProperty() IExpr {
 	return self.property
 }
 
-func (self *MemberExpr) IsComputed() bool {
-	return self.isComputed
+func (self *MemberExpr) IsEmpty() bool {
+	return self.isEmpty
 }
 
 func (self *MemberExpr) GetLn() int {

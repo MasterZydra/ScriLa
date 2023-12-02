@@ -5,6 +5,16 @@ import (
 	"fmt"
 )
 
+// Array
+
+type IArrayVal interface {
+	scrilaAst.IRuntimeVal
+}
+
+func NewArrayVal(valueType scrilaAst.ValueType) *scrilaAst.RuntimeVal {
+	return scrilaAst.NewRuntimeVal(valueType)
+}
+
 // NullVal
 
 type INullVal interface {

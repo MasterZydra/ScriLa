@@ -36,6 +36,9 @@ func (self *Transpiler) evalArray(array scrilaAst.IArray, env *Environment) (scr
 			return NewNullVal(), err
 		}
 		doMatch, givenType, err := self.exprIsType(value, scrilaDataType, env)
+		if err != nil {
+			return NewNullVal(), err
+		}
 		if !doMatch {
 			return NewNullVal(), fmt.Errorf("%s: An array can only keep one data type. Wanted '%s'. Got '%s'", self.getPos(value), scrilaDataType, givenType)
 		}
@@ -176,6 +179,10 @@ func (self *Transpiler) evalComparisonBinaryExpr(lhs scrilaAst.IRuntimeVal, rhs 
 func (self *Transpiler) evalAssignment(assignment scrilaAst.IAssignmentExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
+	if assignment.GetAssigne().GetKind() == scrilaAst.MemberExprNode {
+		return self.evalAssignmentObjMember(assignment, env)
+	}
+
 	if assignment.GetAssigne().GetKind() != scrilaAst.IdentifierNode {
 		return NewNullVal(), fmt.Errorf("%s: Left side of an assignment must be a variable. Got '%s'", self.getPos(assignment.GetAssigne()), assignment.GetAssigne().GetKind())
 	}
@@ -220,49 +227,65 @@ func (self *Transpiler) evalAssignment(assignment scrilaAst.IAssignmentExpr, env
 	return result, nil
 }
 
-// func (self *Transpiler) evalAssignmentObjMember(assignment scrilaAst.IAssignmentExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
-// 	self.printFuncName("")
+func (self *Transpiler) evalAssignmentObjMember(assignment scrilaAst.IAssignmentExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
+	self.printFuncName("")
 
-// 	if assignment.GetAssigne().GetKind() != scrilaAst.MemberExprNode {
-// 		return NewNullVal(), fmt.Errorf("%s: Left side of object member assignment is invalid type '%s'", self.getPos(assignment.GetAssigne()), assignment.GetAssigne().GetKind())
-// 	}
+	if assignment.GetAssigne().GetKind() != scrilaAst.MemberExprNode {
+		return NewNullVal(), fmt.Errorf("%s: Left side of object member assignment is invalid type '%s'", self.getPos(assignment.GetAssigne()), assignment.GetAssigne().GetKind())
+	}
 
-// 	memberExpr := scrilaAst.ExprToMemberExpr(assignment.GetAssigne())
+	runtimeValue, err := self.transpile(assignment.GetValue(), env)
+	if err != nil {
+		return NewNullVal(), err
+	}
 
-// 	if memberExpr.GetObject().GetKind() != scrilaAst.IdentifierNode {
-// 		return NewNullVal(), fmt.Errorf("%s: Object name is not the right type. Got '%s'", self.getPos(memberExpr.GetObject()), memberExpr.GetObject().GetKind())
-// 	}
+	memberExpr := scrilaAst.ExprToMemberExpr(assignment.GetAssigne())
 
-// 	if memberExpr.GetProperty().GetKind() != scrilaAst.IdentifierNode {
-// 		return NewNullVal(), fmt.Errorf("%s: Object property name is not the right type. Got '%s'", self.getPos(memberExpr.GetProperty()), memberExpr.GetProperty().GetKind())
-// 	}
+	if memberExpr.GetObject().GetKind() != scrilaAst.IdentifierNode {
+		return NewNullVal(), fmt.Errorf("%s: Array name is not the right type. Got '%s'", self.getPos(memberExpr.GetObject()), memberExpr.GetObject().GetKind())
+	}
 
-// 	objName := identNodeGetSymbol(memberExpr.GetObject())
-// 	obj, err := env.lookupVar(objName)
-// 	if err != nil {
-// 		return NewNullVal(), err
-// 	}
-// 	if obj.GetType() != scrilaAst.ObjValueType {
-// 		return NewNullVal(), fmt.Errorf("%s: Variable '%s' is not of type 'object'", self.getPos(memberExpr.GetObject()), objName)
-// 	}
+	if !memberExpr.IsEmpty() {
+		doMatch, givenType, err := self.exprIsType(memberExpr.GetProperty(), scrilaAst.IntLiteralNode, env)
+		if err != nil {
+			return NewNullVal(), err
+		}
+		if !doMatch {
+			return NewNullVal(), fmt.Errorf("%s: Array index is not the right type. Wanted '%s'. Got '%s'", self.getPos(memberExpr.GetProperty()), scrilaAst.IntLiteralNode, givenType)
+		}
+	}
 
-// 	propName := identNodeGetSymbol(memberExpr.GetProperty())
+	objName := identNodeGetSymbol(memberExpr.GetObject())
+	obj, err := env.lookupVar(objName)
+	if err != nil {
+		return NewNullVal(), err
+	}
 
-// 	value, err := self.transpile(assignment.GetValue(), env)
-// 	if err != nil {
-// 		return NewNullVal(), err
-// 	}
+	runtimeArray, err := scrilaAst.ValueTypeToArrayType(runtimeValue.GetType())
+	if err != nil {
+		return NewNullVal(), err
+	}
+	if runtimeArray != obj.GetType() {
+		return NewNullVal(), fmt.Errorf("%s: Cannot assign a value of type '%s' to array of type '%s'", self.getPos(assignment.GetValue()), assignment.GetValue().GetKind(), obj.GetType())
+	}
 
-// 	switch assignment.GetValue().GetKind() {
-// 	case scrilaAst.IntLiteralNode:
-// 		self.writeLnTranspilat(value.ToString())
-// 	default:
-// 		return NewNullVal(), fmt.Errorf("%s: Object member value '%s' is not supported", self.getPos(assignment.GetValue()), assignment.GetValue().GetKind())
-// 	}
+	bashStmt, err := self.exprToRhsBashStmt(assignment.GetValue(), env)
+	if err != nil {
+		return NewNullVal(), err
+	}
 
-// 	runtimeToObjVal(obj).GetProperties()[propName] = value
-// 	return value, nil
-// }
+	var bashIndex bashAst.IStatement = bashAst.NewStatement(bashAst.VoidNode)
+	if !memberExpr.IsEmpty() {
+		bashIndex, err = self.exprToBashStmt(memberExpr.GetProperty(), env)
+		if err != nil {
+			return NewNullVal(), err
+		}
+	}
+
+	self.appendUserBody(bashAst.NewArrayAssignmentExpr(bashAst.NewVarLiteral(objName, bashAst.ArrayLiteralNode), bashIndex, bashStmt, false))
+
+	return NewNullVal(), nil
+}
 
 func (self *Transpiler) evalObjectExpr(object scrilaAst.IObjectLiteral, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
@@ -280,30 +303,45 @@ func (self *Transpiler) evalObjectExpr(object scrilaAst.IObjectLiteral, env *Env
 	return obj, nil
 }
 
-// func (self *Transpiler) evalMemberExpr(memberExpr scrilaAst.IMemberExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
-// 	self.printFuncName("")
+func (self *Transpiler) evalMemberExpr(memberExpr scrilaAst.IMemberExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
+	self.printFuncName("")
 
-// 	if memberExpr.GetObject().GetKind() != scrilaAst.IdentifierNode {
-// 		return NewNullVal(), fmt.Errorf("%s: Object name is not the right type. Got '%s'", self.getPos(memberExpr.GetObject()), memberExpr.GetObject().GetKind())
-// 	}
+	if memberExpr.GetObject().GetKind() != scrilaAst.IdentifierNode {
+		return NewNullVal(), fmt.Errorf("%s: Array name is not the right type. Got '%s'", self.getPos(memberExpr.GetObject()), memberExpr.GetObject().GetKind())
+	}
 
-// 	objName := identNodeGetSymbol(memberExpr.GetObject())
-// 	obj, err := env.lookupVar(objName)
-// 	if err != nil {
-// 		return NewNullVal(), err
-// 	}
-// 	if obj.GetType() != scrilaAst.ObjValueType {
-// 		return NewNullVal(), fmt.Errorf("%s: Variable '%s' is not of type 'object'", self.getPos(memberExpr.GetObject()), objName)
-// 	}
+	_, err := self.transpile(memberExpr.GetProperty(), env)
+	if err != nil {
+		return NewNullVal(), err
+	}
 
-// 	if memberExpr.GetProperty().GetKind() != scrilaAst.IdentifierNode {
-// 		return NewNullVal(), fmt.Errorf("%s: Object property name is not the right type. Got '%s'", self.getPos(memberExpr.GetProperty()), memberExpr.GetProperty().GetKind())
-// 	}
+	doMatch, givenType, err := self.exprIsType(memberExpr.GetProperty(), scrilaAst.IntLiteralNode, env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+	if !doMatch {
+		return NewNullVal(), fmt.Errorf("%s: Array index is not the right type. Wanted '%s'. Got '%s'", self.getPos(memberExpr.GetProperty()), scrilaAst.IntLiteralNode, givenType)
+	}
 
-// 	propName := identNodeGetSymbol(memberExpr.GetProperty())
-// 	result := runtimeToObjVal(obj).GetProperties()[propName]
-// 	return result, nil
-// }
+	objName := identNodeGetSymbol(memberExpr.GetObject())
+	obj, err := env.lookupVar(objName)
+	if err != nil {
+		return NewNullVal(), err
+	}
+
+	bashIndex, err := self.exprToBashStmt(memberExpr.GetProperty(), env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+
+	self.bashStmtStack[memberExpr.GetId()] = bashAst.NewMemberExpr(bashAst.NewVarLiteral(objName, bashAst.ArrayLiteralNode), bashIndex)
+
+	dataType, err := scrilaAst.ArrayTypeToValueType(obj.GetType())
+	if err != nil {
+		return NewNullVal(), err
+	}
+	return scrilaAst.NewRuntimeVal(dataType), nil
+}
 
 func (self *Transpiler) getFuncReturnType(call scrilaAst.ICallExpr, env *Environment) (scrilaAst.NodeType, error) {
 	self.printFuncName("")

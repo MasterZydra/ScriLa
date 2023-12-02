@@ -50,6 +50,8 @@ func (self *Assembler) Assemble(astNode bashAst.IStatement) error {
 
 func (self *Assembler) assemble(astNode bashAst.IStatement) error {
 	switch astNode.GetKind() {
+	case bashAst.ArrayAssignmentExprNode:
+		return self.evalArrayAssignmentExpr(bashAst.StmtToArrayAssignmentExpr(astNode))
 	case bashAst.AssignmentExprNode:
 		return self.evalAssignmentExpr(bashAst.StmtToAssignmentExpr(astNode))
 	case bashAst.BashStmtNode:

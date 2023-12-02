@@ -2,6 +2,61 @@ package bashAst
 
 import "fmt"
 
+// ArrayAssignmentExpr
+
+type IArrayAssignmentExpr interface {
+	IStatement
+	GetVarname() IVarLiteral
+	GetIndex() IStatement
+	GetValue() IStatement
+	IsDeclaration() bool
+}
+
+type ArrayAssignmentExpr struct {
+	stmt          *Statement
+	varname       IVarLiteral
+	index         IStatement
+	value         IStatement
+	isDeclaration bool
+}
+
+func (self *ArrayAssignmentExpr) String() string {
+	indentDepth++
+	str := fmt.Sprintf("{%s - isDeclaration: %t,\n%svarName: %s\n%sindex: %s,\n%svalue: %s}", self.GetKind(), self.IsDeclaration(), indent(), self.GetVarname(), indent(), self.GetIndex(), indent(), self.GetValue())
+	indentDepth--
+	return str
+}
+
+func NewArrayAssignmentExpr(varname IVarLiteral, index IStatement, value IStatement, isDeclaration bool) *ArrayAssignmentExpr {
+	return &ArrayAssignmentExpr{
+		stmt:          NewStatement(ArrayAssignmentExprNode),
+		varname:       varname,
+		index:         index,
+		value:         value,
+		isDeclaration: isDeclaration,
+	}
+}
+
+func (self *ArrayAssignmentExpr) GetKind() NodeType {
+	return self.stmt.GetKind()
+}
+
+func (self *ArrayAssignmentExpr) GetVarname() IVarLiteral {
+	return self.varname
+}
+
+func (self *ArrayAssignmentExpr) GetIndex() IStatement {
+	return self.index
+}
+
+func (self *ArrayAssignmentExpr) GetValue() IStatement {
+	return self.value
+}
+
+func (self *ArrayAssignmentExpr) IsDeclaration() bool {
+	return self.isDeclaration
+}
+
 // AssignmentExpr
 
 type IAssignmentExpr interface {
@@ -165,6 +220,47 @@ func (self *CallExpr) GetArgs() []IStatement {
 
 func NewContinueExpr() *Statement {
 	return NewStatement(ContinueExprNode)
+}
+
+// MemberExpr
+
+type IMemberExpr interface {
+	IStatement
+	GetVarname() IVarLiteral
+	GetIndex() IStatement
+}
+
+type MemberExpr struct {
+	stmt    *Statement
+	varname IVarLiteral
+	index   IStatement
+}
+
+func (self *MemberExpr) String() string {
+	indentDepth++
+	str := fmt.Sprintf("{%s - varname: %s,\n%sindex: %s}", self.GetKind(), self.GetVarname(), indent(), self.GetIndex())
+	indentDepth--
+	return str
+}
+
+func NewMemberExpr(varname IVarLiteral, index IStatement) *MemberExpr {
+	return &MemberExpr{
+		stmt:    NewStatement(MemberExprNode),
+		varname: varname,
+		index:   index,
+	}
+}
+
+func (self *MemberExpr) GetKind() NodeType {
+	return self.stmt.GetKind()
+}
+
+func (self *MemberExpr) GetVarname() IVarLiteral {
+	return self.varname
+}
+
+func (self *MemberExpr) GetIndex() IStatement {
+	return self.index
 }
 
 // ReturnExpr
