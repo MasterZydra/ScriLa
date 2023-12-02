@@ -39,14 +39,15 @@ func ExampleExec() {
 	//
 	// # Native function implementations
 	//
-	// # exec(str command) void
+	// # exec(str command) str
 	// exec () {
 	// 	local command=$1
-	// 	${command}
+	// 	tmpStrs[${tmpInts[0]}]=$(eval ${command})
 	// }
 	//
 	// # User script
 	//
+	// tmpInts[0]=1
 	// exec "echo hi"
 	// cmd="echo hi"
 	// exec "${cmd}"

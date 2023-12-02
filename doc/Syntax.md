@@ -228,11 +228,11 @@ The following functions are provided for use in your scripts. These are directly
 [Back to top](#syntax)
 
 ## Exec
-The native function `exec` allows to directly add bash code into the transpilat. 
+The native function `exec` allows to directly add bash code into the transpilat. The output from the given command is returned.
 
 **Syntax**  
 ```Python
-exec(str command) void
+exec(str command) str
 ```
 
 **Example**  

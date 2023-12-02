@@ -9,7 +9,7 @@ import (
 )
 
 func (self *Transpiler) declareNativeFunctions(env *Environment) {
-	env.declareFunc("exec", NewNativeFunc(self.nativeExec, scrilaAst.VoidNode))
+	env.declareFunc("exec", NewNativeFunc(self.nativeExec, scrilaAst.StrLiteralNode))
 	env.declareFunc("exit", NewNativeFunc(self.nativeExit, scrilaAst.VoidNode))
 	env.declareFunc("input", NewNativeFunc(self.nativeInput, scrilaAst.StrLiteralNode))
 	env.declareFunc("print", NewNativeFunc(self.nativePrintLn, scrilaAst.VoidNode))
@@ -39,13 +39,13 @@ func (self *Transpiler) nativeExec(args []scrilaAst.IExpr, env *Environment) (sc
 	// Add bash code for exec to "usedNativeFunctions"
 	if !slices.Contains(self.usedNativeFunctions, "exec") {
 		self.usedNativeFunctions = append(self.usedNativeFunctions, "exec")
-		funcDecl := bashAst.NewFuncDeclaration("exec", bashAst.VoidNode)
+		funcDecl := bashAst.NewFuncDeclaration("exec", bashAst.StrLiteralNode)
 		funcDecl.AppendParams(bashAst.NewFuncParameter("command", bashAst.StrLiteralNode))
-		funcDecl.AppendBody(bashAst.NewBashStmt("${command}"))
+		funcDecl.AppendBody(bashAst.NewBashStmt("tmpStrs[${tmpInts[0]}]=$(eval ${command})"))
 		self.bashProgram.AppendNativeBody(funcDecl)
 	}
 
-	return NewNullVal(), nil
+	return NewStrVal("str"), nil
 }
 
 func (self *Transpiler) nativeExit(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
