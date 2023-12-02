@@ -24,13 +24,19 @@ type Transpiler struct {
 	usedNativeFunctions  []string
 	userScriptTranspilat string
 
-	contexts          []Context
-	bashContexts      []bashAst.IAppendBody
-	currentFunc       IFunctionVal
-	currentBashFunc   bashAst.IFuncDeclaration
+	// Stores a stack of contexts
+	// e.g. detect if the transpile is inside a while loop inside a function declaration
+	contexts     []Context
+	bashContexts []bashAst.IAppendBody
+	// Stores the current function context
+	currentFunc     IFunctionVal
+	currentBashFunc bashAst.IFuncDeclaration
+	// Stores the last index for each layer of call expressions
 	callArgIndexStack []int
-	lastWrittenIndex  int
+	// Used to only write index changes to Bash file
+	lastWrittenIndex int
 
+	// Storage for the Bash statements that are used later e.g for assignments
 	bashStmtStack map[int]bashAst.IStatement
 
 	bashProgram bashAst.IProgram
@@ -44,10 +50,6 @@ func NewTranspiler() *Transpiler {
 		bashStmtStack:       make(map[int]bashAst.IStatement),
 		callArgIndexStack:   []int{},
 	}
-}
-
-func (self *Transpiler) getPos(astNode scrilaAst.IStatement) string {
-	return fmt.Sprintf("%s:%d:%d", config.Filename, astNode.GetLn(), astNode.GetCol())
 }
 
 func (self *Transpiler) Transpile(astNode scrilaAst.IStatement, env *Environment) (bashAst.IProgram, error) {
@@ -137,10 +139,6 @@ func (self *Transpiler) contextContains(context Context) bool {
 	return slices.Contains(self.contexts, context)
 }
 
-func (self *Transpiler) indent(offset int) string {
-	return strings.Repeat("\t", len(self.contexts)-1-offset)
-}
-
 func (self *Transpiler) pushCallArgIndex() {
 	self.callArgIndexStack = append(self.callArgIndexStack, 1)
 }
@@ -170,6 +168,12 @@ func (self *Transpiler) setCallArgIndex() {
 	self.appendUserBody(bashAst.NewBashStmt(fmt.Sprintf("tmpInts[0]=%d", self.currentCallArgIndex())))
 }
 
+// Get the filename and current position
+func (self *Transpiler) getPos(astNode scrilaAst.IStatement) string {
+	return fmt.Sprintf("%s:%d:%d", config.Filename, astNode.GetLn(), astNode.GetCol())
+}
+
+// Get the current function name and print it
 func (self *Transpiler) printFuncName(msg string) {
 	if config.ShowCallStackScrila {
 		pc, _, _, _ := runtime.Caller(1)
@@ -184,6 +188,7 @@ func (self *Transpiler) printFuncName(msg string) {
 	}
 }
 
+// Append the user body depending on the current context
 func (self *Transpiler) appendUserBody(stmt bashAst.IStatement) {
 	if len(self.bashContexts) != 0 {
 		self.currentBashContext().AppendBody(stmt)

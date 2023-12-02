@@ -69,21 +69,19 @@ func printArgsToBashStr(args []bashAst.IStatement) (string, error) {
 	return argStr, nil
 }
 
+// Generate function signature for documentation header
 func (self *Assembler) getFuncSignature(funcDecl bashAst.IFuncDeclaration) (string, error) {
 	params := ""
-	isFirstParam := true
-	for _, param := range funcDecl.GetParams() {
+	for i, param := range funcDecl.GetParams() {
 		varType, err := nodeTypeToVarTypeKeyword(param.GetType())
 		if err != nil {
 			return "", err
 		}
 
-		if !isFirstParam {
+		if i > 0 {
 			params += ", "
 		}
 		params += varType + " " + param.GetName()
-
-		isFirstParam = false
 	}
 
 	returnType, err := nodeTypeToVarTypeKeyword(funcDecl.GetReturnType())

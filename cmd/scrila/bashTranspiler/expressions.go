@@ -16,13 +16,13 @@ func (self *Transpiler) evalArray(array scrilaAst.IArray, env *Environment) (scr
 	}
 
 	for i, value := range array.GetValues() {
+		// Get the data type of the first element and set it as array data type
 		if i == 0 {
-			// Get the data type of the first element and set it as array data type
-			_, givenType, err := self.exprIsType(value, scrilaAst.NodeType(scrilaAst.NullValueType), env)
+			// Use the exprIsType function to get the type of the current element
+			_, givenType, err := self.exprIsType(value, scrilaAst.VoidNode, env)
 			if err != nil {
 				return NewNullVal(), err
 			}
-
 			bashDataType, err := scrilaNodeTypeToBashNodeType(givenType)
 			if err != nil {
 				return NewNullVal(), err
@@ -132,20 +132,19 @@ func (self *Transpiler) evalBinaryExpr(binOp scrilaAst.IBinaryExpr, env *Environ
 
 	if result == nil {
 		return NewNullVal(), fmt.Errorf("%s: No support for binary expressions of type '%s' and '%s'", self.getPos(binOp), lhs.GetType(), rhs.GetType())
-	} else {
-		if bashLhs == nil {
-			return NewNullVal(), fmt.Errorf("evalBinaryExpr(): LHS is nil")
-		}
-		if bashRhs == nil {
-			return NewNullVal(), fmt.Errorf("evalBinaryExpr(): RHS is nil")
-		}
-		if isComparison {
-			self.bashStmtStack[binOp.GetId()] = bashAst.NewBinaryCompExpr(opType, bashLhs, bashRhs, binOp.GetOperator())
-		} else {
-			self.bashStmtStack[binOp.GetId()] = bashAst.NewBinaryOpExpr(opType, bashLhs, bashRhs, binOp.GetOperator())
-		}
-		return result, nil
 	}
+	if bashLhs == nil {
+		return NewNullVal(), fmt.Errorf("evalBinaryExpr(): LHS is nil")
+	}
+	if bashRhs == nil {
+		return NewNullVal(), fmt.Errorf("evalBinaryExpr(): RHS is nil")
+	}
+	if isComparison {
+		self.bashStmtStack[binOp.GetId()] = bashAst.NewBinaryCompExpr(opType, bashLhs, bashRhs, binOp.GetOperator())
+	} else {
+		self.bashStmtStack[binOp.GetId()] = bashAst.NewBinaryOpExpr(opType, bashLhs, bashRhs, binOp.GetOperator())
+	}
+	return result, nil
 }
 
 func (self *Transpiler) evalComparisonBinaryExpr(lhs scrilaAst.IRuntimeVal, rhs scrilaAst.IRuntimeVal, operator string) (bashAst.NodeType, error) {
@@ -245,6 +244,7 @@ func (self *Transpiler) evalAssignmentObjMember(assignment scrilaAst.IAssignment
 		return NewNullVal(), fmt.Errorf("%s: Array name is not the right type. Got '%s'", self.getPos(memberExpr.GetObject()), memberExpr.GetObject().GetKind())
 	}
 
+	// Check the array index data type
 	if !memberExpr.IsEmpty() {
 		doMatch, givenType, err := self.exprIsType(memberExpr.GetProperty(), scrilaAst.IntLiteralNode, env)
 		if err != nil {
@@ -261,6 +261,7 @@ func (self *Transpiler) evalAssignmentObjMember(assignment scrilaAst.IAssignment
 		return NewNullVal(), err
 	}
 
+	// Get array data type for the value data type so that it can be compared to the array data type
 	runtimeArray, err := scrilaAst.ValueTypeToArrayType(runtimeValue.GetType())
 	if err != nil {
 		return NewNullVal(), err
@@ -273,7 +274,6 @@ func (self *Transpiler) evalAssignmentObjMember(assignment scrilaAst.IAssignment
 	if err != nil {
 		return NewNullVal(), err
 	}
-
 	var bashIndex bashAst.IStatement = bashAst.NewStatement(bashAst.VoidNode)
 	if !memberExpr.IsEmpty() {
 		bashIndex, err = self.exprToBashStmt(memberExpr.GetProperty(), env)
@@ -281,7 +281,6 @@ func (self *Transpiler) evalAssignmentObjMember(assignment scrilaAst.IAssignment
 			return NewNullVal(), err
 		}
 	}
-
 	self.appendUserBody(bashAst.NewArrayAssignmentExpr(bashAst.NewVarLiteral(objName, bashAst.ArrayLiteralNode), bashIndex, bashStmt, false))
 
 	return NewNullVal(), nil
@@ -343,61 +342,16 @@ func (self *Transpiler) evalMemberExpr(memberExpr scrilaAst.IMemberExpr, env *En
 	return scrilaAst.NewRuntimeVal(dataType), nil
 }
 
-func (self *Transpiler) getFuncReturnType(call scrilaAst.ICallExpr, env *Environment) (scrilaAst.NodeType, error) {
-	self.printFuncName("")
-
-	if call.GetCaller().GetKind() != scrilaAst.IdentifierNode {
-		return "", fmt.Errorf("%s: Function name must be an identifier. Got: '%s'", self.getPos(call.GetCaller()), call.GetCaller().GetKind())
-	}
-
-	funcName := identNodeGetSymbol(call.GetCaller())
-	caller, err := env.lookupFunc(funcName)
-	if err != nil {
-		return "", err
-	}
-
-	switch caller.GetType() {
-	case scrilaAst.FunctionValueType:
-		return runtimeToFuncVal(caller).GetReturnType(), nil
-	case scrilaAst.NativeFnType:
-		return runtimeToNativeFunc(caller).GetReturnType(), nil
-	default:
-		return "", fmt.Errorf("%s: Cannot call value that is not a function: %s", self.getPos(call), caller.GetType())
-	}
-}
-
-// TODO Rename and move to helpers?
-func (self *Transpiler) getCallerResultVarName(call scrilaAst.ICallExpr, env *Environment) (string, error) {
-	self.printFuncName("")
-
-	returnType, err := self.getFuncReturnType(call, env)
-	if err != nil {
-		return "", err
-	}
-
-	if returnType == scrilaAst.VoidNode {
-		return "", fmt.Errorf("%s: Func '%s' does not have a return value", self.getPos(call.GetCaller()), identNodeGetSymbol(call.GetCaller()))
-	}
-
-	resultVarName, err := self.scrilaNodeTypeToTmpVarName(returnType)
-	if err != nil {
-		return "", err
-	}
-	return resultVarName, nil
-}
-
 func (self *Transpiler) evalCallExpr(call scrilaAst.ICallExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	if call.GetCaller().GetKind() != scrilaAst.IdentifierNode {
 		return NewNullVal(), fmt.Errorf("%s: Function name must be an identifier. Got: '%s'", self.getPos(call.GetCaller()), call.GetCaller().GetKind())
 	}
 
 	funcName := identNodeGetSymbol(call.GetCaller())
-
 	self.printFuncName(funcName)
 
-	bashArgs := make([]bashAst.IStatement, 0)
-
 	self.pushCallArgIndex()
+	bashArgs := make([]bashAst.IStatement, 0)
 	var args []scrilaAst.IRuntimeVal
 	for _, arg := range call.GetArgs() {
 		evalArg, err := self.transpile(arg, env)
@@ -514,17 +468,14 @@ func (self *Transpiler) evalReturnExpr(returnExpr scrilaAst.IReturnExpr, env *En
 	if err != nil {
 		return NewNullVal(), err
 	}
-
 	resultVarName, err := self.scrilaNodeTypeToDynTmpVarName(self.currentFunc.GetReturnType())
 	if err != nil {
 		return NewNullVal(), err
 	}
-
 	resultVarType, err := scrilaNodeTypeToBashNodeType(self.currentFunc.GetReturnType())
 	if err != nil {
 		return NewNullVal(), err
 	}
-
 	if resultValue.GetKind() != bashAst.VarLiteralNode || bashAst.StmtToVarLiteral(resultValue).GetDataType() != resultVarType {
 		self.appendUserBody(bashAst.NewAssignmentExpr(
 			bashAst.NewVarLiteral(resultVarName, resultVarType),

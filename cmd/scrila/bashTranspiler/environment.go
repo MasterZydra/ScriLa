@@ -7,8 +7,6 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-var reservedIdentifiers = []string{"true", "false", "break", "continue"}
-
 func (self *Transpiler) setupScope(env *Environment) {
 	// Create Default Global Environment
 	env.declareVar("true", true, scrilaAst.BoolLiteralNode)

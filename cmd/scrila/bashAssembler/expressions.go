@@ -7,16 +7,12 @@ import (
 
 func (self *Assembler) evalArrayAssignmentExpr(assignment bashAst.IArrayAssignmentExpr) error {
 	// e.g.: array[42]="value"
-	index, err := stmtToRhsBashStr(assignment.GetIndex())
-	if err != nil {
-		return err
-	}
 	value, err := stmtToRhsBashStr(assignment.GetValue())
 	if err != nil {
 		return err
 	}
 
-	if index == "" {
+	if assignment.GetIndex().GetKind() == bashAst.VoidNode {
 		// Append array
 		format := "%s+=(%s)"
 		if assignment.IsDeclaration() && self.isFuncContext {
@@ -25,6 +21,11 @@ func (self *Assembler) evalArrayAssignmentExpr(assignment bashAst.IArrayAssignme
 		self.writeLnWithTabsToFile(fmt.Sprintf(format, assignment.GetVarname().GetValue(), value))
 	} else {
 		// Overwrite value at index
+		index, err := stmtToRhsBashStr(assignment.GetIndex())
+		if err != nil {
+			return err
+		}
+
 		format := "%s[%s]=%s"
 		if assignment.IsDeclaration() && self.isFuncContext {
 			format = "local " + format

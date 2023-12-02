@@ -168,3 +168,45 @@ func (self *Transpiler) scrilaNodeTypeToDynTmpVarName(nodeType scrilaAst.NodeTyp
 	}
 	return fmt.Sprintf("%s[${tmpInts[0]}]", value), nil
 }
+
+func (self *Transpiler) getFuncReturnType(call scrilaAst.ICallExpr, env *Environment) (scrilaAst.NodeType, error) {
+	self.printFuncName("")
+
+	if call.GetCaller().GetKind() != scrilaAst.IdentifierNode {
+		return "", fmt.Errorf("%s: Function name must be an identifier. Got: '%s'", self.getPos(call.GetCaller()), call.GetCaller().GetKind())
+	}
+
+	funcName := identNodeGetSymbol(call.GetCaller())
+	caller, err := env.lookupFunc(funcName)
+	if err != nil {
+		return "", err
+	}
+
+	switch caller.GetType() {
+	case scrilaAst.FunctionValueType:
+		return runtimeToFuncVal(caller).GetReturnType(), nil
+	case scrilaAst.NativeFnType:
+		return runtimeToNativeFunc(caller).GetReturnType(), nil
+	default:
+		return "", fmt.Errorf("%s: Cannot call value that is not a function: %s", self.getPos(call), caller.GetType())
+	}
+}
+
+func (self *Transpiler) getCallerResultVarName(call scrilaAst.ICallExpr, env *Environment) (string, error) {
+	self.printFuncName("")
+
+	returnType, err := self.getFuncReturnType(call, env)
+	if err != nil {
+		return "", err
+	}
+
+	if returnType == scrilaAst.VoidNode {
+		return "", fmt.Errorf("%s: Func '%s' does not have a return value", self.getPos(call.GetCaller()), identNodeGetSymbol(call.GetCaller()))
+	}
+
+	resultVarName, err := self.scrilaNodeTypeToTmpVarName(returnType)
+	if err != nil {
+		return "", err
+	}
+	return resultVarName, nil
+}

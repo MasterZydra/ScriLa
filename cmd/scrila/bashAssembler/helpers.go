@@ -8,7 +8,7 @@ import (
 func (self *Assembler) assembleBody(stmts []bashAst.IStatement) error {
 	isBodyEmpty := true
 	for _, stmt := range stmts {
-		// The body of if/while/function with just Bash comment still counts as empty
+		// The body of if/while/function with just a Bash comment still counts as empty
 		// and throws an error if it is executed.
 		if stmt.GetKind() != bashAst.CommentNode {
 			isBodyEmpty = false
@@ -100,20 +100,24 @@ func stmtToBashStr(stmt bashAst.IStatement) (string, error) {
 		default:
 			return "", fmt.Errorf("stmtToBashStr(): Var type '%s' is not implemented", varType)
 		}
-	case bashAst.VoidNode:
-		return "", nil
 	default:
 		return "", fmt.Errorf("stmtToBashStr(): Kind '%s' is not implemented", stmt.GetKind())
 	}
 }
 
 func memberExprToBashStr(memberExpr bashAst.IMemberExpr) (string, error) {
-	index, err := stmtToRhsBashStr(memberExpr.GetIndex())
-	if err != nil {
-		return "", err
-	}
+	if memberExpr.GetIndex().GetKind() == bashAst.VoidNode {
+		// Append array
+		return strToBashVar(fmt.Sprintf("%s[]", memberExpr.GetVarname().GetValue())), nil
+	} else {
+		// Overwrite value at index
+		index, err := stmtToRhsBashStr(memberExpr.GetIndex())
+		if err != nil {
+			return "", err
+		}
 
-	return strToBashVar(fmt.Sprintf("%s[%s]", memberExpr.GetVarname().GetValue(), index)), nil
+		return strToBashVar(fmt.Sprintf("%s[%s]", memberExpr.GetVarname().GetValue(), index)), nil
+	}
 }
 
 func binCompToBashStr(binOp bashAst.IBinaryOpExpr) (string, error) {

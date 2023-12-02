@@ -21,8 +21,48 @@ func (self *Transpiler) declareNativeFunctions(env *Environment) {
 	env.declareFunc("strToInt", NewNativeFunc(self.nativeStrToInt, scrilaAst.IntLiteralNode))
 }
 
-func (self *Transpiler) nativePrintLn(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
+func (self *Transpiler) nativeExec(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
+
+	// Validate args
+	if len(args) != 1 {
+		return NewNullVal(), fmt.Errorf("Expected syntax: exec(str command)")
+	}
+	doMatch, givenType, err := self.exprIsType(args[0], scrilaAst.StrLiteralNode, env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+	if !doMatch {
+		return NewNullVal(), fmt.Errorf("exec() - Parameter value must be a string or a variable of type string. Got '%s'", givenType)
+	}
+
+	// Add bash code for exec to "usedNativeFunctions"
+	if !slices.Contains(self.usedNativeFunctions, "exec") {
+		self.usedNativeFunctions = append(self.usedNativeFunctions, "exec")
+		funcDecl := bashAst.NewFuncDeclaration("exec", bashAst.VoidNode)
+		funcDecl.AppendParams(bashAst.NewFuncParameter("command", bashAst.StrLiteralNode))
+		funcDecl.AppendBody(bashAst.NewBashStmt("${command}"))
+		self.bashProgram.AppendNativeBody(funcDecl)
+	}
+
+	return NewNullVal(), nil
+}
+
+func (self *Transpiler) nativeExit(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
+	self.printFuncName("")
+
+	// Validate args
+	if len(args) != 1 {
+		return NewNullVal(), fmt.Errorf("Expected syntax: exit(int code)")
+	}
+	doMatch, givenType, err := self.exprIsType(args[0], scrilaAst.IntLiteralNode, env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+	if !doMatch {
+		return NewNullVal(), fmt.Errorf("exit() - Parameter value must be a int or a variable of type int. Got '%s'", givenType)
+	}
+
 	return NewNullVal(), nil
 }
 
@@ -33,7 +73,6 @@ func (self *Transpiler) nativeInput(args []scrilaAst.IExpr, env *Environment) (s
 	if len(args) != 1 {
 		return NewNullVal(), fmt.Errorf("Expected syntax: input(str prompt)")
 	}
-
 	doMatch, givenType, err := self.exprIsType(args[0], scrilaAst.StrLiteralNode, env)
 	if err != nil {
 		return NewNullVal(), err
@@ -54,6 +93,11 @@ func (self *Transpiler) nativeInput(args []scrilaAst.IExpr, env *Environment) (s
 	return NewStrVal("str"), nil
 }
 
+func (self *Transpiler) nativePrintLn(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
+	self.printFuncName("")
+	return NewNullVal(), nil
+}
+
 func (self *Transpiler) nativeSleep(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
@@ -61,7 +105,6 @@ func (self *Transpiler) nativeSleep(args []scrilaAst.IExpr, env *Environment) (s
 	if len(args) != 1 {
 		return NewNullVal(), fmt.Errorf("Expected syntax: sleep(int seconds)")
 	}
-
 	doMatch, givenType, err := self.exprIsType(args[0], scrilaAst.IntLiteralNode, env)
 	if err != nil {
 		return NewNullVal(), err
@@ -80,7 +123,6 @@ func (self *Transpiler) nativeStrIsBool(args []scrilaAst.IExpr, env *Environment
 	if len(args) != 1 {
 		return NewNullVal(), fmt.Errorf("Expected syntax: strIsBool(str value)")
 	}
-
 	doMatch, givenType, err := self.exprIsType(args[0], scrilaAst.StrLiteralNode, env)
 	if err != nil {
 		return NewNullVal(), err
@@ -117,7 +159,6 @@ func (self *Transpiler) nativeStrIsInt(args []scrilaAst.IExpr, env *Environment)
 	if len(args) != 1 {
 		return NewNullVal(), fmt.Errorf("Expected syntax: strIsInt(str value)")
 	}
-
 	doMatch, givenType, err := self.exprIsType(args[0], scrilaAst.StrLiteralNode, env)
 	if err != nil {
 		return NewNullVal(), err
@@ -148,7 +189,6 @@ func (self *Transpiler) nativeStrToBool(args []scrilaAst.IExpr, env *Environment
 	if len(args) != 1 {
 		return NewNullVal(), fmt.Errorf("Expected syntax: strToBool(str value)")
 	}
-
 	doMatch, givenType, err := self.exprIsType(args[0], scrilaAst.StrLiteralNode, env)
 	if err != nil {
 		return NewNullVal(), err
@@ -181,7 +221,6 @@ func (self *Transpiler) nativeStrToInt(args []scrilaAst.IExpr, env *Environment)
 	if len(args) != 1 {
 		return NewNullVal(), fmt.Errorf("Expected syntax: strToInt(str value)")
 	}
-
 	doMatch, givenType, err := self.exprIsType(args[0], scrilaAst.StrLiteralNode, env)
 	if err != nil {
 		return NewNullVal(), err
@@ -202,51 +241,4 @@ func (self *Transpiler) nativeStrToInt(args []scrilaAst.IExpr, env *Environment)
 	}
 
 	return NewIntVal(1), nil
-}
-
-func (self *Transpiler) nativeExec(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
-	self.printFuncName("")
-
-	// Validate args
-	if len(args) != 1 {
-		return NewNullVal(), fmt.Errorf("Expected syntax: exec(str command)")
-	}
-
-	doMatch, givenType, err := self.exprIsType(args[0], scrilaAst.StrLiteralNode, env)
-	if err != nil {
-		return NewNullVal(), err
-	}
-	if !doMatch {
-		return NewNullVal(), fmt.Errorf("exec() - Parameter value must be a string or a variable of type string. Got '%s'", givenType)
-	}
-
-	// Add bash code for exec to "usedNativeFunctions"
-	if !slices.Contains(self.usedNativeFunctions, "exec") {
-		self.usedNativeFunctions = append(self.usedNativeFunctions, "exec")
-		funcDecl := bashAst.NewFuncDeclaration("exec", bashAst.VoidNode)
-		funcDecl.AppendParams(bashAst.NewFuncParameter("command", bashAst.StrLiteralNode))
-		funcDecl.AppendBody(bashAst.NewBashStmt("${command}"))
-		self.bashProgram.AppendNativeBody(funcDecl)
-	}
-
-	return NewNullVal(), nil
-}
-
-func (self *Transpiler) nativeExit(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
-	self.printFuncName("")
-
-	// Validate args
-	if len(args) != 1 {
-		return NewNullVal(), fmt.Errorf("Expected syntax: exit(int code)")
-	}
-
-	doMatch, givenType, err := self.exprIsType(args[0], scrilaAst.IntLiteralNode, env)
-	if err != nil {
-		return NewNullVal(), err
-	}
-	if !doMatch {
-		return NewNullVal(), fmt.Errorf("exit() - Parameter value must be a int or a variable of type int. Got '%s'", givenType)
-	}
-
-	return NewNullVal(), nil
 }

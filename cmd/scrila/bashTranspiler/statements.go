@@ -10,7 +10,6 @@ func (self *Transpiler) evalProgram(program scrilaAst.IProgram, env *Environment
 	self.printFuncName("")
 
 	var lastEvaluated scrilaAst.IRuntimeVal = NewNullVal()
-
 	for _, statement := range program.GetBody() {
 		var err error
 		lastEvaluated, err = self.transpile(statement, env)
@@ -30,6 +29,7 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration scrilaAst.IVarDeclarat
 		return NewNullVal(), err
 	}
 
+	// Check if variable type and value type match
 	doMatch, givenType, err := self.exprIsType(varDeclaration.GetValue(), varDeclaration.GetDataType(), env)
 	if err != nil {
 		return NewNullVal(), err
@@ -68,12 +68,10 @@ func (self *Transpiler) evalIfStatement(ifStatement scrilaAst.IIfStatement, env 
 	if err != nil {
 		return NewNullVal(), err
 	}
-
 	err = self.evalStatementCondition(ifStatement.GetCondition(), env)
 	if err != nil {
 		return NewNullVal(), err
 	}
-
 	bashCond, ok := self.bashStmtStack[ifStatement.GetCondition().GetId()]
 	if !ok {
 		return NewNullVal(), fmt.Errorf("evalIfStatement(): Condition is not stored in stack")
@@ -117,12 +115,10 @@ func (self *Transpiler) evalWhileStatement(whileStatement scrilaAst.IWhileStatem
 	if err != nil {
 		return NewNullVal(), err
 	}
-
 	err = self.evalStatementCondition(whileStatement.GetCondition(), env)
 	if err != nil {
 		return NewNullVal(), err
 	}
-
 	bashCond, ok := self.bashStmtStack[whileStatement.GetCondition().GetId()]
 	if !ok {
 		return NewNullVal(), fmt.Errorf("evalWhileStatement(): Condition is not stored in stack")
@@ -200,6 +196,7 @@ func (self *Transpiler) evalIfStatementElse(elseBlock scrilaAst.IIfStatement, en
 func (self *Transpiler) evalStatementCondition(condition scrilaAst.IExpr, env *Environment) error {
 	self.printFuncName("")
 
+	// Check if condition is of type boolean
 	doMatch, givenType, err := self.exprIsType(condition, scrilaAst.BoolLiteralNode, env)
 	if err != nil {
 		return err

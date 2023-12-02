@@ -40,6 +40,7 @@ func (self *Assembler) writeFileHeader() {
 	self.writeLnToFile("")
 }
 
+// Get the tabs for the correct indentation
 func (self *Assembler) tabs() string {
 	return strings.Repeat("\t", self.indentDepth)
 }
