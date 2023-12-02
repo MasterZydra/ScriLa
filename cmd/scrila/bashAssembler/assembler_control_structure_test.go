@@ -181,6 +181,8 @@ func ExampleIf() {
 			printLn("true");
 		} else if (true && false) {
 			printLn("true");
+		} else {
+			printLn("false");
 		}
 		if (true || false) {
 			printLn("true");
@@ -218,6 +220,8 @@ func ExampleIf() {
 	// elif [[ "true" == "true" ]] && [[ "false" == "true" ]]
 	// then
 	// 	echo "true"
+	// else
+	// 	echo "false"
 	// fi
 	// if [[ "true" == "true" ]] || [[ "false" == "true" ]]
 	// then

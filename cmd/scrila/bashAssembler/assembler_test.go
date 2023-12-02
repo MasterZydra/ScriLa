@@ -451,6 +451,7 @@ func ExampleArray() {
 		int[] i1 = [];
 		# Array with value
 		int[] i2 = [42];
+		int[] i3 = [40, 41];
 
 		# Assign
 		# Empty array
@@ -482,6 +483,7 @@ func ExampleArray() {
 	// i1=()
 	// # Array with value
 	// i2=(42)
+	// i3=(40 41)
 	// # Assign
 	// # Empty array
 	// i1=()
