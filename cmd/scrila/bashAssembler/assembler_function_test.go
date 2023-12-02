@@ -700,3 +700,12 @@ func TestErrorFuncWithoutReturnValue(t *testing.T) {
 		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
 	}
 }
+
+func TestErrorFuncInFunc(t *testing.T) {
+	initTest()
+	err := transpileTest(`func a() void { func b() void {} }`)
+	expected := fmt.Errorf("test.scri:1:17: Cannot declare a function inside a function")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}

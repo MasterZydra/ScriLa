@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## v0.2.0-alpha
+
 ### Added
 
 - Added support for declaring and assigning arrays #5
@@ -19,6 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 
 - Fixed token types for braces and brackets so that they are not the same
+- Fixed error caused if a function was declared inside of a function by preventing function nesting
 
 ## v0.1.2-alpha
 

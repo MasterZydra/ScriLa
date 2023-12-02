@@ -233,6 +233,10 @@ func (self *Transpiler) evalStatementBody(body []scrilaAst.IStatement, env *Envi
 func (self *Transpiler) evalFunctionDeclaration(funcDeclaration scrilaAst.IFunctionDeclaration, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
+	if self.contextContains(FunctionContext) {
+		return NewNullVal(), fmt.Errorf("%s: Cannot declare a function inside a function", self.getPos(funcDeclaration))
+	}
+
 	fn := NewFunctionVal(funcDeclaration, env)
 	scope := NewEnvironment(fn.GetDeclarationEnv(), self)
 
