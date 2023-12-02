@@ -56,12 +56,7 @@ add(1, 2);
 
 func sub(int a, int b) void {
     int result = 0;
-    func internalAdd(int a, int b) int {
-        result = a + b;
-    }
-
-    internalAdd(a, b);
-    result = result - 2 * b;
+    result = a + b - 2 * b;
     printLn(result);
 }
 
