@@ -55,12 +55,12 @@ function fn() {
 }
 ```
 
-The bash transpilat for a ScriLa function uses a temporary variable to return the value:
+The bash transpilat for a ScriLa function uses a temporary variable of type array to return the value:
 | Return type | Variable |
 | ----------- | -------- |
-| bool        | `$tmpBool` |
-| int         | `$tmpInt` |
-| string      | `$tmpStr` |  
+| bool        | `$tmpBools` |
+| int         | `$tmpInts` |
+| string      | `$tmpStrs` |  
 
 **Example:**  
 ```Python
@@ -76,10 +76,10 @@ int result = add(13, 42);
 add () {
 	local a=$1
 	local b=$2
-	tmpInt=$((${a} + ${b}))
+	tmpInts[0]=$((${a} + ${b}))
 	return
 }
 
 add 13 42
-result=${tmpInt}
+result=${tmpInts[0]}
 ``` 

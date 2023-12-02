@@ -205,8 +205,8 @@ func ExampleIf() {
 	// strIsInt () {
 	// 	local value=$1
 	// 	case ${value} in
-	// 		''|*[!0-9]*) tmpBool="false" ;;
-	// 		*) tmpBool="true" ;;
+	// 		''|*[!0-9]*) tmpBools[0]="false" ;;
+	// 		*) tmpBools[0]="true" ;;
 	// 	esac
 	// }
 	//
@@ -233,7 +233,7 @@ func ExampleIf() {
 	// fi
 	// intStr="123"
 	// strIsInt "${intStr}"
-	// if [[ "${tmpBool}" == "true" ]]
+	// if [[ "${tmpBools[0]}" == "true" ]]
 	// then
 	// 	:
 	// fi

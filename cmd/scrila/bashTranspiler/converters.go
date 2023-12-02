@@ -21,12 +21,12 @@ func (self *Transpiler) exprToRhsBashStmt(expr scrilaAst.IExpr, env *Environment
 	if bashStmt.GetKind() == bashAst.BinaryCompExprNode ||
 		(bashStmt.GetKind() == bashAst.BinaryOpExprNode && bashAst.StmtToBinaryOpExpr(bashStmt).GetDataType() == bashAst.BoolLiteralNode) {
 		ifStmt := bashAst.NewIfStmt(bashStmt)
-		ifStmt.AppendBody(bashAst.NewBashStmt("tmpBool=\"true\""))
+		ifStmt.AppendBody(bashAst.NewBashStmt("tmpBools[0]=\"true\""))
 		elseStmt := bashAst.NewIfStmt(nil)
-		elseStmt.AppendBody(bashAst.NewBashStmt("tmpBool=\"false\""))
+		elseStmt.AppendBody(bashAst.NewBashStmt("tmpBools[0]=\"false\""))
 		ifStmt.SetElse(elseStmt)
 		self.appendUserBody(ifStmt)
-		bashStmt = bashAst.NewVarLiteral("tmpBool", bashAst.BoolLiteralNode)
+		bashStmt = bashAst.NewVarLiteral("tmpBools[0]", bashAst.BoolLiteralNode)
 	}
 
 	return bashStmt, nil
@@ -136,9 +136,9 @@ func scrilaNodeTypeToRuntimeVal(nodeType scrilaAst.NodeType) (scrilaAst.IRuntime
 }
 
 var scrilaNodeTypeToTmpVarNameMapping = map[scrilaAst.NodeType]string{
-	scrilaAst.BoolLiteralNode: "tmpBool",
-	scrilaAst.IntLiteralNode:  "tmpInt",
-	scrilaAst.StrLiteralNode:  "tmpStr",
+	scrilaAst.BoolLiteralNode: "tmpBools[0]",
+	scrilaAst.IntLiteralNode:  "tmpInts[0]",
+	scrilaAst.StrLiteralNode:  "tmpStrs[0]",
 }
 
 func scrilaNodeTypeToTmpVarName(nodeType scrilaAst.NodeType) (string, error) {

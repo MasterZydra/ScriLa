@@ -372,38 +372,38 @@ func ExampleBoolAssignComparision() {
 	//
 	// if [[ 42 -gt 13 ]]
 	// then
-	// 	tmpBool="true"
+	// 	tmpBools[0]="true"
 	// else
-	// 	tmpBool="false"
+	// 	tmpBools[0]="false"
 	// fi
-	// b="${tmpBool}"
+	// b="${tmpBools[0]}"
 	// if [[ "true" == "true" ]] && [[ "false" == "true" ]]
 	// then
-	// 	tmpBool="true"
+	// 	tmpBools[0]="true"
 	// else
-	// 	tmpBool="false"
+	// 	tmpBools[0]="false"
 	// fi
-	// b1="${tmpBool}"
+	// b1="${tmpBools[0]}"
 	// # b(bool b) bool
 	// b () {
 	// 	local b=$1
 	// 	if [[ 42 -gt 13 ]]
 	// 	then
-	// 		tmpBool="true"
+	// 		tmpBools[0]="true"
 	// 	else
-	// 		tmpBool="false"
+	// 		tmpBools[0]="false"
 	// 	fi
 	// 	return
 	// }
 	//
 	// if [[ 42 -gt 13 ]]
 	// then
-	// 	tmpBool="true"
+	// 	tmpBools[0]="true"
 	// else
-	// 	tmpBool="false"
+	// 	tmpBools[0]="false"
 	// fi
-	// b "${tmpBool}"
-	// b="${tmpBool}"
+	// b "${tmpBools[0]}"
+	// b="${tmpBools[0]}"
 }
 
 // Array

@@ -86,9 +86,9 @@ func StmtToWhileStmt(stmt IStatement) IWhileStmt {
 }
 
 var tmpVarNameToBashNodeTypeMapping = map[string]NodeType{
-	"tmpBool": BoolLiteralNode,
-	"tmpInt":  IntLiteralNode,
-	"tmpStr":  StrLiteralNode,
+	"tmpBools[0]": BoolLiteralNode,
+	"tmpInts[0]":  IntLiteralNode,
+	"tmpStrs[0]":  StrLiteralNode,
 }
 
 func TmpVarNameToBashNodeType(tmpVarName string) (NodeType, error) {

@@ -146,13 +146,13 @@ func ExampleInput() {
 	// # input(str prompt) str
 	// input () {
 	// 	local prompt=$1
-	// 	read -p "${prompt} " tmpStr
+	// 	read -p "${prompt} " tmpStrs[0]
 	// }
 	//
 	// # User script
 	//
 	// input "Enter username:"
-	// s="${tmpStr}"
+	// s="${tmpStrs[0]}"
 	// input "${s}"
 }
 
@@ -185,7 +185,7 @@ func ExamplePrint() {
 	// # strToInt(str value) int
 	// strToInt () {
 	// 	local value=$1
-	// 	tmpInt=${value}
+	// 	tmpInts[0]=${value}
 	// }
 	//
 	// # User script
@@ -204,7 +204,7 @@ func ExamplePrint() {
 	// echo ""
 	// # Print with function call and binary op
 	// strToInt "123"
-	// echo "$((${tmpInt} + 2))"
+	// echo "$((${tmpInts[0]} + 2))"
 }
 
 // -------- Native function "Sleep" --------
@@ -294,18 +294,18 @@ func ExampleStrIsBool() {
 	// 	local value=$1
 	// 	if [[ "${value}" == "true" ]] || [[ "${value}" == "false" ]]
 	// 	then
-	// 		tmpBool="true"
+	// 		tmpBools[0]="true"
 	// 	else
-	// 		tmpBool="false"
+	// 		tmpBools[0]="false"
 	// 	fi
 	// }
 	//
 	// # User script
 	//
 	// strIsBool "10"
-	// b="${tmpBool}"
+	// b="${tmpBools[0]}"
 	// strIsBool "true"
-	// b="${tmpBool}"
+	// b="${tmpBools[0]}"
 }
 
 // -------- Native function "StrIsInt" --------
@@ -344,17 +344,17 @@ func ExampleStrIsInt() {
 	// strIsInt () {
 	// 	local value=$1
 	// 	case ${value} in
-	// 		''|*[!0-9]*) tmpBool="false" ;;
-	// 		*) tmpBool="true" ;;
+	// 		''|*[!0-9]*) tmpBools[0]="false" ;;
+	// 		*) tmpBools[0]="true" ;;
 	// 	esac
 	// }
 	//
 	// # User script
 	//
 	// strIsInt "10"
-	// b="${tmpBool}"
+	// b="${tmpBools[0]}"
 	// strIsInt "str"
-	// b="${tmpBool}"
+	// b="${tmpBools[0]}"
 }
 
 // -------- Native function "StrToBool" --------
@@ -394,18 +394,18 @@ func ExampleStrToBool() {
 	// 	local value=$1
 	// 	if [[ "${value}" == "true" ]]
 	// 	then
-	// 		tmpBool="true"
+	// 		tmpBools[0]="true"
 	// 	else
-	// 		tmpBool="false"
+	// 		tmpBools[0]="false"
 	// 	fi
 	// }
 	//
 	// # User script
 	//
 	// strToBool "true"
-	// b1="${tmpBool}"
+	// b1="${tmpBools[0]}"
 	// strToBool "false"
-	// b2="${tmpBool}"
+	// b2="${tmpBools[0]}"
 }
 
 // -------- Native function "StrToInt" --------
@@ -440,13 +440,13 @@ func ExampleStrToInt() {
 	// # strToInt(str value) int
 	// strToInt () {
 	// 	local value=$1
-	// 	tmpInt=${value}
+	// 	tmpInts[0]=${value}
 	// }
 	//
 	// # User script
 	//
 	// strToInt "123"
-	// i=${tmpInt}
+	// i=${tmpInts[0]}
 }
 
 // -------- User defined functions --------
@@ -578,14 +578,14 @@ func ExampleFuncDeclarationWithCall() {
 	// add () {
 	// 	local a=$1
 	// 	local b=$2
-	// 	tmpInt=$((${a} + ${b}))
+	// 	tmpInts[0]=$((${a} + ${b}))
 	// 	return
 	// }
 	//
 	// add ${i} 321
-	// sum=${tmpInt}
+	// sum=${tmpInts[0]}
 	// add 123 321
-	// echo "${tmpInt}"
+	// echo "${tmpInts[0]}"
 	// # Functions without body
 	// # emptyBody() void
 	// emptyBody () {
