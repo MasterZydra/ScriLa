@@ -22,7 +22,7 @@ func (self *Transpiler) exprToRhsBashStmt(expr scrilaAst.IExpr, env *Environment
 		(bashStmt.GetKind() == bashAst.BinaryOpExprNode && bashAst.StmtToBinaryOpExpr(bashStmt).GetDataType() == bashAst.BoolLiteralNode) {
 		varname := fmt.Sprintf("tmpBools[%d]", self.currentCallArgIndex())
 		if self.contextContains(FunctionContext) {
-			varname = "tmpBools[${tmpInts[0]}]"
+			varname = "tmpBools[${tmpIndex}]"
 		}
 		ifStmt := bashAst.NewIfStmt(bashStmt)
 		ifStmt.AppendBody(bashAst.NewBashStmt(fmt.Sprintf("%s=\"true\"", varname)))
@@ -155,8 +155,8 @@ func (self *Transpiler) scrilaNodeTypeToTmpVarName(nodeType scrilaAst.NodeType) 
 		return "", fmt.Errorf("scrilaNodeTypeToTmpVarName(): Node type '%s' is not in mapping", nodeType)
 	}
 	index := self.currentCallArgIndex() - 1
-	if index == 0 {
-		index = 1
+	if index < 0 {
+		index = 0
 	}
 	return fmt.Sprintf("%s[%d]", value, index), nil
 }
@@ -166,7 +166,7 @@ func (self *Transpiler) scrilaNodeTypeToDynTmpVarName(nodeType scrilaAst.NodeTyp
 	if !ok {
 		return "", fmt.Errorf("scrilaNodeTypeToDynTmpVarName(): Node type '%s' is not in mapping", nodeType)
 	}
-	return fmt.Sprintf("%s[${tmpInts[0]}]", value), nil
+	return fmt.Sprintf("%s[${tmpIndex}]", value), nil
 }
 
 func (self *Transpiler) getFuncReturnType(call scrilaAst.ICallExpr, env *Environment) (scrilaAst.NodeType, error) {

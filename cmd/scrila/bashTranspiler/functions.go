@@ -41,7 +41,7 @@ func (self *Transpiler) nativeExec(args []scrilaAst.IExpr, env *Environment) (sc
 		self.usedNativeFunctions = append(self.usedNativeFunctions, "exec")
 		funcDecl := bashAst.NewFuncDeclaration("exec", bashAst.StrLiteralNode)
 		funcDecl.AppendParams(bashAst.NewFuncParameter("command", bashAst.StrLiteralNode))
-		funcDecl.AppendBody(bashAst.NewBashStmt("tmpStrs[${tmpInts[0]}]=$(eval ${command})"))
+		funcDecl.AppendBody(bashAst.NewBashStmt("tmpStrs[${tmpIndex}]=$(eval ${command})"))
 		self.bashProgram.AppendNativeBody(funcDecl)
 	}
 
@@ -86,7 +86,7 @@ func (self *Transpiler) nativeInput(args []scrilaAst.IExpr, env *Environment) (s
 		self.usedNativeFunctions = append(self.usedNativeFunctions, "input")
 		funcDecl := bashAst.NewFuncDeclaration("input", bashAst.StrLiteralNode)
 		funcDecl.AppendParams(bashAst.NewFuncParameter("prompt", bashAst.StrLiteralNode))
-		funcDecl.AppendBody(bashAst.NewBashStmt("read -p \"${prompt} \" tmpStrs[${tmpInts[0]}]"))
+		funcDecl.AppendBody(bashAst.NewBashStmt("read -p \"${prompt} \" tmpStrs[${tmpIndex}]"))
 		self.bashProgram.AppendNativeBody(funcDecl)
 	}
 
@@ -142,9 +142,9 @@ func (self *Transpiler) nativeStrIsBool(args []scrilaAst.IExpr, env *Environment
 			bashAst.NewBinaryCompExpr(bashAst.BoolLiteralNode, bashAst.NewVarLiteral("value", bashAst.StrLiteralNode), bashAst.NewStrLiteral("false"), "=="),
 			"||")
 		ifStmt := bashAst.NewIfStmt(cond)
-		ifStmt.AppendBody(bashAst.NewBashStmt("tmpBools[${tmpInts[0]}]=\"true\""))
+		ifStmt.AppendBody(bashAst.NewBashStmt("tmpBools[${tmpIndex}]=\"true\""))
 		elseStmt := bashAst.NewIfStmt(nil)
-		elseStmt.AppendBody(bashAst.NewBashStmt("tmpBools[${tmpInts[0]}]=\"false\""))
+		elseStmt.AppendBody(bashAst.NewBashStmt("tmpBools[${tmpIndex}]=\"false\""))
 		ifStmt.SetElse(elseStmt)
 		funcDecl.AppendBody(ifStmt)
 		self.bashProgram.AppendNativeBody(funcDecl)
@@ -174,8 +174,8 @@ func (self *Transpiler) nativeStrIsInt(args []scrilaAst.IExpr, env *Environment)
 		funcDecl := bashAst.NewFuncDeclaration("strIsInt", bashAst.BoolLiteralNode)
 		funcDecl.AppendParams(bashAst.NewFuncParameter("value", bashAst.StrLiteralNode))
 		funcDecl.AppendBody(bashAst.NewBashStmt("case ${value} in"))
-		funcDecl.AppendBody(bashAst.NewBashStmt("\t''|*[!0-9]*) tmpBools[${tmpInts[0]}]=\"false\" ;;"))
-		funcDecl.AppendBody(bashAst.NewBashStmt("\t*) tmpBools[${tmpInts[0]}]=\"true\" ;;"))
+		funcDecl.AppendBody(bashAst.NewBashStmt("\t''|*[!0-9]*) tmpBools[${tmpIndex}]=\"false\" ;;"))
+		funcDecl.AppendBody(bashAst.NewBashStmt("\t*) tmpBools[${tmpIndex}]=\"true\" ;;"))
 		funcDecl.AppendBody(bashAst.NewBashStmt("esac"))
 		self.bashProgram.AppendNativeBody(funcDecl)
 	}
@@ -204,9 +204,9 @@ func (self *Transpiler) nativeStrToBool(args []scrilaAst.IExpr, env *Environment
 		funcDecl.AppendParams(bashAst.NewFuncParameter("value", bashAst.StrLiteralNode))
 		cond := bashAst.NewBinaryCompExpr(bashAst.BoolLiteralNode, bashAst.NewVarLiteral("value", bashAst.StrLiteralNode), bashAst.NewStrLiteral("true"), "==")
 		ifStmt := bashAst.NewIfStmt(cond)
-		ifStmt.AppendBody(bashAst.NewBashStmt("tmpBools[${tmpInts[0]}]=\"true\""))
+		ifStmt.AppendBody(bashAst.NewBashStmt("tmpBools[${tmpIndex}]=\"true\""))
 		elseStmt := bashAst.NewIfStmt(nil)
-		elseStmt.AppendBody(bashAst.NewBashStmt("tmpBools[${tmpInts[0]}]=\"false\""))
+		elseStmt.AppendBody(bashAst.NewBashStmt("tmpBools[${tmpIndex}]=\"false\""))
 		ifStmt.SetElse(elseStmt)
 		funcDecl.AppendBody(ifStmt)
 		self.bashProgram.AppendNativeBody(funcDecl)
@@ -236,7 +236,7 @@ func (self *Transpiler) nativeStrToInt(args []scrilaAst.IExpr, env *Environment)
 		self.usedNativeFunctions = append(self.usedNativeFunctions, "strToInt")
 		funcDecl := bashAst.NewFuncDeclaration("strToInt", bashAst.IntLiteralNode)
 		funcDecl.AppendParams(bashAst.NewFuncParameter("value", bashAst.StrLiteralNode))
-		funcDecl.AppendBody(bashAst.NewBashStmt("tmpInts[${tmpInts[0]}]=${value}"))
+		funcDecl.AppendBody(bashAst.NewBashStmt("tmpInts[${tmpIndex}]=${value}"))
 		self.bashProgram.AppendNativeBody(funcDecl)
 	}
 

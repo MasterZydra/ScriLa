@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Added another temporary variabel `tmpIndex` to store the current array index so that the `tmpInts` array can be used without limitations
+
 ### Changed
 
 - Changed the return value of the native function `exec` from `void` to `str` by returing the output of the given command

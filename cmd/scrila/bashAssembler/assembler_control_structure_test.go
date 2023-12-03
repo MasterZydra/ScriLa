@@ -207,8 +207,8 @@ func ExampleIf() {
 	// strIsInt () {
 	// 	local value=$1
 	// 	case ${value} in
-	// 		''|*[!0-9]*) tmpBools[${tmpInts[0]}]="false" ;;
-	// 		*) tmpBools[${tmpInts[0]}]="true" ;;
+	// 		''|*[!0-9]*) tmpBools[${tmpIndex}]="false" ;;
+	// 		*) tmpBools[${tmpIndex}]="true" ;;
 	// 	esac
 	// }
 	//
@@ -236,9 +236,9 @@ func ExampleIf() {
 	// 	:
 	// fi
 	// intStr="123"
-	// tmpInts[0]=1
+	// tmpIndex=0
 	// strIsInt "${intStr}"
-	// if [[ "${tmpBools[1]}" == "true" ]]
+	// if [[ "${tmpBools[0]}" == "true" ]]
 	// then
 	// 	:
 	// fi

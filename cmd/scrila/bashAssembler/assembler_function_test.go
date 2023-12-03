@@ -42,12 +42,12 @@ func ExampleExec() {
 	// # exec(str command) str
 	// exec () {
 	// 	local command=$1
-	// 	tmpStrs[${tmpInts[0]}]=$(eval ${command})
+	// 	tmpStrs[${tmpIndex}]=$(eval ${command})
 	// }
 	//
 	// # User script
 	//
-	// tmpInts[0]=1
+	// tmpIndex=0
 	// exec "echo hi"
 	// cmd="echo hi"
 	// exec "${cmd}"
@@ -147,14 +147,14 @@ func ExampleInput() {
 	// # input(str prompt) str
 	// input () {
 	// 	local prompt=$1
-	// 	read -p "${prompt} " tmpStrs[${tmpInts[0]}]
+	// 	read -p "${prompt} " tmpStrs[${tmpIndex}]
 	// }
 	//
 	// # User script
 	//
-	// tmpInts[0]=1
+	// tmpIndex=0
 	// input "Enter username:"
-	// s="${tmpStrs[1]}"
+	// s="${tmpStrs[0]}"
 	// input "${s}"
 }
 
@@ -187,7 +187,7 @@ func ExamplePrint() {
 	// # strToInt(str value) int
 	// strToInt () {
 	// 	local value=$1
-	// 	tmpInts[${tmpInts[0]}]=${value}
+	// 	tmpInts[${tmpIndex}]=${value}
 	// }
 	//
 	// # User script
@@ -205,9 +205,9 @@ func ExamplePrint() {
 	// echo "${i} ${s} ${b}"
 	// echo ""
 	// # Print with function call and binary op
-	// tmpInts[0]=1
+	// tmpIndex=0
 	// strToInt "123"
-	// echo "$((${tmpInts[1]} + 2))"
+	// echo "$((${tmpInts[0]} + 2))"
 }
 
 // -------- Native function "Sleep" --------
@@ -297,19 +297,19 @@ func ExampleStrIsBool() {
 	// 	local value=$1
 	// 	if [[ "${value}" == "true" ]] || [[ "${value}" == "false" ]]
 	// 	then
-	// 		tmpBools[${tmpInts[0]}]="true"
+	// 		tmpBools[${tmpIndex}]="true"
 	// 	else
-	// 		tmpBools[${tmpInts[0]}]="false"
+	// 		tmpBools[${tmpIndex}]="false"
 	// 	fi
 	// }
 	//
 	// # User script
 	//
-	// tmpInts[0]=1
+	// tmpIndex=0
 	// strIsBool "10"
-	// b="${tmpBools[1]}"
+	// b="${tmpBools[0]}"
 	// strIsBool "true"
-	// b="${tmpBools[1]}"
+	// b="${tmpBools[0]}"
 }
 
 // -------- Native function "StrIsInt" --------
@@ -348,18 +348,18 @@ func ExampleStrIsInt() {
 	// strIsInt () {
 	// 	local value=$1
 	// 	case ${value} in
-	// 		''|*[!0-9]*) tmpBools[${tmpInts[0]}]="false" ;;
-	// 		*) tmpBools[${tmpInts[0]}]="true" ;;
+	// 		''|*[!0-9]*) tmpBools[${tmpIndex}]="false" ;;
+	// 		*) tmpBools[${tmpIndex}]="true" ;;
 	// 	esac
 	// }
 	//
 	// # User script
 	//
-	// tmpInts[0]=1
+	// tmpIndex=0
 	// strIsInt "10"
-	// b="${tmpBools[1]}"
+	// b="${tmpBools[0]}"
 	// strIsInt "str"
-	// b="${tmpBools[1]}"
+	// b="${tmpBools[0]}"
 }
 
 // -------- Native function "StrToBool" --------
@@ -399,19 +399,19 @@ func ExampleStrToBool() {
 	// 	local value=$1
 	// 	if [[ "${value}" == "true" ]]
 	// 	then
-	// 		tmpBools[${tmpInts[0]}]="true"
+	// 		tmpBools[${tmpIndex}]="true"
 	// 	else
-	// 		tmpBools[${tmpInts[0]}]="false"
+	// 		tmpBools[${tmpIndex}]="false"
 	// 	fi
 	// }
 	//
 	// # User script
 	//
-	// tmpInts[0]=1
+	// tmpIndex=0
 	// strToBool "true"
-	// b1="${tmpBools[1]}"
+	// b1="${tmpBools[0]}"
 	// strToBool "false"
-	// b2="${tmpBools[1]}"
+	// b2="${tmpBools[0]}"
 }
 
 // -------- Native function "StrToInt" --------
@@ -446,14 +446,14 @@ func ExampleStrToInt() {
 	// # strToInt(str value) int
 	// strToInt () {
 	// 	local value=$1
-	// 	tmpInts[${tmpInts[0]}]=${value}
+	// 	tmpInts[${tmpIndex}]=${value}
 	// }
 	//
 	// # User script
 	//
-	// tmpInts[0]=1
+	// tmpIndex=0
 	// strToInt "123"
-	// i=${tmpInts[1]}
+	// i=${tmpInts[0]}
 }
 
 // -------- User defined functions --------
@@ -585,15 +585,15 @@ func ExampleFuncDeclarationWithCall() {
 	// add () {
 	// 	local a=$1
 	// 	local b=$2
-	// 	tmpInts[${tmpInts[0]}]=$((${a} + ${b}))
+	// 	tmpInts[${tmpIndex}]=$((${a} + ${b}))
 	// 	return
 	// }
 	//
-	// tmpInts[0]=1
+	// tmpIndex=0
 	// add ${i} 321
-	// sum=${tmpInts[1]}
+	// sum=${tmpInts[0]}
 	// add 123 321
-	// echo "${tmpInts[1]}"
+	// echo "${tmpInts[0]}"
 	// # Functions without body
 	// # emptyBody() void
 	// emptyBody () {

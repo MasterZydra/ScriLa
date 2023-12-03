@@ -49,6 +49,7 @@ func NewTranspiler() *Transpiler {
 		bashContexts:        []bashAst.IAppendBody{},
 		bashStmtStack:       make(map[int]bashAst.IStatement),
 		callArgIndexStack:   []int{},
+		lastWrittenIndex:    -1,
 	}
 }
 
@@ -140,7 +141,7 @@ func (self *Transpiler) contextContains(context Context) bool {
 }
 
 func (self *Transpiler) pushCallArgIndex() {
-	self.callArgIndexStack = append(self.callArgIndexStack, 1)
+	self.callArgIndexStack = append(self.callArgIndexStack, 0)
 }
 
 func (self *Transpiler) popCallArgIndex() {
@@ -151,7 +152,7 @@ func (self *Transpiler) currentCallArgIndex() int {
 	if len(self.callArgIndexStack) > 0 {
 		return self.callArgIndexStack[len(self.callArgIndexStack)-1]
 	}
-	return 1
+	return 0
 }
 
 func (self *Transpiler) incCallArgIndex() {
@@ -165,7 +166,7 @@ func (self *Transpiler) setCallArgIndex() {
 		return
 	}
 	self.lastWrittenIndex = self.currentCallArgIndex()
-	self.appendUserBody(bashAst.NewBashStmt(fmt.Sprintf("tmpInts[0]=%d", self.currentCallArgIndex())))
+	self.appendUserBody(bashAst.NewBashStmt(fmt.Sprintf("tmpIndex=%d", self.currentCallArgIndex())))
 }
 
 // Get the filename and current position

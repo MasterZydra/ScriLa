@@ -37,11 +37,11 @@ bool b = 42 > 13;
 # Bash transpilat
 if [[ 42 -gt 13 ]]
 then
-	tmpBool="true"
+	tmpBools[0]="true"
 else
-	tmpBool="false"
+	tmpBools[0]="false"
 fi
-b="${tmpBool}"
+b="${tmpBools[0]}"
 ```
 
 
@@ -78,12 +78,12 @@ int result = add(13, 42);
 add () {
 	local a=$1
 	local b=$2
-	tmpInts[${tmpInts[0]}]=$((${a} + ${b}))
+	tmpInts[${tmpIndex}]=$((${a} + ${b}))
 	return
 }
 
-tmpInts[0]=1
+tmpIndex=0
 add 13 42
-result=${tmpInts[1]}
+result=${tmpInts[0]}
 
 ``` 

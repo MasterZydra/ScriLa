@@ -18,6 +18,7 @@ func (self *Transpiler) setupScope(env *Environment) {
 	env.declareVar("tmpStrs", false, scrilaAst.StrArrayNode)
 	env.declareVar("tmpInts", false, scrilaAst.IntArrayNode)
 	env.declareVar("tmpBools", false, scrilaAst.BoolArrayNode)
+	env.declareVar("tmpIndex", false, scrilaAst.IntLiteralNode)
 
 	// Define native builtin methods
 	self.declareNativeFunctions(env)
