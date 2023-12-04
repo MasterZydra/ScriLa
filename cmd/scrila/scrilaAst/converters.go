@@ -27,6 +27,11 @@ func ExprToVarDecl(expr IExpr) IVarDeclaration {
 	return i.(IVarDeclaration)
 }
 
+func ExprToForStmt(expr IExpr) IForStatement {
+	var i interface{} = expr
+	return i.(IForStatement)
+}
+
 func ExprToIfStmt(expr IExpr) IIfStatement {
 	var i interface{} = expr
 	return i.(IIfStatement)

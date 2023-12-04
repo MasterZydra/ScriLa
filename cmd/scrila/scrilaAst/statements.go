@@ -239,6 +239,89 @@ func (self *VarDeclaration) SetResult(value IRuntimeVal) {
 	self.statement.SetResult(value)
 }
 
+// ForStatement
+
+type IForStatement interface {
+	IStatement
+	GetIndexVarType() NodeType
+	GetIndex() IIdentifier
+	GetArray() IExpr
+	GetBody() []IStatement
+}
+
+type ForStatement struct {
+	statement    *Statement
+	indexVarType NodeType
+	index        IIdentifier
+	array        IExpr
+	body         []IStatement
+}
+
+func (self *ForStatement) String() string {
+	indentDepth++
+	str := fmt.Sprintf("{%s - id: %d, index var type: %s,\n%sindex: %s\n%sarray: %s", self.GetKind(), self.GetId(), self.GetIndexVarType(), indent(), self.GetIndex(), indent(), self.GetArray())
+	if len(self.GetBody()) > 0 {
+		str += fmt.Sprintf("\n%sbody:", indent())
+		indentDepth++
+		for _, stmt := range self.GetBody() {
+			str += fmt.Sprintf("\n%s%s", indent(), stmt)
+		}
+		indentDepth--
+	}
+	indentDepth--
+	return str + "}"
+}
+
+func NewForStatement(indexVarType NodeType, index IIdentifier, array IExpr, body []IStatement, ln int, col int) *ForStatement {
+	return &ForStatement{
+		statement:    NewStatement(ForStatementNode, ln, col),
+		indexVarType: indexVarType,
+		index:        index,
+		array:        array,
+		body:         body,
+	}
+}
+
+func (self *ForStatement) GetId() int {
+	return self.statement.GetId()
+}
+
+func (self *ForStatement) GetKind() NodeType {
+	return self.statement.GetKind()
+}
+
+func (self *ForStatement) GetIndexVarType() NodeType {
+	return self.indexVarType
+}
+
+func (self *ForStatement) GetIndex() IIdentifier {
+	return self.index
+}
+
+func (self *ForStatement) GetArray() IExpr {
+	return self.array
+}
+
+func (self *ForStatement) GetBody() []IStatement {
+	return self.body
+}
+
+func (self *ForStatement) GetLn() int {
+	return self.statement.GetLn()
+}
+
+func (self *ForStatement) GetCol() int {
+	return self.statement.GetCol()
+}
+
+func (self *ForStatement) GetResult() IRuntimeVal {
+	return self.statement.GetResult()
+}
+
+func (self *ForStatement) SetResult(value IRuntimeVal) {
+	self.statement.SetResult(value)
+}
+
 // FunctionDeclaration
 
 type Parameter struct {
@@ -447,7 +530,7 @@ type WhileStatement struct {
 
 func (self *WhileStatement) String() string {
 	indentDepth++
-	str := fmt.Sprintf("{%s - id: %d,\n%scondition: %s,}", self.GetKind(), self.GetId(), indent(), self.GetCondition())
+	str := fmt.Sprintf("{%s - id: %d,\n%scondition: %s,", self.GetKind(), self.GetId(), indent(), self.GetCondition())
 	if len(self.GetBody()) > 0 {
 		str += fmt.Sprintf("\n%sbody:", indent())
 		indentDepth++

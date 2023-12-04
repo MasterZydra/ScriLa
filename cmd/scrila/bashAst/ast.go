@@ -10,6 +10,7 @@ const (
 	IfStmtNode          NodeType = "IfStmt"
 	ProgramNode         NodeType = "ProgramStmt"
 	WhileStmtNode       NodeType = "WhileStmt"
+	ForStmtNode         NodeType = "ForStmt"
 
 	// Expressions
 	ArrayAssignmentExprNode NodeType = "ArrayAssignementExpr"

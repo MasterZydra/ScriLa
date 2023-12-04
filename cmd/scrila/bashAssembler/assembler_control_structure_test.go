@@ -6,6 +6,83 @@ import (
 	"testing"
 )
 
+// -------- For --------
+
+func TestErrorForWithoutOpenParen(t *testing.T) {
+	initTest()
+	err := transpileTest(`for [1,2,3] {}`)
+	expected := fmt.Errorf("test.scri:1:5: Expected condition wrapped in parentheses")
+	if !strings.HasPrefix(err.Error(), expected.Error()) {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorForWithoutOpenBrace(t *testing.T) {
+	initTest()
+	err := transpileTest(`
+		for (int i in [1])
+		printLn("str");
+	`)
+	expected := fmt.Errorf("test.scri:3:3: Expected block following condition")
+	if !strings.HasPrefix(err.Error(), expected.Error()) {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorForWrongIndexType(t *testing.T) {
+	initTest()
+	err := transpileTest(`
+		for (str s in [1]) {
+			printLn("str");
+		}
+	`)
+	expected := fmt.Errorf("test.scri:2:3: Array data type and index data type is not matching")
+	if !strings.HasPrefix(err.Error(), expected.Error()) {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorForWithWrongArrayType(t *testing.T) {
+	initTest()
+	err := transpileTest(`
+		for (int i in 42) {
+			printLn("str");
+		}
+	`)
+	expected := fmt.Errorf("test.scri:2:3: Array data type and index data type is not matching")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func ExampleFor() {
+	initTestForPrintMode()
+	transpileTest(`
+	for (int i in [12, 13]) {
+		printLn(i);
+	}
+	int[] is = [14, 15];
+	for (int i in is) {
+		printLn(i);
+	}
+	`)
+
+	// Output:
+	// #!/bin/bash
+	//
+	// # User script
+	//
+	// for i in 12 13
+	// do
+	// 	echo "${i}"
+	// done
+	// is=(14 15)
+	// for i in ${is[@]}
+	// do
+	// 	echo "${i}"
+	// done
+}
+
 // -------- While --------
 
 func TestErrorWhileWithoutOpenParen(t *testing.T) {

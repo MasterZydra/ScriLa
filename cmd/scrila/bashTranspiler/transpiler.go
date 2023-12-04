@@ -16,6 +16,7 @@ type Context string
 const (
 	NoContext        Context = "NoContext"
 	FunctionContext  Context = "FunctionContext"
+	ForLoopContext   Context = "ForLoopContext"
 	WhileLoopContext Context = "WhileLoopContext"
 	IfStmtContext    Context = "IfStmtContext"
 )
@@ -100,6 +101,8 @@ func (self *Transpiler) transpile(astNode scrilaAst.IStatement, env *Environment
 		return self.evalProgram(scrilaAst.ExprToProgram(astNode), env)
 	case scrilaAst.VarDeclarationNode:
 		return self.evalVarDeclaration(scrilaAst.ExprToVarDecl(astNode), env)
+	case scrilaAst.ForStatementNode:
+		return self.evalForStatement(scrilaAst.ExprToForStmt(astNode), env)
 	case scrilaAst.IfStatementNode:
 		return self.evalIfStatement(scrilaAst.ExprToIfStmt(astNode), env)
 	case scrilaAst.WhileStatementNode:

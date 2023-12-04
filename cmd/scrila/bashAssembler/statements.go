@@ -15,6 +15,30 @@ func (self *Assembler) evalComment(comment bashAst.IComment) error {
 	return nil
 }
 
+func (self *Assembler) evalForStmt(forStmt bashAst.IForStmt) error {
+	bash, err := stmtToRhsBashStr(forStmt.GetArray())
+	if err != nil {
+		return err
+	}
+	if forStmt.GetArray().GetKind() == bashAst.ArrayLiteralNode {
+		// Arrays in for loops are not wrapped in parentheses
+		bash = bash[1 : len(bash)-1]
+	}
+	self.writeLnWithTabsToFile(fmt.Sprintf("for %s in %s", forStmt.GetIndex().GetValue(), bash))
+	self.writeLnWithTabsToFile("do")
+	self.incTabs()
+
+	// Assemble body line by line
+	if err = self.assembleBody(forStmt.GetBody()); err != nil {
+		return err
+	}
+	self.decTabs()
+
+	self.writeLnWithTabsToFile("done")
+
+	return nil
+}
+
 func (self *Assembler) evalFuncDeclaration(funcDecl bashAst.IFuncDeclaration) error {
 	// Create a documentation header with the functions signature written in ScriLa syntax
 	sig, err := self.getFuncSignature(funcDecl)

@@ -60,6 +60,57 @@ func (self *Transpiler) evalVarDeclaration(varDeclaration scrilaAst.IVarDeclarat
 	return result, nil
 }
 
+func (self *Transpiler) evalForStatement(forStmt scrilaAst.IForStatement, env *Environment) (scrilaAst.IRuntimeVal, error) {
+	self.printFuncName("")
+
+	// Index
+	varType := forStmt.GetIndexVarType()
+	varName := forStmt.GetIndex().GetSymbol()
+
+	localEnv := NewEnvironment(env, self)
+
+	_, err := localEnv.declareVar(varName, false, varType)
+	if err != nil {
+		return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(forStmt), err)
+	}
+	bashVarType, err := scrilaNodeTypeToBashNodeType(varType)
+	if err != nil {
+		return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(forStmt), err)
+	}
+	varLiteral := bashAst.NewVarLiteral(varName, bashVarType)
+
+	// Array
+	_, err = self.transpile(forStmt.GetArray(), env)
+	if err != nil {
+		return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(forStmt), err)
+	}
+	doMatch, err := self.exprIsArray(forStmt.GetArray(), varType, localEnv)
+	if err != nil {
+		return NewNullVal(), fmt.Errorf("%s: %s", self.getPos(forStmt), err)
+	}
+	if !doMatch {
+		return NewNullVal(), fmt.Errorf("%s: Array data type and index data type is not matching", self.getPos(forStmt))
+	}
+	_, err = self.transpile(forStmt.GetArray(), localEnv)
+	bashArrayStmt, err := self.exprToRhsBashStmt(forStmt.GetArray(), localEnv)
+
+	self.pushContext(ForLoopContext)
+	self.pushBashContext(bashAst.NewForStmt(varLiteral, bashArrayStmt))
+
+	// Transpile the body line by line
+	err = self.evalStatementBody(forStmt.GetBody(), localEnv)
+	if err != nil {
+		return NewNullVal(), err
+	}
+
+	bashForStmt := self.currentBashContext()
+	self.popContext()
+	self.popBashContext()
+	self.appendUserBody(bashForStmt)
+
+	return NewNullVal(), err
+}
+
 func (self *Transpiler) evalIfStatement(ifStatement scrilaAst.IIfStatement, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 

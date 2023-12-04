@@ -44,6 +44,66 @@ func NewComment(comment string) *StrStmt {
 	return NewStrStmt(CommentNode, comment)
 }
 
+// ForStmt
+
+type IForStmt interface {
+	IAppendBody
+	GetIndex() IVarLiteral
+	GetArray() IStatement
+	GetBody() []IStatement
+}
+
+type ForStmt struct {
+	statement *Statement
+	index     IVarLiteral
+	array     IStatement
+	body      []IStatement
+}
+
+func (self *ForStmt) String() string {
+	indentDepth++
+	str := fmt.Sprintf("{%s - index: %s\n%sarray: %s", self.GetKind(), self.GetIndex(), indent(), self.GetArray())
+	if len(self.GetBody()) > 0 {
+		str += fmt.Sprintf("\n%sbody:", indent())
+		indentDepth++
+		for _, stmt := range self.GetBody() {
+			str += fmt.Sprintf("\n%s%s", indent(), stmt)
+		}
+		indentDepth--
+	}
+	indentDepth--
+	return str + "}"
+}
+
+func NewForStmt(index IVarLiteral, array IStatement) *ForStmt {
+	return &ForStmt{
+		statement: NewStatement(ForStmtNode),
+		index:     index,
+		array:     array,
+		body:      make([]IStatement, 0),
+	}
+}
+
+func (self *ForStmt) GetKind() NodeType {
+	return self.statement.GetKind()
+}
+
+func (self *ForStmt) GetIndex() IVarLiteral {
+	return self.index
+}
+
+func (self *ForStmt) GetArray() IStatement {
+	return self.array
+}
+
+func (self *ForStmt) GetBody() []IStatement {
+	return self.body
+}
+
+func (self *ForStmt) AppendBody(stmt IStatement) {
+	self.body = append(self.body, stmt)
+}
+
 // FuncDeclaration
 
 type IFuncDeclaration interface {

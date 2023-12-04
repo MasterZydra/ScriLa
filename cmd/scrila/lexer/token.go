@@ -34,21 +34,25 @@ var keywords = map[string]TokenType{
 	"const":    Const,
 	"continue": Continue,
 	"else":     Else,
+	"false":    Bool,
+	"for":      For,
 	"func":     Function,
 	"if":       If,
+	"in":       In,
 	"int":      IntType,
 	"obj":      ObjType,
 	"return":   Return,
 	"str":      StrType,
+	"true":     Bool,
 	"void":     VoidType,
 	"while":    While,
-	"true":     Bool,
-	"false":    Bool,
 }
 
 type TokenType string
 
 const (
+	For            TokenType = "For"
+	In             TokenType = "In"
 	If             TokenType = "If"
 	Else           TokenType = "Else"
 	While          TokenType = "While"

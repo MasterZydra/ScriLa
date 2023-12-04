@@ -11,6 +11,7 @@ const (
 	FunctionDeclarationNode NodeType = "FunctionDeclaration"
 	IfStatementNode         NodeType = "IfStmt"
 	WhileStatementNode      NodeType = "WhileLoop"
+	ForStatementNode        NodeType = "ForLoop"
 
 	// Expressions
 	ExprNode           NodeType = "Expr"

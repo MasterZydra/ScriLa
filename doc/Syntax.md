@@ -11,6 +11,7 @@
   - [Comparing Integers](#comparing-integers)
   - [Comparing Strings](#comparing-strings)
 - [Control structures](#control-structures)
+  - [For](#for)
   - [If](#if)
   - [While](#while)
 - [Native functions](#native-functions)
@@ -158,6 +159,29 @@ if (s > "bcd") {
 
 # Control structures
 Control structures allow to change a purely linear program flow e.g. to "branches" (`if`) depending on a condition or repeat a code block multiple times until a condition is true (`while`).
+
+[Back to top](#syntax)
+
+## For
+The `for` loop executes the block of code for each array entry.
+
+**Syntax**  
+```Python
+for (type variableName in array) {
+    # block of code that is executed for each array entry
+}
+```
+
+**Example**  
+```Python
+for (int i in [1, 2, 3]) {
+    printLn(i);
+}
+int[] ints = [4, 5, 6];
+for (int i in ints) {
+    printLn(i);
+}
+```
 
 [Back to top](#syntax)
 

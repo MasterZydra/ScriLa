@@ -69,6 +69,8 @@ func (self *Parser) parseStatement() (scrilaAst.IStatement, error) {
 		if err != nil {
 			return scrilaAst.NewEmptyStatement(), err
 		}
+	case lexer.For:
+		return self.parseForStatement()
 	case lexer.If:
 		return self.parseIfStatement(false)
 	case lexer.While:
@@ -217,6 +219,68 @@ func (self *Parser) parseIfStatement(isElse bool) (scrilaAst.IStatement, error) 
 	}
 
 	return scrilaAst.NewIfStatement(condition, body, elseBlock, ifToken.Ln, ifToken.Col), nil
+}
+
+func (self *Parser) parseForStatement() (scrilaAst.IStatement, error) {
+	forToken := self.eat()
+
+	// Condition wrapped in braces
+	_, err := self.expect(lexer.OpenParen, "Expected condition wrapped in parentheses")
+	if err != nil {
+		return scrilaAst.NewEmptyStatement(), err
+	}
+	// Variable type
+	if !slices.Contains([]lexer.TokenType{lexer.BoolType, lexer.IntType, lexer.StrType}, self.at().TokenType) {
+		return scrilaAst.NewEmptyStatement(), fmt.Errorf("%s: Variable type '%s' not given or supported", self.getPos(self.at()), self.at().Value)
+	}
+	varType, err := lexerTokenTypeToScrilaNodeType(self.eat().TokenType)
+	if err != nil {
+		return scrilaAst.NewEmptyStatement(), err
+	}
+	// Variable name
+	token, err := self.expect(lexer.Identifier, "Expected identifier name following by data type")
+	if err != nil {
+		return scrilaAst.NewEmptyStatement(), err
+	}
+	identifier := token.Value
+	// Keyword "in"
+	_, err = self.expect(lexer.In, "Expected 'in' keyword following identifier in for loop")
+	if err != nil {
+		return scrilaAst.NewEmptyStatement(), err
+	}
+	// Array
+	array, err := self.parseExpr()
+	if err != nil {
+		return scrilaAst.NewEmptyStatement(), err
+	}
+	// Closing parenthesis
+	_, err = self.expect(lexer.CloseParen, "Expected closing parenthesis after condition")
+	if err != nil {
+		return scrilaAst.NewEmptyStatement(), err
+	}
+
+	// Body
+	_, err = self.expect(lexer.OpenBrace, "Expected block following condition")
+	if err != nil {
+		return scrilaAst.NewEmptyStatement(), err
+	}
+
+	body := make([]scrilaAst.IStatement, 0)
+
+	for self.notEOF() && self.at().TokenType != lexer.CloseBrace {
+		statement, err := self.parseStatement()
+		if err != nil {
+			return scrilaAst.NewEmptyStatement(), err
+		}
+		body = append(body, statement)
+	}
+
+	_, err = self.expect(lexer.CloseBrace, "Closing brace expected after if block")
+	if err != nil {
+		return scrilaAst.NewEmptyStatement(), err
+	}
+
+	return scrilaAst.NewForStatement(varType, scrilaAst.NewIdentifier(identifier, token.Ln, token.Col), array, body, forToken.Ln, forToken.Col), nil
 }
 
 func (self *Parser) parserWhileStatement() (scrilaAst.IStatement, error) {

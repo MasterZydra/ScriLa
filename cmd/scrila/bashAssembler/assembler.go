@@ -64,6 +64,8 @@ func (self *Assembler) assemble(astNode bashAst.IStatement) error {
 		return self.evalComment(bashAst.StmtToComment(astNode))
 	case bashAst.ContinueExprNode:
 		return self.evalContinueExpr(astNode)
+	case bashAst.ForStmtNode:
+		return self.evalForStmt(bashAst.StmtToForStmt(astNode))
 	case bashAst.FuncDeclarationNode:
 		return self.evalFuncDeclaration(bashAst.StmtToFuncDeclaration(astNode))
 	case bashAst.IfStmtNode:

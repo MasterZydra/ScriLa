@@ -6,6 +6,38 @@ import (
 	"fmt"
 )
 
+func (self *Transpiler) exprIsArray(expr scrilaAst.IExpr, wantedArrayType scrilaAst.NodeType, env *Environment) (bool, error) {
+	// Check array data type
+	if expr.GetKind() == scrilaAst.ArrayLiteralNode {
+		array, ok := self.bashStmtStack[expr.GetId()]
+		if !ok {
+			return false, fmt.Errorf("exprIsArray(): Array is not stored in stack")
+		}
+		bashArray := bashAst.StmtToArray(array)
+		bashDataType, err := bashNodeTypeToScrilaNodeType(bashArray.GetDataType())
+		if err != nil {
+			return false, err
+		}
+		return bashDataType == wantedArrayType, nil
+	}
+
+	// Check if identifier is variable and if that variable type matches with the wanted type
+	if expr.GetKind() == scrilaAst.IdentifierNode {
+		givenArrayType, err := env.lookupVarType(identNodeGetSymbol(expr))
+		if err != nil {
+			return false, err
+		}
+		givenType, err := scrilaAst.ArrayTypeToDataType(givenArrayType)
+		if err != nil {
+			return false, err
+		}
+
+		return givenType == wantedArrayType, nil
+	}
+
+	return false, nil
+}
+
 func (self *Transpiler) exprIsType(expr scrilaAst.IExpr, wantedType scrilaAst.NodeType, env *Environment) (bool, scrilaAst.NodeType, error) {
 	givenType := expr.GetKind()
 	// Check types directly

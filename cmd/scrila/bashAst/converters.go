@@ -45,6 +45,11 @@ func StmtToComment(stmt IStatement) IComment {
 	return i.(IComment)
 }
 
+func StmtToForStmt(stmt IStatement) IForStmt {
+	var i interface{} = stmt
+	return i.(IForStmt)
+}
+
 func StmtToFuncDeclaration(stmt IStatement) IFuncDeclaration {
 	var i interface{} = stmt
 	return i.(IFuncDeclaration)
