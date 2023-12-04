@@ -471,6 +471,13 @@ func ExampleArray() {
 
 		# Print
 		printLn(i1, i1[0]);
+
+		# Array as return type
+		func array() int[] {
+			int[] tmpArray = [41, 42];
+			return tmpArray;
+		}
+		int[] result = array();
 	`)
 
 	// Output:
@@ -499,4 +506,15 @@ func ExampleArray() {
 	// i2+=(${i44})
 	// # Print
 	// echo "${i1[@]} ${i1[0]}"
+	// # Array as return type
+	// # array() int[]
+	// array () {
+	// 	local tmpArray=(41 42)
+	// 	tmpInts=${tmpArray[@]}
+	// 	return
+	// }
+	//
+	// tmpIndex=0
+	// array
+	// result=${tmpInts[@]}
 }

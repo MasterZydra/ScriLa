@@ -16,12 +16,12 @@ const (
 )
 
 var nodeTypeValueTypeMapping = map[ValueType]NodeType{
-	BoolArrayValueType: BoolLiteralNode,
+	BoolArrayValueType: BoolArrayNode,
 	BoolValueType:      BoolLiteralNode,
-	IntArrayValueType:  IntLiteralNode,
+	IntArrayValueType:  IntArrayNode,
 	IntValueType:       IntLiteralNode,
 	ObjValueType:       ObjectLiteralNode,
-	StrArrayValueType:  StrLiteralNode,
+	StrArrayValueType:  StrArrayNode,
 	StrValueType:       StrLiteralNode,
 }
 

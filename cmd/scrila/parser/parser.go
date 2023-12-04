@@ -14,7 +14,12 @@ var additiveOps = []string{"+", "-"}
 
 var multiplicitaveOps = []string{"*", "/"} // TODO Modulo %
 
-var funcReturnTypes = []lexer.TokenType{lexer.BoolType, lexer.VoidType, lexer.IntType, lexer.StrType}
+var funcReturnTypes = []scrilaAst.NodeType{
+	scrilaAst.BoolArrayNode, scrilaAst.BoolLiteralNode,
+	scrilaAst.IntArrayNode, scrilaAst.IntLiteralNode,
+	scrilaAst.StrArrayNode, scrilaAst.StrLiteralNode,
+	scrilaAst.VoidNode,
+}
 
 type Parser struct {
 	lexer  *lexer.Lexer
@@ -278,7 +283,20 @@ func (self *Parser) parseFunctionDeclaration() (scrilaAst.IStatement, error) {
 	if returnType.TokenType == lexer.OpenBrace {
 		return scrilaAst.NewEmptyStatement(), fmt.Errorf("%s: Return type is missing", self.getPos(returnType))
 	}
-	if !slices.Contains(funcReturnTypes, returnType.TokenType) {
+	scrilaReturnType, err := lexerTokenTypeToScrilaNodeType(returnType.TokenType)
+	if err != nil {
+		return scrilaAst.NewEmptyStatement(), fmt.Errorf("%s: Unsupported return type '%s'", self.getPos(returnType), returnType.Value)
+	}
+	// Change variable type to the array data type equivalent
+	if self.at().TokenType == lexer.OpenBracket && self.next(0).TokenType == lexer.CloseBracket {
+		self.eat()
+		self.eat()
+		scrilaReturnType, err = scrilaAst.DataTypeToArrayType(scrilaReturnType)
+		if err != nil {
+			return scrilaAst.NewEmptyStatement(), err
+		}
+	}
+	if !slices.Contains(funcReturnTypes, scrilaReturnType) {
 		return scrilaAst.NewEmptyStatement(), fmt.Errorf("%s: Unsupported return type '%s'", self.getPos(returnType), returnType.Value)
 	}
 
@@ -296,11 +314,6 @@ func (self *Parser) parseFunctionDeclaration() (scrilaAst.IStatement, error) {
 			return scrilaAst.NewEmptyStatement(), err
 		}
 		body = append(body, statement)
-	}
-
-	scrilaReturnType, err := lexerTokenTypeToScrilaNodeType(returnType.TokenType)
-	if err != nil {
-		return scrilaAst.NewEmptyStatement(), err
 	}
 
 	_, err = self.expect(lexer.CloseBrace, "Closing brace expected inside function declaration")

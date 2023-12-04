@@ -52,7 +52,11 @@ func (self *Transpiler) evalArray(array scrilaAst.IArray, env *Environment) (scr
 
 	self.bashStmtStack[array.GetId()] = bashArray
 
-	return NewNullVal(), nil
+	arrayDataType, err := scrilaAst.DataTypeToArrayType(scrilaAst.NodeType(bashArray.GetDataType()))
+	if err != nil {
+		return NewNullVal(), err
+	}
+	return scrilaNodeTypeToRuntimeVal(arrayDataType)
 }
 
 func (self *Transpiler) evalIdentifier(identifier scrilaAst.IIdentifier, env *Environment) (scrilaAst.IRuntimeVal, error) {
@@ -476,7 +480,10 @@ func (self *Transpiler) evalReturnExpr(returnExpr scrilaAst.IReturnExpr, env *En
 	if err != nil {
 		return NewNullVal(), err
 	}
-	if resultValue.GetKind() != bashAst.VarLiteralNode || bashAst.StmtToVarLiteral(resultValue).GetDataType() != resultVarType {
+	if resultValue.GetKind() != bashAst.VarLiteralNode ||
+		!slices.Contains(
+			[]string{"tmpBools", "tmpInts", "tmpStrs", "tmpBools[${tmpIndex}]", "tmpInts[${tmpIndex}]", "tmpStrs[${tmpIndex}]"},
+			bashAst.StmtToVarLiteral(resultValue).GetValue()) {
 		self.appendUserBody(bashAst.NewAssignmentExpr(
 			bashAst.NewVarLiteral(resultVarName, resultVarType),
 			resultValue,

@@ -24,8 +24,11 @@ const (
 
 	// Literals
 	ArrayLiteralNode NodeType = "Array"
+	BoolArrayNode    NodeType = "BoolArray"
 	BoolLiteralNode  NodeType = "BoolLiteral"
+	IntArrayNode     NodeType = "IntArray"
 	IntLiteralNode   NodeType = "IntLiteral"
+	StrArrayNode     NodeType = "StrArray"
 	StrLiteralNode   NodeType = "StrLiteral"
 	VarLiteralNode   NodeType = "VarLiteral"
 

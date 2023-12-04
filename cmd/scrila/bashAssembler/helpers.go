@@ -91,7 +91,7 @@ func stmtToBashStr(stmt bashAst.IStatement) (string, error) {
 		return bashAst.StmtToStrLiteral(stmt).GetValue(), nil
 	case bashAst.VarLiteralNode:
 		switch varType := bashAst.StmtToVarLiteral(stmt).GetDataType(); varType {
-		case bashAst.ArrayLiteralNode:
+		case bashAst.ArrayLiteralNode, bashAst.BoolArrayNode, bashAst.IntArrayNode, bashAst.StrArrayNode:
 			// e.g.: "${var[@]}"
 			return strToBashVar(fmt.Sprintf("%s[@]", bashAst.StmtToVarLiteral(stmt).GetValue())), nil
 		case bashAst.BoolLiteralNode, bashAst.IntLiteralNode, bashAst.StrLiteralNode:
@@ -214,8 +214,11 @@ func strToBashVar(value string) string {
 }
 
 var nodeTypeToVarTypeKeywordMapping = map[bashAst.NodeType]string{
+	bashAst.BoolArrayNode:   "bool[]",
 	bashAst.BoolLiteralNode: "bool",
+	bashAst.IntArrayNode:    "int[]",
 	bashAst.IntLiteralNode:  "int",
+	bashAst.StrArrayNode:    "str[]",
 	bashAst.StrLiteralNode:  "str",
 	bashAst.VoidNode:        "void",
 }

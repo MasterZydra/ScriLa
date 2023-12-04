@@ -120,6 +120,7 @@ var dataTypeToArrayMapping = map[NodeType]NodeType{
 	BoolLiteralNode: BoolArrayNode,
 	IntLiteralNode:  IntArrayNode,
 	StrLiteralNode:  StrArrayNode,
+	VoidNode:        VoidNode,
 }
 
 func DataTypeToArrayType(dataType NodeType) (NodeType, error) {

@@ -99,11 +99,11 @@ func runtimeToFuncVal(runtimeVal scrilaAst.IRuntimeVal) IFunctionVal {
 }
 
 var scrilaNodeTypeToBashNodeTypeMapping = map[scrilaAst.NodeType]bashAst.NodeType{
-	scrilaAst.BoolArrayNode:   bashAst.ArrayLiteralNode,
+	scrilaAst.BoolArrayNode:   bashAst.BoolArrayNode,
 	scrilaAst.BoolLiteralNode: bashAst.BoolLiteralNode,
-	scrilaAst.IntArrayNode:    bashAst.ArrayLiteralNode,
+	scrilaAst.IntArrayNode:    bashAst.IntArrayNode,
 	scrilaAst.IntLiteralNode:  bashAst.IntLiteralNode,
-	scrilaAst.StrArrayNode:    bashAst.ArrayLiteralNode,
+	scrilaAst.StrArrayNode:    bashAst.StrArrayNode,
 	scrilaAst.StrLiteralNode:  bashAst.StrLiteralNode,
 	scrilaAst.VoidNode:        bashAst.VoidNode,
 }
@@ -152,7 +152,16 @@ var scrilaNodeTypeToTmpVarNameMapping = map[scrilaAst.NodeType]string{
 func (self *Transpiler) scrilaNodeTypeToTmpVarName(nodeType scrilaAst.NodeType) (string, error) {
 	value, ok := scrilaNodeTypeToTmpVarNameMapping[nodeType]
 	if !ok {
-		return "", fmt.Errorf("scrilaNodeTypeToTmpVarName(): Node type '%s' is not in mapping", nodeType)
+		// If nodeType is an array, the result shall be the array name without any index
+		dataType, err := scrilaAst.ArrayTypeToDataType(nodeType)
+		if err != nil {
+			return "", fmt.Errorf("scrilaNodeTypeToTmpVarName(): Node type '%s' is not in mapping", nodeType)
+		}
+		value, ok = scrilaNodeTypeToTmpVarNameMapping[dataType]
+		if !ok {
+			return "", fmt.Errorf("scrilaNodeTypeToTmpVarName(): Node type '%s' is not in mapping", nodeType)
+		}
+		return value, nil
 	}
 	index := self.currentCallArgIndex() - 1
 	if index < 0 {
@@ -164,7 +173,16 @@ func (self *Transpiler) scrilaNodeTypeToTmpVarName(nodeType scrilaAst.NodeType) 
 func (self *Transpiler) scrilaNodeTypeToDynTmpVarName(nodeType scrilaAst.NodeType) (string, error) {
 	value, ok := scrilaNodeTypeToTmpVarNameMapping[nodeType]
 	if !ok {
-		return "", fmt.Errorf("scrilaNodeTypeToDynTmpVarName(): Node type '%s' is not in mapping", nodeType)
+		// If nodeType is an array, the result shall be the array name without any index
+		dataType, err := scrilaAst.ArrayTypeToDataType(nodeType)
+		if err != nil {
+			return "", fmt.Errorf("scrilaNodeTypeToDynTmpVarName(): Node type '%s' is not in mapping", nodeType)
+		}
+		value, ok = scrilaNodeTypeToTmpVarNameMapping[dataType]
+		if !ok {
+			return "", fmt.Errorf("scrilaNodeTypeToDynTmpVarName(): Node type '%s' is not in mapping", nodeType)
+		}
+		return value, nil
 	}
 	return fmt.Sprintf("%s[${tmpIndex}]", value), nil
 }
