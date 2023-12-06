@@ -17,6 +17,7 @@ func (self *Transpiler) declareNativeFunctions(env *Environment) {
 	env.declareFunc("sleep", NewNativeFunc(self.nativeSleep, scrilaAst.VoidNode))
 	env.declareFunc("strIsBool", NewNativeFunc(self.nativeStrIsBool, scrilaAst.BoolLiteralNode))
 	env.declareFunc("strIsInt", NewNativeFunc(self.nativeStrIsInt, scrilaAst.BoolLiteralNode))
+	env.declareFunc("strSplit", NewNativeFunc(self.nativeStrSplit, scrilaAst.StrArrayNode))
 	env.declareFunc("strToBool", NewNativeFunc(self.nativeStrToBool, scrilaAst.BoolLiteralNode))
 	env.declareFunc("strToInt", NewNativeFunc(self.nativeStrToInt, scrilaAst.IntLiteralNode))
 }
@@ -180,6 +181,40 @@ func (self *Transpiler) nativeStrIsInt(args []scrilaAst.IExpr, env *Environment)
 		self.bashProgram.AppendNativeBody(funcDecl)
 	}
 	return NewBoolVal(true), nil
+}
+
+func (self *Transpiler) nativeStrSplit(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
+	self.printFuncName("")
+
+	// Validate args
+	if len(args) != 2 {
+		return NewNullVal(), fmt.Errorf("Expected syntax: strSplit(str value, str separator)")
+	}
+	doMatchArg0, givenTypeArg0, err := self.exprIsType(args[0], scrilaAst.StrLiteralNode, env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+	if !doMatchArg0 {
+		return NewNullVal(), fmt.Errorf("strSplit() - Parameter value must be a string or a variable of type string. Got '%s'", givenTypeArg0)
+	}
+	doMatchArg1, givenTypeArg1, err := self.exprIsType(args[1], scrilaAst.StrLiteralNode, env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+	if !doMatchArg1 {
+		return NewNullVal(), fmt.Errorf("strSplit() - Parameter separator must be a string or a variable of type string. Got '%s'", givenTypeArg1)
+	}
+
+	// Add bash code for strSplit to "usedNativeFunctions"
+	if !slices.Contains(self.usedNativeFunctions, "strSplit") {
+		self.usedNativeFunctions = append(self.usedNativeFunctions, "strSplit")
+		funcDecl := bashAst.NewFuncDeclaration("strSplit", bashAst.StrArrayNode)
+		funcDecl.AppendParams(bashAst.NewFuncParameter("value", bashAst.StrLiteralNode))
+		funcDecl.AppendParams(bashAst.NewFuncParameter("separator", bashAst.StrLiteralNode))
+		funcDecl.AppendBody(bashAst.NewBashStmt("IFS=${separator} read -ra tmpStrs <<< $value"))
+		self.bashProgram.AppendNativeBody(funcDecl)
+	}
+	return NewArrayVal(scrilaAst.StrArrayValueType), nil
 }
 
 func (self *Transpiler) nativeStrToBool(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {

@@ -22,6 +22,7 @@
   - [Sleep](#sleep)
   - [StrIsBool](#strisbool)
   - [StrIsInt](#strisint)
+  - [StrSplit](#strsplit)
   - [StrToBool](#strtobool)
   - [StrToInt](#strtoint)
 - [User defined functions](#user-defined-functions)
@@ -364,6 +365,22 @@ strIsInt(str value) bool
 ```Python
 strIsInt("123"); # true
 strIsInt("str"); # false
+```
+
+[Back to top](#syntax)
+
+## StrSplit
+The native function `strSplit` splits the given string at the given seperator and returns the string parts as a string array.
+
+**Syntax**  
+```Python
+strSplit(str value, str separator) str[]
+```
+
+**Example**  
+```Python
+str[] strs = strSplit("a,b,c,d", ","); # ["a", "b", "c", "d"]
+strs = (strSplit(exec("docker ps"), " ")); # ["CONTAINER", "ID", "IMAGE", "COMMAND", "CREATED", "STATUS", "PORTS", "NAMES"]
 ```
 
 [Back to top](#syntax)

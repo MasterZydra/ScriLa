@@ -362,6 +362,60 @@ func ExampleStrIsInt() {
 	// b="${tmpBools[0]}"
 }
 
+// -------- Native function "StrSplit" --------
+
+func TestErrorStrSplitWithoutValue(t *testing.T) {
+	initTest()
+	err := transpileTest(`strSplit("1,2,3");`)
+	expected := fmt.Errorf("test.scri:1:1: Expected syntax: strSplit(str value, str separator)")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorStrSplitWithWrongArg0Type(t *testing.T) {
+	initTest()
+	err := transpileTest(`strSplit(123, ",");`)
+	expected := fmt.Errorf("test.scri:1:1: strSplit() - Parameter value must be a string or a variable of type string. Got 'IntLiteral'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorStrSplitWithWrongArg1Type(t *testing.T) {
+	initTest()
+	err := transpileTest(`strSplit("a,b,c", 123);`)
+	expected := fmt.Errorf("test.scri:1:1: strSplit() - Parameter separator must be a string or a variable of type string. Got 'IntLiteral'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func ExampleStrSplit() {
+	initTestForPrintMode()
+	transpileTest(`
+		str[] strs = strSplit("a,b,c,d", ",");
+	`)
+
+	// Output:
+	// #!/bin/bash
+	//
+	// # Native function implementations
+	//
+	// # strSplit(str value, str separator) str[]
+	// strSplit () {
+	// 	local value=$1
+	// 	local separator=$2
+	// 	IFS=${separator} read -ra tmpStrs <<< $value
+	// }
+	//
+	// # User script
+	//
+	// tmpIndex=0
+	// strSplit "a,b,c,d" ","
+	// strs=${tmpStrs[@]}
+}
+
 // -------- Native function "StrToBool" --------
 
 func TestErrorStrToBoolWithoutValue(t *testing.T) {
