@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## v0.2.1-alpha
+
 ### Added
 
 - Added another temporary variabel `tmpIndex` to store the current array index so that the `tmpInts` array can be used without limitations
