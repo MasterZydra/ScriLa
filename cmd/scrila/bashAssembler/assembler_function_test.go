@@ -260,6 +260,65 @@ func ExampleSleep() {
 	// sleep ${i}
 }
 
+// -------- Native function "StrContains" --------
+
+func TestErrorStrContainsWithoutValue(t *testing.T) {
+	initTest()
+	err := transpileTest(`strContains("1,2,3");`)
+	expected := fmt.Errorf("test.scri:1:1: Expected syntax: strContains(str value, str substring)")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorStrContainsWithWrongArg0Type(t *testing.T) {
+	initTest()
+	err := transpileTest(`strContains(123, ",");`)
+	expected := fmt.Errorf("test.scri:1:1: strContains() - Parameter value must be a string or a variable of type string. Got 'IntLiteral'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorStrContainsWithWrongArg1Type(t *testing.T) {
+	initTest()
+	err := transpileTest(`strContains("a,b,c", 123);`)
+	expected := fmt.Errorf("test.scri:1:1: strContains() - Parameter substring must be a string or a variable of type string. Got 'IntLiteral'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func ExampleStrContains() {
+	initTestForPrintMode()
+	transpileTest(`
+		bool contains = strContains("a,b,c,d", "b");
+	`)
+
+	// Output:
+	// #!/bin/bash
+	//
+	// # Native function implementations
+	//
+	// # strContains(str value, str substring) bool
+	// strContains () {
+	// 	local value=$1
+	// 	local substring=$2
+	// 	if [[ "${value}" == *"${substring}"* ]]
+	// 	then
+	// 		tmpBools[${tmpIndex}]="true"
+	// 	else
+	// 		tmpBools[${tmpIndex}]="false"
+	// 	fi
+	// }
+	//
+	// # User script
+	//
+	// tmpIndex=0
+	// strContains "a,b,c,d" "b"
+	// contains="${tmpBools[0]}"
+}
+
 // -------- Native function "StrIsBool" --------
 
 func TestErrorStrIsBoolWithoutValue(t *testing.T) {

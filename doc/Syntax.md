@@ -20,6 +20,7 @@
   - [Input](#input)
   - [Print](#print)
   - [Sleep](#sleep)
+  - [StrContains](#strcontains)
   - [StrIsBool](#strisbool)
   - [StrIsInt](#strisint)
   - [StrSplit](#strsplit)
@@ -335,6 +336,22 @@ sleep(int seconds) void
 ```Python
 # Sleep for 10 seconds
 sleep(10);
+```
+
+[Back to top](#syntax)
+
+## StrContains
+The native function `strContains` checks if the given string contains the given substring.
+
+**Syntax**  
+```Python
+strContains(str value, str substring) bool
+```
+
+**Example**  
+```Python
+strContains("cow, pig, chicken", "pig"); # true
+strContains("cow, pig, chicken", "bird"); # false
 ```
 
 [Back to top](#syntax)

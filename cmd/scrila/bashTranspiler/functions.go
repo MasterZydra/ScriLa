@@ -15,6 +15,7 @@ func (self *Transpiler) declareNativeFunctions(env *Environment) {
 	env.declareFunc("print", NewNativeFunc(self.nativePrintLn, scrilaAst.VoidNode))
 	env.declareFunc("printLn", NewNativeFunc(self.nativePrintLn, scrilaAst.VoidNode))
 	env.declareFunc("sleep", NewNativeFunc(self.nativeSleep, scrilaAst.VoidNode))
+	env.declareFunc("strContains", NewNativeFunc(self.nativeStrContains, scrilaAst.BoolLiteralNode))
 	env.declareFunc("strIsBool", NewNativeFunc(self.nativeStrIsBool, scrilaAst.BoolLiteralNode))
 	env.declareFunc("strIsInt", NewNativeFunc(self.nativeStrIsInt, scrilaAst.BoolLiteralNode))
 	env.declareFunc("strSplit", NewNativeFunc(self.nativeStrSplit, scrilaAst.StrArrayNode))
@@ -115,6 +116,45 @@ func (self *Transpiler) nativeSleep(args []scrilaAst.IExpr, env *Environment) (s
 	}
 
 	return NewNullVal(), nil
+}
+
+func (self *Transpiler) nativeStrContains(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
+	self.printFuncName("")
+
+	// Validate args
+	if len(args) != 2 {
+		return NewNullVal(), fmt.Errorf("Expected syntax: strContains(str value, str substring)")
+	}
+	doMatchArg0, givenTypeArg0, err := self.exprIsType(args[0], scrilaAst.StrLiteralNode, env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+	if !doMatchArg0 {
+		return NewNullVal(), fmt.Errorf("strContains() - Parameter value must be a string or a variable of type string. Got '%s'", givenTypeArg0)
+	}
+	doMatchArg1, givenTypeArg1, err := self.exprIsType(args[1], scrilaAst.StrLiteralNode, env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+	if !doMatchArg1 {
+		return NewNullVal(), fmt.Errorf("strContains() - Parameter substring must be a string or a variable of type string. Got '%s'", givenTypeArg1)
+	}
+
+	// Add bash code for strContains to "usedNativeFunctions"
+	if !slices.Contains(self.usedNativeFunctions, "strContains") {
+		self.usedNativeFunctions = append(self.usedNativeFunctions, "strContains")
+		funcDecl := bashAst.NewFuncDeclaration("strContains", bashAst.BoolLiteralNode)
+		funcDecl.AppendParams(bashAst.NewFuncParameter("value", bashAst.StrLiteralNode))
+		funcDecl.AppendParams(bashAst.NewFuncParameter("substring", bashAst.StrLiteralNode))
+		funcDecl.AppendBody(bashAst.NewBashStmt("if [[ \"${value}\" == *\"${substring}\"* ]]"))
+		funcDecl.AppendBody(bashAst.NewBashStmt("then"))
+		funcDecl.AppendBody(bashAst.NewBashStmt("\ttmpBools[${tmpIndex}]=\"true\""))
+		funcDecl.AppendBody(bashAst.NewBashStmt("else"))
+		funcDecl.AppendBody(bashAst.NewBashStmt("\ttmpBools[${tmpIndex}]=\"false\""))
+		funcDecl.AppendBody(bashAst.NewBashStmt("fi"))
+		self.bashProgram.AppendNativeBody(funcDecl)
+	}
+	return NewBoolVal(true), nil
 }
 
 func (self *Transpiler) nativeStrIsBool(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
