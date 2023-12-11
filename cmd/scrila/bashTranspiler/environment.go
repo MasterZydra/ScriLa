@@ -8,12 +8,6 @@ import (
 )
 
 func (self *Transpiler) setupScope(env *Environment) {
-	// Create Default Global Environment
-	env.declareVar("true", true, scrilaAst.BoolLiteralNode)
-	env.declareVar("false", true, scrilaAst.BoolLiteralNode)
-	env.declareVar("break", true, scrilaAst.BreakExprNode)
-	env.declareVar("continue", true, scrilaAst.ContinueExprNode)
-
 	// Variables used for internal use
 	env.declareVar("tmpStrs", false, scrilaAst.StrArrayNode)
 	env.declareVar("tmpInts", false, scrilaAst.IntArrayNode)
