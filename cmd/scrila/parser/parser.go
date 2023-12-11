@@ -10,10 +10,6 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-var additiveOps = []string{"+", "-"}
-
-var multiplicitaveOps = []string{"*", "/"} // TODO Modulo %
-
 var funcReturnTypes = []scrilaAst.NodeType{
 	scrilaAst.BoolArrayNode, scrilaAst.BoolLiteralNode,
 	scrilaAst.IntArrayNode, scrilaAst.IntLiteralNode,
@@ -518,7 +514,7 @@ func (self *Parser) parseAdditiveExpr() (scrilaAst.IExpr, error) {
 	}
 
 	// Current token is an additive operator
-	for slices.Contains(additiveOps, self.at().Value) {
+	for slices.Contains([]string{"+", "-"}, self.at().Value) {
 		token := self.eat()
 		right, err := self.parseMultiplicitaveExpr()
 		if err != nil {
@@ -538,7 +534,7 @@ func (self *Parser) parseMultiplicitaveExpr() (scrilaAst.IExpr, error) {
 	}
 
 	// Current token is a multiplicitave operator
-	for slices.Contains(multiplicitaveOps, self.at().Value) {
+	for slices.Contains([]string{"*", "/"}, self.at().Value) { // TODO Modulo %
 		token := self.eat()
 		right, err := self.parseCallMemberExpr()
 		if err != nil {
