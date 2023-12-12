@@ -266,6 +266,9 @@ func ExampleIf() {
 		} else {
 			printLn("false");
 		}
+		if (strIsInt("321") || strIsInt("123")) {
+			printLn("true");
+		}
 		bool b = true;
 		if (b) {
 			# Do smth
@@ -308,6 +311,13 @@ func ExampleIf() {
 	// else
 	// 	echo "false"
 	// fi
+	// strIsInt "321"
+	// tmpIndex=1
+	// strIsInt "123"
+	// if [[ "${tmpBools[0]}" == "true" ]] || [[ "${tmpBools[1]}" == "true" ]]
+	// then
+	// 	echo "true"
+	// fi
 	// b="true"
 	// if [[ "${b}" == "true" ]]
 	// then
@@ -315,6 +325,7 @@ func ExampleIf() {
 	// 	:
 	// fi
 	// intStr="123"
+	// tmpIndex=0
 	// strIsInt "${intStr}"
 	// if [[ "${tmpBools[0]}" == "true" ]]
 	// then

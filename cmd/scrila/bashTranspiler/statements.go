@@ -115,10 +115,12 @@ func (self *Transpiler) evalIfStatement(ifStatement scrilaAst.IIfStatement, env 
 	self.printFuncName("")
 
 	// Transpile condition
+	self.pushCallArgIndex()
 	_, err := self.transpile(ifStatement.GetCondition(), env)
 	if err != nil {
 		return NewNullVal(), err
 	}
+	self.popCallArgIndex()
 	err = self.evalStatementCondition(ifStatement.GetCondition(), env)
 	if err != nil {
 		return NewNullVal(), err
@@ -162,10 +164,12 @@ func (self *Transpiler) evalWhileStatement(whileStatement scrilaAst.IWhileStatem
 	self.printFuncName("")
 
 	// Transpile condition
+	self.pushCallArgIndex()
 	_, err := self.transpile(whileStatement.GetCondition(), env)
 	if err != nil {
 		return NewNullVal(), err
 	}
+	self.popCallArgIndex()
 	err = self.evalStatementCondition(whileStatement.GetCondition(), env)
 	if err != nil {
 		return NewNullVal(), err
@@ -199,10 +203,12 @@ func (self *Transpiler) evalIfStatementElse(elseBlock scrilaAst.IIfStatement, en
 	var bashCond bashAst.IStatement
 	if elseBlock.GetCondition() != nil {
 		// Transpile condition
+		self.pushCallArgIndex()
 		_, err := self.transpile(elseBlock.GetCondition(), env)
 		if err != nil {
 			return err
 		}
+		self.popCallArgIndex()
 		err = self.evalStatementCondition(elseBlock.GetCondition(), env)
 		if err != nil {
 			return err
