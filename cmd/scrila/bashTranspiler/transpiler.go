@@ -182,7 +182,7 @@ func (self *Transpiler) printFuncName(msg string) {
 	if config.ShowCallStackScrila {
 		pc, _, _, _ := runtime.Caller(1)
 		funcName := runtime.FuncForPC(pc).Name()
-		funcName = strings.Replace(funcName, "ScriLa/cmd/scrila/transpiler.(*Transpiler).", "", -1)
+		funcName = strings.Replace(funcName, "ScriLa/cmd/scrila/bashTranspiler.(*Transpiler).", "", -1)
 
 		if msg == "" {
 			fmt.Printf("%s()\n", funcName)

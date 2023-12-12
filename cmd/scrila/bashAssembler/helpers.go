@@ -154,10 +154,12 @@ func binOpToBashStr(binOp bashAst.IBinaryOpExpr) (string, error) {
 
 	switch binOp.GetDataType() {
 	case bashAst.BoolLiteralNode:
-		if binOp.GetLeft().GetKind() == bashAst.BoolLiteralNode {
+		if binOp.GetLeft().GetKind() == bashAst.BoolLiteralNode ||
+			(binOp.GetLeft().GetKind() == bashAst.VarLiteralNode && bashAst.StmtToVarLiteral(binOp.GetLeft()).GetDataType() == bashAst.BoolLiteralNode) {
 			lhs = strToBashBoolComparison(strToBashStr(lhs))
 		}
-		if binOp.GetRight().GetKind() == bashAst.BoolLiteralNode {
+		if binOp.GetRight().GetKind() == bashAst.BoolLiteralNode ||
+			(binOp.GetRight().GetKind() == bashAst.VarLiteralNode && bashAst.StmtToVarLiteral(binOp.GetRight()).GetDataType() == bashAst.BoolLiteralNode) {
 			rhs = strToBashBoolComparison(strToBashStr(rhs))
 		}
 		return fmt.Sprintf("%s %s %s", lhs, binOp.GetOperator(), rhs), nil
