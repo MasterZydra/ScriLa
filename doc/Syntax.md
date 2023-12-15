@@ -397,7 +397,7 @@ strSplit(str value, str separator) str[]
 **Example**  
 ```Python
 str[] strs = strSplit("a,b,c,d", ","); # ["a", "b", "c", "d"]
-strs = (strSplit(exec("docker ps"), " ")); # ["CONTAINER", "ID", "IMAGE", "COMMAND", "CREATED", "STATUS", "PORTS", "NAMES"]
+strs = strSplit(exec("docker ps"), " "); # ["CONTAINER", "ID", "IMAGE", "COMMAND", "CREATED", "STATUS", "PORTS", "NAMES"]
 ```
 
 [Back to top](#syntax)
