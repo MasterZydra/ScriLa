@@ -16,9 +16,11 @@ func (self *Transpiler) declareNativeFunctions(env *Environment) {
 	env.declareFunc("printLn", NewNativeFunc(self.nativePrintLn, scrilaAst.VoidNode))
 	env.declareFunc("sleep", NewNativeFunc(self.nativeSleep, scrilaAst.VoidNode))
 	env.declareFunc("strContains", NewNativeFunc(self.nativeStrContains, scrilaAst.BoolLiteralNode))
+	env.declareFunc("strEndsWith", NewNativeFunc(self.nativeStrEndsWith, scrilaAst.BoolLiteralNode))
 	env.declareFunc("strIsBool", NewNativeFunc(self.nativeStrIsBool, scrilaAst.BoolLiteralNode))
 	env.declareFunc("strIsInt", NewNativeFunc(self.nativeStrIsInt, scrilaAst.BoolLiteralNode))
 	env.declareFunc("strSplit", NewNativeFunc(self.nativeStrSplit, scrilaAst.StrArrayNode))
+	env.declareFunc("strStartsWith", NewNativeFunc(self.nativeStrStartsWith, scrilaAst.BoolLiteralNode))
 	env.declareFunc("strToBool", NewNativeFunc(self.nativeStrToBool, scrilaAst.BoolLiteralNode))
 	env.declareFunc("strToInt", NewNativeFunc(self.nativeStrToInt, scrilaAst.IntLiteralNode))
 }
@@ -123,6 +125,47 @@ func (self *Transpiler) nativeSleep(args []scrilaAst.IExpr, env *Environment) (s
 	return NewNullVal(), nil
 }
 
+// MARK: strEndsWith
+func (self *Transpiler) nativeStrEndsWith(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
+	self.printFuncName("")
+
+	// Validate args
+	if len(args) != 2 {
+		return NewNullVal(), fmt.Errorf("Expected syntax: strEndsWith(str value, str suffix)")
+	}
+	doMatchArg0, givenTypeArg0, err := self.exprIsType(args[0], scrilaAst.StrLiteralNode, env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+	if !doMatchArg0 {
+		return NewNullVal(), fmt.Errorf("strEndsWith() - Parameter value must be a string or a variable of type string. Got '%s'", givenTypeArg0)
+	}
+	doMatchArg1, givenTypeArg1, err := self.exprIsType(args[1], scrilaAst.StrLiteralNode, env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+	if !doMatchArg1 {
+		return NewNullVal(), fmt.Errorf("strEndsWith() - Parameter suffix must be a string or a variable of type string. Got '%s'", givenTypeArg1)
+	}
+
+	// Add bash code for strEndsWith to "usedNativeFunctions"
+	if !slices.Contains(self.usedNativeFunctions, "strEndsWith") {
+		self.usedNativeFunctions = append(self.usedNativeFunctions, "strEndsWith")
+		funcDecl := bashAst.NewFuncDeclaration("strEndsWith", bashAst.BoolLiteralNode)
+		funcDecl.AppendParams(bashAst.NewFuncParameter("value", bashAst.StrLiteralNode))
+		funcDecl.AppendParams(bashAst.NewFuncParameter("suffix", bashAst.StrLiteralNode))
+		funcDecl.AppendBody(bashAst.NewBashStmt("if [[ \"${value}\" == *\"${suffix}\" ]]"))
+		funcDecl.AppendBody(bashAst.NewBashStmt("then"))
+		funcDecl.AppendBody(bashAst.NewBashStmt("\ttmpBools[${tmpIndex}]=\"true\""))
+		funcDecl.AppendBody(bashAst.NewBashStmt("else"))
+		funcDecl.AppendBody(bashAst.NewBashStmt("\ttmpBools[${tmpIndex}]=\"false\""))
+		funcDecl.AppendBody(bashAst.NewBashStmt("fi"))
+		self.bashProgram.AppendNativeBody(funcDecl)
+	}
+	return NewBoolVal(true), nil
+}
+
+// MARK: strContains
 func (self *Transpiler) nativeStrContains(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
@@ -265,6 +308,47 @@ func (self *Transpiler) nativeStrSplit(args []scrilaAst.IExpr, env *Environment)
 	return NewArrayVal(scrilaAst.StrArrayValueType), nil
 }
 
+// MARK: strStartsWith
+func (self *Transpiler) nativeStrStartsWith(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
+	self.printFuncName("")
+
+	// Validate args
+	if len(args) != 2 {
+		return NewNullVal(), fmt.Errorf("Expected syntax: strStartsWith(str value, str prefix)")
+	}
+	doMatchArg0, givenTypeArg0, err := self.exprIsType(args[0], scrilaAst.StrLiteralNode, env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+	if !doMatchArg0 {
+		return NewNullVal(), fmt.Errorf("strStartsWith() - Parameter value must be a string or a variable of type string. Got '%s'", givenTypeArg0)
+	}
+	doMatchArg1, givenTypeArg1, err := self.exprIsType(args[1], scrilaAst.StrLiteralNode, env)
+	if err != nil {
+		return NewNullVal(), err
+	}
+	if !doMatchArg1 {
+		return NewNullVal(), fmt.Errorf("strStartsWith() - Parameter prefix must be a string or a variable of type string. Got '%s'", givenTypeArg1)
+	}
+
+	// Add bash code for strStartsWith to "usedNativeFunctions"
+	if !slices.Contains(self.usedNativeFunctions, "strStartsWith") {
+		self.usedNativeFunctions = append(self.usedNativeFunctions, "strStartsWith")
+		funcDecl := bashAst.NewFuncDeclaration("strStartsWith", bashAst.BoolLiteralNode)
+		funcDecl.AppendParams(bashAst.NewFuncParameter("value", bashAst.StrLiteralNode))
+		funcDecl.AppendParams(bashAst.NewFuncParameter("prefix", bashAst.StrLiteralNode))
+		funcDecl.AppendBody(bashAst.NewBashStmt("if [[ \"${value}\" == \"${prefix}\"* ]]"))
+		funcDecl.AppendBody(bashAst.NewBashStmt("then"))
+		funcDecl.AppendBody(bashAst.NewBashStmt("\ttmpBools[${tmpIndex}]=\"true\""))
+		funcDecl.AppendBody(bashAst.NewBashStmt("else"))
+		funcDecl.AppendBody(bashAst.NewBashStmt("\ttmpBools[${tmpIndex}]=\"false\""))
+		funcDecl.AppendBody(bashAst.NewBashStmt("fi"))
+		self.bashProgram.AppendNativeBody(funcDecl)
+	}
+	return NewBoolVal(true), nil
+}
+
+// MARK: strToBool
 func (self *Transpiler) nativeStrToBool(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 

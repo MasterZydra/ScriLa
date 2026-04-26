@@ -319,7 +319,66 @@ func Example_strContains() {
 	// contains="${tmpBools[0]}"
 }
 
-// -------- Native function "StrIsBool" --------
+// -------- Native function "StrEndsWith" -------- MARK: StrEndsWith
+
+func TestErrorStrEndsWithWithoutValue(t *testing.T) {
+	initTest()
+	err := transpileTest(`strEndsWith("1,2,3");`)
+	expected := fmt.Errorf("test.scri:1:1: Expected syntax: strEndsWith(str value, str suffix)")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorStrEndsWithWithWrongArg0Type(t *testing.T) {
+	initTest()
+	err := transpileTest(`strEndsWith(123, ",");`)
+	expected := fmt.Errorf("test.scri:1:1: strEndsWith() - Parameter value must be a string or a variable of type string. Got 'IntLiteral'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorStrEndsWithWithWrongArg1Type(t *testing.T) {
+	initTest()
+	err := transpileTest(`strEndsWith("a,b,c", 123);`)
+	expected := fmt.Errorf("test.scri:1:1: strEndsWith() - Parameter suffix must be a string or a variable of type string. Got 'IntLiteral'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func Example_strEndsWith() {
+	initTestForPrintMode()
+	transpileTest(`
+		bool endsWith = strEndsWith("a,b,c,d", "b");
+	`)
+
+	// Output:
+	// #!/bin/bash
+	//
+	// # Native function implementations
+	//
+	// # strEndsWith(str value, str suffix) bool
+	// strEndsWith () {
+	// 	local value=$1
+	// 	local suffix=$2
+	// 	if [[ "${value}" == *"${suffix}" ]]
+	// 	then
+	// 		tmpBools[${tmpIndex}]="true"
+	// 	else
+	// 		tmpBools[${tmpIndex}]="false"
+	// 	fi
+	// }
+	//
+	// # User script
+	//
+	// tmpIndex=0
+	// strEndsWith "a,b,c,d" "b"
+	// endsWith="${tmpBools[0]}"
+}
+
+// -------- Native function "StrIsBool" -------- MARK: StrIsBool
 
 func TestErrorStrIsBoolWithoutValue(t *testing.T) {
 	initTest()
@@ -473,6 +532,65 @@ func Example_strSplit() {
 	// tmpIndex=0
 	// strSplit "a,b,c,d" ","
 	// strs=${tmpStrs[@]}
+}
+
+// -------- Native function "StrStartsWith" -------- MARK: StrStartsWith
+
+func TestErrorStrStartsWithWithoutValue(t *testing.T) {
+	initTest()
+	err := transpileTest(`strStartsWith("1,2,3");`)
+	expected := fmt.Errorf("test.scri:1:1: Expected syntax: strStartsWith(str value, str prefix)")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorStrStartsWithWithWrongArg0Type(t *testing.T) {
+	initTest()
+	err := transpileTest(`strStartsWith(123, ",");`)
+	expected := fmt.Errorf("test.scri:1:1: strStartsWith() - Parameter value must be a string or a variable of type string. Got 'IntLiteral'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func TestErrorStrStartsWithWithWrongArg1Type(t *testing.T) {
+	initTest()
+	err := transpileTest(`strStartsWith("a,b,c", 123);`)
+	expected := fmt.Errorf("test.scri:1:1: strStartsWith() - Parameter prefix must be a string or a variable of type string. Got 'IntLiteral'")
+	if err.Error() != expected.Error() {
+		t.Errorf("Expected: \"%s\", Got: \"%s\"", expected, err)
+	}
+}
+
+func Example_strStartsWith() {
+	initTestForPrintMode()
+	transpileTest(`
+		bool startsWith = strStartsWith("a,b,c,d", "b");
+	`)
+
+	// Output:
+	// #!/bin/bash
+	//
+	// # Native function implementations
+	//
+	// # strStartsWith(str value, str prefix) bool
+	// strStartsWith () {
+	// 	local value=$1
+	// 	local prefix=$2
+	// 	if [[ "${value}" == "${prefix}"* ]]
+	// 	then
+	// 		tmpBools[${tmpIndex}]="true"
+	// 	else
+	// 		tmpBools[${tmpIndex}]="false"
+	// 	fi
+	// }
+	//
+	// # User script
+	//
+	// tmpIndex=0
+	// strStartsWith "a,b,c,d" "b"
+	// startsWith="${tmpBools[0]}"
 }
 
 // -------- Native function "StrToBool" -------- MARK: StrToBool

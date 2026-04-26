@@ -21,9 +21,11 @@
   - [Print](#print)
   - [Sleep](#sleep)
   - [StrContains](#strcontains)
+  - [StrEndsWith](#strendswith)
   - [StrIsBool](#strisbool)
   - [StrIsInt](#strisint)
   - [StrSplit](#strsplit)
+  - [StrStartsWith](#strstartswith)
   - [StrToBool](#strtobool)
   - [StrToInt](#strtoint)
 - [User defined functions](#user-defined-functions)
@@ -356,6 +358,22 @@ strContains("cow, pig, chicken", "bird"); # false
 
 [Back to top](#syntax)
 
+## StrEndsWith
+The native function `strEndsWith` checks if the given string contains the given suffix.
+
+**Syntax**  
+```Python
+strEndsWith(str value, str suffix) bool
+```
+
+**Example**  
+```Python
+strEndsWith("chicken", "ken"); # true
+strEndsWith("chicken", "chi"); # false
+```
+
+[Back to top](#syntax)
+
 ## StrIsBool
 The native function `strIsBool` checks if the given string is a boolean so that it could be converted to a string e.g. with `strToBool`.
 
@@ -398,6 +416,22 @@ strSplit(str value, str separator) str[]
 ```Python
 str[] strs = strSplit("a,b,c,d", ","); # ["a", "b", "c", "d"]
 strs = strSplit(exec("docker ps"), " "); # ["CONTAINER", "ID", "IMAGE", "COMMAND", "CREATED", "STATUS", "PORTS", "NAMES"]
+```
+
+[Back to top](#syntax)
+
+## StrStartsWith
+The native function `strStartsWith` checks if the given string contains the given prefix.
+
+**Syntax**  
+```Python
+strStartsWith(str value, str suffix) bool
+```
+
+**Example**  
+```Python
+strStartsWith("chicken", "chi"); # true
+strStartsWith("chicken", "ken"); # false
 ```
 
 [Back to top](#syntax)
