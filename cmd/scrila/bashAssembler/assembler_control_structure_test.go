@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-// -------- For --------
+// -------- For -------- MARK: For
 
 func TestErrorForWithoutOpenParen(t *testing.T) {
 	initTest()
@@ -83,7 +83,7 @@ func Example_for() {
 	// done
 }
 
-// -------- While --------
+// -------- While -------- MARK: While
 
 func TestErrorWhileWithoutOpenParen(t *testing.T) {
 	initTest()
@@ -190,7 +190,7 @@ func TestErrorBreakOutsideOfWhile(t *testing.T) {
 	}
 }
 
-// -------- If --------
+// -------- If -------- MARK: If
 
 func TestErrorIfWithoutOpenParen(t *testing.T) {
 	initTest()

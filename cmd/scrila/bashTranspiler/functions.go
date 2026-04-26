@@ -23,6 +23,7 @@ func (self *Transpiler) declareNativeFunctions(env *Environment) {
 	env.declareFunc("strToInt", NewNativeFunc(self.nativeStrToInt, scrilaAst.IntLiteralNode))
 }
 
+// MARK: exec
 func (self *Transpiler) nativeExec(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
@@ -50,6 +51,7 @@ func (self *Transpiler) nativeExec(args []scrilaAst.IExpr, env *Environment) (sc
 	return NewStrVal("str"), nil
 }
 
+// MARK: exit
 func (self *Transpiler) nativeExit(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
@@ -68,6 +70,7 @@ func (self *Transpiler) nativeExit(args []scrilaAst.IExpr, env *Environment) (sc
 	return NewNullVal(), nil
 }
 
+// MARK: input
 func (self *Transpiler) nativeInput(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
@@ -95,11 +98,13 @@ func (self *Transpiler) nativeInput(args []scrilaAst.IExpr, env *Environment) (s
 	return NewStrVal("str"), nil
 }
 
+// MARK: printLn
 func (self *Transpiler) nativePrintLn(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 	return NewNullVal(), nil
 }
 
+// MARK: sleep
 func (self *Transpiler) nativeSleep(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
@@ -157,6 +162,7 @@ func (self *Transpiler) nativeStrContains(args []scrilaAst.IExpr, env *Environme
 	return NewBoolVal(true), nil
 }
 
+// MARK: strIsBool
 func (self *Transpiler) nativeStrIsBool(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
@@ -193,6 +199,7 @@ func (self *Transpiler) nativeStrIsBool(args []scrilaAst.IExpr, env *Environment
 	return NewBoolVal(true), nil
 }
 
+// MARK: strIsInt
 func (self *Transpiler) nativeStrIsInt(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
@@ -223,6 +230,7 @@ func (self *Transpiler) nativeStrIsInt(args []scrilaAst.IExpr, env *Environment)
 	return NewBoolVal(true), nil
 }
 
+// MARK: strSplit
 func (self *Transpiler) nativeStrSplit(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 
@@ -289,6 +297,7 @@ func (self *Transpiler) nativeStrToBool(args []scrilaAst.IExpr, env *Environment
 	return NewBoolVal(true), nil
 }
 
+// MARK: strToInt
 func (self *Transpiler) nativeStrToInt(args []scrilaAst.IExpr, env *Environment) (scrilaAst.IRuntimeVal, error) {
 	self.printFuncName("")
 

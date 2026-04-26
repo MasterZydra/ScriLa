@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-// -------- Native function "Exec" --------
+// -------- Native function "Exec" -------- MARK: Exec
 
 func TestErrorExecWithoutValue(t *testing.T) {
 	initTest()
@@ -53,7 +53,7 @@ func Example_exec() {
 	// exec "${cmd}"
 }
 
-// -------- Native function "Exit" --------
+// -------- Native function "Exit" -------- MARK: Exit
 
 func TestErrorExitWithoutValue(t *testing.T) {
 	initTest()
@@ -91,7 +91,7 @@ func ExampleExit() {
 	// exit ${code}
 }
 
-// -------- Native function "Input" --------
+// -------- Native function "Input" -------- MARK: Input
 
 func TestErrorInputFuncCallWithWrongParamVarType(t *testing.T) {
 	initTest()
@@ -158,7 +158,7 @@ func Example_input() {
 	// input "${s}"
 }
 
-// -------- Native function "Print" --------
+// -------- Native function "Print" -------- MARK: Print
 
 func Example_print() {
 	initTestForPrintMode()
@@ -210,7 +210,7 @@ func Example_print() {
 	// echo "$((${tmpInts[0]} + 2))"
 }
 
-// -------- Native function "Sleep" --------
+// -------- Native function "Sleep" -------- MARK: Sleep
 
 func TestErrorSleepFuncCallWithWrongParamVarType(t *testing.T) {
 	initTest()
@@ -260,7 +260,7 @@ func Example_sleep() {
 	// sleep ${i}
 }
 
-// -------- Native function "StrContains" --------
+// -------- Native function "StrContains" -------- MARK: StrContains
 
 func TestErrorStrContainsWithoutValue(t *testing.T) {
 	initTest()
@@ -371,7 +371,7 @@ func Example_strIsBool() {
 	// b="${tmpBools[0]}"
 }
 
-// -------- Native function "StrIsInt" --------
+// -------- Native function "StrIsInt" -------- MARK: StrIsInt
 
 func TestErrorStrIsIntWithoutValue(t *testing.T) {
 	initTest()
@@ -421,7 +421,7 @@ func Example_strIsInt() {
 	// b="${tmpBools[0]}"
 }
 
-// -------- Native function "StrSplit" --------
+// -------- Native function "StrSplit" -------- MARK: StrSplit
 
 func TestErrorStrSplitWithoutValue(t *testing.T) {
 	initTest()
@@ -475,7 +475,7 @@ func Example_strSplit() {
 	// strs=${tmpStrs[@]}
 }
 
-// -------- Native function "StrToBool" --------
+// -------- Native function "StrToBool" -------- MARK: StrToBool
 
 func TestErrorStrToBoolWithoutValue(t *testing.T) {
 	initTest()
@@ -527,7 +527,7 @@ func Example_strToBool() {
 	// b2="${tmpBools[0]}"
 }
 
-// -------- Native function "StrToInt" --------
+// -------- Native function "StrToInt" -------- MARK: StrToInt
 
 func TestErrorStrToIntWithoutValue(t *testing.T) {
 	initTest()
@@ -569,7 +569,7 @@ func Example_strToInt() {
 	// i=${tmpInts[0]}
 }
 
-// -------- User defined functions --------
+// -------- User defined functions -------- MARK: User defined functions
 
 func TestErrorInvalidFuncCallName(t *testing.T) {
 	initTest()
