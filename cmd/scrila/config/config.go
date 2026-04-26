@@ -1,7 +1,7 @@
 package config
 
 var (
-	Version  string = "v0.2.1-alpha"
+	Version  string = "v0.2.2-alpha"
 	Filename string
 
 	// Debugging infos
