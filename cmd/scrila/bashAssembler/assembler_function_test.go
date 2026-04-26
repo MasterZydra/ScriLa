@@ -26,7 +26,7 @@ func TestErrorExecWithWrongArgType(t *testing.T) {
 	}
 }
 
-func ExampleExec() {
+func Example_exec() {
 	initTestForPrintMode()
 	transpileTest(`
 		exec("echo hi");
@@ -132,7 +132,7 @@ func TestErrorInputWithoutPrompt(t *testing.T) {
 	}
 }
 
-func ExampleInput() {
+func Example_input() {
 	initTestForPrintMode()
 	transpileTest(`
 		str s = input("Enter username:");
@@ -160,7 +160,7 @@ func ExampleInput() {
 
 // -------- Native function "Print" --------
 
-func ExamplePrint() {
+func Example_print() {
 	initTestForPrintMode()
 	transpileTest(`
 		# Print with(out) linebreaks
@@ -242,7 +242,7 @@ func TestErrorSleepWithoutSeconds(t *testing.T) {
 	}
 }
 
-func ExampleSleep() {
+func Example_sleep() {
 	initTestForPrintMode()
 	transpileTest(`
 		sleep(10);
@@ -289,7 +289,7 @@ func TestErrorStrContainsWithWrongArg1Type(t *testing.T) {
 	}
 }
 
-func ExampleStrContains() {
+func Example_strContains() {
 	initTestForPrintMode()
 	transpileTest(`
 		bool contains = strContains("a,b,c,d", "b");
@@ -339,7 +339,7 @@ func TestErrorStrIsBoolWithWrongArgType(t *testing.T) {
 	}
 }
 
-func ExampleStrIsBool() {
+func Example_strIsBool() {
 	initTestForPrintMode()
 	transpileTest(`
 		bool b = strIsBool("10");
@@ -391,7 +391,7 @@ func TestErrorStrIsIntWithWrongArgType(t *testing.T) {
 	}
 }
 
-func ExampleStrIsInt() {
+func Example_strIsInt() {
 	initTestForPrintMode()
 	transpileTest(`
 		bool b = strIsInt("10");
@@ -450,7 +450,7 @@ func TestErrorStrSplitWithWrongArg1Type(t *testing.T) {
 	}
 }
 
-func ExampleStrSplit() {
+func Example_strSplit() {
 	initTestForPrintMode()
 	transpileTest(`
 		str[] strs = strSplit("a,b,c,d", ",");
@@ -495,7 +495,7 @@ func TestErrorStrToBoolWithWrongArgType(t *testing.T) {
 	}
 }
 
-func ExampleStrToBool() {
+func Example_strToBool() {
 	initTestForPrintMode()
 	transpileTest(`
 		bool b1 = strToBool("true");
@@ -547,7 +547,7 @@ func TestErrorStrToIntWithWrongArgType(t *testing.T) {
 	}
 }
 
-func ExampleStrToInt() {
+func Example_strToInt() {
 	initTestForPrintMode()
 	transpileTest(`int i = strToInt("123");`)
 
@@ -629,7 +629,7 @@ func TestErrorAlreadyDefinedFunction(t *testing.T) {
 	}
 }
 
-func ExampleFuncDeclarationWithCall() {
+func Example_funcDeclarationWithCall() {
 	initTestForPrintMode()
 	transpileTest(`
 		# Function without params

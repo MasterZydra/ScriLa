@@ -55,7 +55,7 @@ func TestErrorLexerUnrecognizedChar(t *testing.T) {
 	}
 }
 
-func ExampleIntVar() {
+func Example_intVar() {
 	initTestForPrintMode()
 	transpileTest(`
 		# Declare and assign new value
@@ -152,7 +152,7 @@ func TestErrorIntAssignmentWithMissingDeclaration(t *testing.T) {
 	}
 }
 
-func ExampleStrAssignmentBinaryExprWithVar() {
+func Example_strAssignmentBinaryExprWithVar() {
 	initTestForPrintMode()
 	transpileTest(`
 		str a = "Hello";
@@ -174,7 +174,7 @@ func ExampleStrAssignmentBinaryExprWithVar() {
 	// d="${a} World"
 }
 
-func ExampleVarDeclarationAndAssignmentWithVariable() {
+func Example_varDeclarationAndAssignmentWithVariable() {
 	initTestForPrintMode()
 	transpileTest(`
 		int i = 123;
@@ -352,7 +352,7 @@ func TestErrorCompareDiffVarTypes(t *testing.T) {
 	}
 }
 
-func ExampleBoolAssignComparision() {
+func Example_boolAssignComparision() {
 	initTestForPrintMode()
 	transpileTest(`
 		bool b = 42 > 13;

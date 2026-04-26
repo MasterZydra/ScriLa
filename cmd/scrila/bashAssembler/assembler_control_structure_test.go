@@ -55,7 +55,7 @@ func TestErrorForWithWrongArrayType(t *testing.T) {
 	}
 }
 
-func ExampleFor() {
+func Example_for() {
 	initTestForPrintMode()
 	transpileTest(`
 	for (int i in [12, 13]) {
@@ -133,7 +133,7 @@ func TestErrorWhileWithWrongVarType(t *testing.T) {
 	}
 }
 
-func ExampleWhile() {
+func Example_while() {
 	initTestForPrintMode()
 	transpileTest(`
 		while (true && false) {
@@ -251,7 +251,7 @@ func TestErrorIfWithWrongFuncReturnType(t *testing.T) {
 	}
 }
 
-func ExampleIf() {
+func Example_if() {
 	initTestForPrintMode()
 	transpileTest(`
 		if (true) {
@@ -333,7 +333,7 @@ func ExampleIf() {
 	// fi
 }
 
-func ExampleIfComparisons() {
+func Example_ifComparisons() {
 	initTestForPrintMode()
 	transpileTest(`
 		# Integer comparison
