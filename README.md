@@ -1,5 +1,14 @@
 # ScriLa
 
+> [!WARNING]  
+> This repository has been **archived** and is no longer maintained.
+>
+> It was created as a **learning project** and is provided for reference purposes only.  
+> The code may be incomplete, outdated, or not follow best practices.
+> 
+> **Do not use this project in production.**  
+> No further updates, fixes, or support will be provided.
+
 ScriLa is a scripting language that adopts a syntax reminiscent of Go and C++, and it compiles down to Bash.  
 The primary objective is to craft ScriLa in a manner that ensures intuitive usage. Furthermore, it aims to provide type safety similar to TypeScript's relationship with JavaScript.
 
